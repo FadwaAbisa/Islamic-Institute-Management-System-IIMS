@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id       String @id
+  username String @unique
+}
+
+model Student {
+  id               String           @id @default(uuid())
+  
+  // البيانات الشخصية والاتصال
+  fullName         String // الاسم الرباعي
+  nationalId       String           @unique // رقم الهوية/الرقم الوطني
+  sex              UserSex // الجنس (ذكر/أنثى)
+  birthday         DateTime // تاريخ الميلاد
+  placeOfBirth     String // مكان الميلاد
+  nationality      String // الجنسية
+  address          String // العنوان
+  studentPhone     String? // رقم هاتف الطالب
+  
+  // بيانات التسجيل الأكاديمي
+  academicYear     String? // العام الدراسي (2024-2025 مثلاً)
+  studyLevel       String? // المرحلة الدراسية
+  specialization   String? // الشعبة التخصصية
+  studyMode        StudyMode? // النظام الدراسي (نظامي/انتساب)
+  enrollmentStatus EnrollmentStatus? // صفة القيد (مستجد/معيد)
+  studentStatus    StudentStatus? // حالة الطالب (مستمر/منقطع...)
+  
+  // البيانات الإضافية
+  guardianName         String? // اسم ولي الأمر
+  relationship         String? // صلة القرابة
+  guardianPhone        String? // هاتف ولي الأمر
+  previousSchool       String? // المدرسة السابقة
+  previousLevel        String? // المستوى الأكاديمي السابق
+  healthCondition      String? // الحالة الصحية
+  chronicDiseases      String? // الأمراض المزمنة
+  allergies            String? // الحساسيات
+  specialNeeds         String? // الاحتياجات الخاصة
+  emergencyContactName    String? // اسم جهة الاتصال للطوارئ
+  emergencyContactPhone   String? // هاتف جهة الاتصال الطوارئ
+  emergencyContactAddress String? // عنوان جهة الاتصال الطوارئ
+  notes                String? // ملاحظات
+  
+  // بيانات المستندات (مسارات الملفات)
+  studentPhoto       String? // مسار صورة الطالب
+  nationalIdCopy     String? // مسار صورة الهوية
+  birthCertificate   String? // مسار شهادة الميلاد
+  educationForm      String? // مسار استمارة التعليم
+  equivalencyDocument String? // مسار وثيقة المعادلة
+  otherDocuments     Json? // مصفوفة مسارات المستندات الأخرى
+  
+  createdAt        DateTime         @default(now())
+
+  // العلاقات (اختيارية الآن)
+  parentId String?
+  parent   Parent? @relation(fields: [parentId], references: [id])
+  classId  Int?
+  class    Class?  @relation(fields: [classId], references: [id])
+  gradeId  Int?
+  grade    Grade?  @relation(fields: [gradeId], references: [id])
+
+  attendances Attendance[]
+  results     Result[]
+}
+
+model Teacher {
+  id        String    @id
+  username  String    @unique
+  name      String
+  surname   String
+  email     String?   @unique
+  phone     String?   @unique
+  address   String
+  img       String?
+  bloodType String
+  sex       UserSex
+  createdAt DateTime  @default(now())
+  subjects  Subject[]
+  lessons   Lesson[]
+  classes   Class[]
+  birthday  DateTime
+}
+
+model Parent {
+  id        String    @id
+  username  String    @unique
+  name      String
+  surname   String
+  email     String?   @unique
+  phone     String    @unique
+  address   String
+  createdAt DateTime  @default(now())
+  students  Student[]
+}
+
+model Grade {
+  id    Int @id @default(autoincrement())
+  level Int @unique
+
+  students Student[]
+  classess Class[]
+}
+
+model Class {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  capacity Int
+
+  supervisorId  String?
+  supervisor    Teacher?       @relation(fields: [supervisorId], references: [id])
+  lessons       Lesson[]
+  students      Student[]
+  gradeId       Int
+  grade         Grade          @relation(fields: [gradeId], references: [id])
+  events        Event[]
+  announcements Announcement[]
+}
+
+model Subject {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  teachers Teacher[]
+  lessons  Lesson[]
+}
+
+model Lesson {
+  id        Int      @id @default(autoincrement())
+  name      String
+  day       Day
+  startTime DateTime
+  endTime   DateTime
+
+  subjectId   Int
+  subject     Subject      @relation(fields: [subjectId], references: [id])
+  classId     Int
+  class       Class        @relation(fields: [classId], references: [id])
+  teacherId   String
+  teacher     Teacher      @relation(fields: [teacherId], references: [id])
+  exams       Exam[]
+  assignments Assignment[]
+  attendances Attendance[]
+}
+
+model Exam {
+  id        Int      @id @default(autoincrement())
+  title     String
+  startTime DateTime
+  endTime   DateTime
+
+  lessonId Int
+  lesson   Lesson   @relation(fields: [lessonId], references: [id])
+  results  Result[]
+}
+
+model Assignment {
+  id        Int      @id @default(autoincrement())
+  title     String
+  startDate DateTime
+  dueDate   DateTime
+
+  lessonId Int
+  lesson   Lesson   @relation(fields: [lessonId], references: [id])
+  results  Result[]
+}
+
+model Result {
+  id    Int @id @default(autoincrement())
+  score Int
+
+  examId       Int?
+  exam         Exam?       @relation(fields: [examId], references: [id])
+  assignmentId Int?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id])
+  studentId    String
+  student      Student     @relation(fields: [studentId], references: [id])
+}
+
+model Attendance {
+  id      Int      @id @default(autoincrement())
+  date    DateTime
+  present Boolean
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+  lessonId  Int
+  lesson    Lesson  @relation(fields: [lessonId], references: [id])
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  startTime   DateTime
+  endTime     DateTime
+
+  classId Int?
+  class   Class? @relation(fields: [classId], references: [id])
+}
+
+model Announcement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  date        DateTime
+
+  classId Int?
+  class   Class? @relation(fields: [classId], references: [id])
+}
+
+enum Day {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+}
+
+enum UserSex {
+  MALE
+  FEMALE
+}
+
+enum StudentStatus {
+  ACTIVE // مستمر
+  DROPPED // منقطع
+  SUSPENDED // موقوف
+  EXPELLED // مطرود
+  PAUSED // إيقاف قيد
+}
+
+enum StudyMode {
+  REGULAR // نظامي
+  DISTANCE // انتساب
+}
+
+enum EnrollmentStatus {
+  NEW // مستجد
+  REPEATER // معيد
+}
