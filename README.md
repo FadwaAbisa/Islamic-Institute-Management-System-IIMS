@@ -1,26 +1,38 @@
-# Lama Dev School Management Dashboard
 
-## Getting Started
+--------------------- نظام إدارة المعهد المتوسط للدراسات الإسلامية (IISM)
 
-First, run the development server:
+نظرة عامة
+نظام إدارة المعهد المتوسط للدراسات الإسلامية هو:
+لوحة تحكم إدارية متكاملة، مصممة خصيصاً لتلبية احتياجات المعهد المتوسطة للدراسات الإسلامية.
+هذا المشروع يهدف إلى توفير حل برمجي عصري لإدارة شؤون الطلاب، المدرسين و المناهج الدراسية
+الميزات الرئيسية (Key Features)
+إدارة الطلاب: تسجيل الطلاب،عرض الدرجات والسجلات الأكاديمية.
+إدارة هيئة التدريس: سجلات المدرسين، إسناد المواد الدراسية، ومتابعة الأداء.
+إدارة المناهج الدراسية: إضافة وتعديل المواد، تنظيم الفصول الدراسية والجداول الزمنية.
+لوحة تحكم إحصائية: عرض رسوم بيانية وإحصائيات حيوية حول أداء المعهد (عدد الطلاب، نسب النجاح، إلخ).
+نظام صلاحيات المستخدمين: تحديد أدوار وصلاحيات مختلفة (مدير، مدرس، موظف تسجيل) لضمان أمان البيانات.
+وحدة التقارير: إمكانية إنشاء وتصدير تقارير مخصصة (مثل قوائم الطلاب، كشوف الدرجات).
+البدء والتشغيل
+لتشغيل خادم التطوير المحلي، اتبع الخطوات التالية:
 
-```bash
+أولاً، قم بتثبيت الاعتماديات (dependencies) اللازمة:
+Bash
+npm install
+# أو
+yarn install
+# أو
+pnpm install
+بعد ذلك، قم بتشغيل الخادم:
+Bash
 npm run dev
-# or
+# أو
 yarn dev
-# or
+# أو
 pnpm dev
-# or
-bun dev
-```
+افتح المتصفح وادخل إلى الرابط http://localhost:3000 لرؤية النتيجة.
+يمكنك البدء بتعديل الصفحة الرئيسية من خلال الملف app/page.tsx. الصفحة تتحدث تلقائياً بمجرد حفظ التعديلات على الملف.
+التقنيات المستخدمة
+Next.js: إطار عمل React للويب.
+TypeScript: لإضافة أنواع البيانات (Types) إلى JavaScript.
+[أضف هنا أي تقنيات أخرى رئيسية تستخدمها، مثل: Prisma, Tailwind CSS, etc.]
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Lama Dev Youtube Channel](https://youtube.com/lamadev) 
-- [Next.js](https://nextjs.org/learn)
