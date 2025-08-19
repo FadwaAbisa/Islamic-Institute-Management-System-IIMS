@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    
+
     if (!file) {
       return NextResponse.json({ error: 'لم يتم العثور على ملف' }, { status: 400 });
     }
@@ -27,22 +27,22 @@ export async function POST(request: NextRequest) {
 
     for (let i = 0; i < data.length; i++) {
       const row = data[i] as any;
-      
+
       try {
         const studentData = await processStudentData(row, i + 2);
-        
+
         if (studentData) {
           const student = await createStudent(studentData);
-          results.push({ 
-            row: i + 2, 
+          results.push({
+            row: i + 2,
             name: student.fullName,
-            status: 'تم إضافته بنجاح' 
+            status: 'تم إضافته بنجاح'
           });
         }
       } catch (error: any) {
         console.error(`خطأ في الصف ${i + 2}:`, error);
-        errors.push({ 
-          row: i + 2, 
+        errors.push({
+          row: i + 2,
           error: error.message,
           data: {
             name: row['الاسم الرباعي (مطلوب)'] || row['الاسم الرباعي'] || 'غير محدد'
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('خطأ في معالجة الملف:', error);
     return NextResponse.json(
-      { error: 'خطأ في معالجة الملف: ' + error.message }, 
+      { error: 'خطأ في معالجة الملف: ' + error.message },
       { status: 500 }
     );
   }
@@ -79,17 +79,17 @@ async function processStudentData(row: any, rowNumber: number) {
   });
 
   // استخراج البيانات
-  const fullName = cleanRow['الاسم الرباعي (مطلوب)'] || cleanRow['الاسم الرباعي'] ||'';
+  const fullName = cleanRow['الاسم الرباعي (مطلوب)'] || cleanRow['الاسم الرباعي'] || '';
   const birthDate = cleanRow['تاريخ الميلاد (YYYY-MM-DD)'] || cleanRow['تاريخ الميلاد'] || '';
   const gender = cleanRow['الجنس (مطلوب: ذكر/أنثى)'] || cleanRow['الجنس'] || '';
   const address = cleanRow['العنوان'] || 'غير محدد';
   const studentPhone = cleanRow['هاتف الطالب'] || '';
   const parentPhone = cleanRow['هاتف ولي الأمر'] || '';
   const parentName = cleanRow['اسم ولي الأمر'] || '';
-  const gradeLevel = cleanRow['المرحلة الدراسية (اسم المرحلة كما هو في النظام، مطلوب)'] || 
-                    cleanRow['المرحلة الدراسية'] || '';
-  const className = cleanRow['الفرع (مطلوب إذا لم يكن المستخدم مقيدًا بفرع)'] || 
-                    cleanRow['الفرع'] || '';
+  const gradeLevel = cleanRow['المرحلة الدراسية (اسم المرحلة كما هو في النظام، مطلوب)'] ||
+    cleanRow['المرحلة الدراسية'] || '';
+  const className = cleanRow['الفرع (مطلوب إذا لم يكن المستخدم مقيدًا بفرع)'] ||
+    cleanRow['الفرع'] || '';
 
   // التحقق من البيانات المطلوبة
   if (!fullName) {
@@ -108,9 +108,7 @@ async function processStudentData(row: any, rowNumber: number) {
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || 'غير محدد';
 
-  // تحويل الجنس
-  const sex = gender === 'ذكر' ? 'MALE' : 'FEMALE';
-
+ 
   // تحويل تاريخ الميلاد
   let birthday: Date;
   try {
@@ -120,7 +118,7 @@ async function processStudentData(row: any, rowNumber: number) {
     } else {
       birthday = new Date(birthDate);
     }
-    
+
     if (isNaN(birthday.getTime())) {
       throw new Error('تنسيق تاريخ غير صحيح');
     }
@@ -128,10 +126,9 @@ async function processStudentData(row: any, rowNumber: number) {
     throw new Error(`تنسيق تاريخ الميلاد غير صحيح في الصف ${rowNumber}`);
   }
 
- return {
+  return {
     fullName, // <--- أضف هذا السطر
     birthday,
-    sex,
     address,
     studentPhone,
     parentPhone,
@@ -146,7 +143,7 @@ async function createStudent(data: any) {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substr(2, 5);
   const username = `student_${timestamp}_${random}`;
-  
+
   // البحث عن أو إنشاء Grade
   let grade = await prisma.grade.findFirst({
     where: { level: data.gradeLevel }
@@ -204,26 +201,24 @@ async function createStudent(data: any) {
   const student = await prisma.student.create({
     data: {
       id: username,
-      fullName: data.fullName, 
+      fullName: data.fullName,
       studentPhone: data.studentPhone || null,
-      parentPhone: data.parentPhone || null,
-       // بقية الحقول كما هي في السكيما
+      guardianPhone: data.guardianPhone || null,
+      // بقية الحقول كما هي في السكيما
       birthday: data.birthday,
-      sex: data.sex,
       nationality: 'ليبي', // قيمة افتراضية أو من الملف
       nationalId: `NID_${username}`, // يجب أن يكون فريدًا
       placeOfBirth: 'غير محدد', // قيمة افتراضية أو من الملف
       address: data.address,
-      parentName: data.parentName,
+      guardianName: data.guardianName,
       relationship: 'ولي أمر', // قيمة افتراضية
-      branch: data.className, // أو قيمة أخرى مناسبة
       studentStatus: 'ACTIVE', // من الـ enum
       studyMode: 'REGULAR', // من الـ enum
       enrollmentStatus: 'NEW', // من الـ enum
       academicYear: '2024-2025', // قيمة افتراضية
       studyLevel: data.gradeLevel.toString(),
       specialization: 'عام', // قيمة افتراضية
-      
+
       // العلاقات
       parentId: parent.id,
       classId: classRecord.id,
@@ -234,5 +229,4 @@ async function createStudent(data: any) {
   // قم بإرجاع الكائن الكامل لتستخدمه في رسالة النجاح
   return student;
 }
-     
-  
+

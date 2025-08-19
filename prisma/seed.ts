@@ -117,18 +117,18 @@ async function main() {
         sex: i % 2 === 0 ? UserSex.MALE : UserSex.FEMALE,
         address: `شارع السلام ${i}`,
         placeOfBirth: "طرابلس",
-        parentName: `خالد${i}`,
+        guardianName: `خالد${i}`,
         relationship: "أب",
-        
+
         // --- الحقول التي تم تصحيحها ---
-        branch: "عام", // *** تم إضافة الحقل الناقص ***
+
         studyLevel: `${(i % 4) + 1}`,
         academicYear: `202${(i % 5)}`,
         specialization: "علوم",
         studyMode: StudyMode.REGULAR, // *** تم استخدام الـ enum الصحيح ***
         studentStatus: StudentStatus.ACTIVE, // *** تم استخدام الـ enum الصحيح ***
         enrollmentStatus: EnrollmentStatus.NEW, // *** تم استخدام الـ enum الصحيح ***
-        
+
         // --- العلاقات ---
         parentId: `parentId${(i % 25) + 1}`, // تأكد من أن هذا يولد ID موجود
         gradeId: (i % 6) + 1,
@@ -141,17 +141,17 @@ async function main() {
   // 8. الدروس
   for (let i = 1; i <= 30; i++) {
     await prisma.lesson.upsert({
-        where: { id: i },
-        update: {},
-        create: {
-            name: `درس${i}`,
-            day: Object.values(Day)[i % 5], // طريقة أبسط لاختيار يوم
-            startTime: new Date(new Date().setHours(8, 0, 0, 0)),
-            endTime: new Date(new Date().setHours(9, 0, 0, 0)),
-            subjectId: (i % 10) + 1,
-            classId: (i % 6) + 1,
-            teacherId: `teacher${(i % 15) + 1}`,
-        }
+      where: { id: i },
+      update: {},
+      create: {
+        name: `درس${i}`,
+        day: Object.values(Day)[i % 5], // طريقة أبسط لاختيار يوم
+        startTime: new Date(new Date().setHours(8, 0, 0, 0)),
+        endTime: new Date(new Date().setHours(9, 0, 0, 0)),
+        subjectId: (i % 10) + 1,
+        classId: (i % 6) + 1,
+        teacherId: `teacher${(i % 15) + 1}`,
+      }
     });
   }
   console.log("تم إنشاء الدروس.");
