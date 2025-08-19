@@ -5,38 +5,71 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Users, Search, Plus, Eye, Edit, Trash2 } from "lucide-react"
+import prisma from "@/lib/prisma"
+import TableSearch from "@/components/TableSearch"
+import StudentsFilters from "@/components/StudentsFilters"
+import Pagination from "@/components/Pagination"
+import { ITEM_PER_PAGE } from "@/lib/settings"
 
-const mockStudents = [
-  {
-    id: 1,
-    name: "أحمد محمد علي السعيد",
-    nationalId: "1234567890",
-    level: "السنة الثانية",
-    branch: "الدراسات الإسلامية",
-    status: "مستمر",
-    phone: "0501234567",
-  },
-  {
-    id: 2,
-    name: "فاطمة عبدالله حسن النور",
-    nationalId: "0987654321",
-    level: "السنة الأولى",
-    branch: "القراءات",
-    status: "مستمر",
-    phone: "0507654321",
-  },
-  {
-    id: 3,
-    name: "محمد عبدالرحمن أحمد الزهراني",
-    nationalId: "1122334455",
-    level: "السنة الثالثة",
-    branch: "الدراسات الإسلامية",
-    status: "منقطع",
-    phone: "0501122334",
-  },
-]
+export default async function StudentsPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined }
+}) {
+  const { page, ...queryParams } = searchParams
+  const p = page ? parseInt(page) : 1
 
-export default function StudentsPage() {
+  const where: any = {}
+  if (queryParams.search) {
+    where.OR = [
+      { fullName: { contains: queryParams.search, mode: "insensitive" } },
+      { nationalId: { contains: queryParams.search, mode: "insensitive" } },
+    ]
+  }
+  if (queryParams.academicYear && queryParams.academicYear !== "الكل") {
+    where.academicYear = queryParams.academicYear
+  }
+  if (queryParams.stage && queryParams.stage !== "الكل") {
+    where.studyLevel = queryParams.stage
+  }
+  if (queryParams.gender && queryParams.gender !== "الكل") {
+    where.sex = queryParams.gender === "ذكر" ? "MALE" : "FEMALE"
+  }
+  if (queryParams.status && queryParams.status !== "الكل") {
+    where.studentStatus = queryParams.status
+  }
+
+  const [students, total] = await Promise.all([
+    prisma.student.findMany({
+      where,
+      take: ITEM_PER_PAGE,
+      skip: ITEM_PER_PAGE * (p - 1),
+      orderBy: { fullName: "asc" },
+      select: {
+        id: true,
+        fullName: true,
+        nationalId: true,
+        studyLevel: true,
+        specialization: true,
+        studentStatus: true,
+        studentPhone: true,
+      },
+    }),
+    prisma.student.count({ where }),
+  ])
+
+  const years = (
+    await prisma.student.findMany({ distinct: ["academicYear"], select: { academicYear: true } })
+  )
+    .map((s) => s.academicYear || "")
+    .filter(Boolean)
+
+  const stages = (
+    await prisma.student.findMany({ distinct: ["studyLevel"], select: { studyLevel: true } })
+  )
+    .map((s) => s.studyLevel || "")
+    .filter(Boolean)
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "مستمر":
@@ -82,12 +115,10 @@ export default function StudentsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Search Bar */}
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input placeholder="البحث بالاسم أو رقم الهوية..." className="pr-10" />
-              </div>
+            {/* Search & Filters */}
+            <div className="mb-6 flex flex-col gap-4">
+              <TableSearch />
+              <StudentsFilters years={years} stages={stages} />
             </div>
 
             {/* Students Table */}
@@ -105,16 +136,18 @@ export default function StudentsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockStudents.map((student) => (
+                  {students.map((student) => (
                     <TableRow key={student.id}>
-                      <TableCell className="font-medium">{student.name}</TableCell>
+                      <TableCell className="font-medium">{student.fullName}</TableCell>
                       <TableCell>{student.nationalId}</TableCell>
-                      <TableCell>{student.level}</TableCell>
-                      <TableCell>{student.branch}</TableCell>
+                      <TableCell>{student.studyLevel || "غير محدد"}</TableCell>
+                      <TableCell>{student.specialization || "غير محدد"}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(student.status)}>{student.status}</Badge>
+                        <Badge className={getStatusColor(student.studentStatus || "مستمر")}>
+                          {student.studentStatus || "مستمر"}
+                        </Badge>
                       </TableCell>
-                      <TableCell>{student.phone}</TableCell>
+                      <TableCell>{student.studentPhone || ""}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline">
@@ -139,14 +172,7 @@ export default function StudentsPage() {
             </div>
           </CardContent>
         </Card>
-
-        <div className="mt-6 text-center">
-          <Link href="/">
-            <Button className="bg-gradient-to-r from-lamaSkyLight to-lamaYellowLight hover:from-lamaYellowLight hover:to-lamaSkyLight text-lamaYellow border border-lamaSky font-semibold px-6 py-2 rounded-lg shadow-md transition-all duration-300">
-              العودة للرئيسية
-            </Button>
-          </Link>
-        </div>
+        <Pagination page={p} count={total} />
       </div>
     </div>
   )

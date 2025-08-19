@@ -1,15 +1,13 @@
 // src/app/api/students/import/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-
+    
     if (!file) {
       return NextResponse.json({ error: 'لم يتم العثور على ملف' }, { status: 400 });
     }
@@ -27,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     for (let i = 0; i < data.length; i++) {
       const row = data[i] as any;
-
+      
       try {
         const studentData = await processStudentData(row, i + 2);
 
@@ -64,169 +62,100 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('خطأ في معالجة الملف:', error);
     return NextResponse.json(
-      { error: 'خطأ في معالجة الملف: ' + error.message },
+      { error: 'خطأ في معالجة الملف: ' + error.message }, 
       { status: 500 }
     );
   }
 }
 
 async function processStudentData(row: any, rowNumber: number) {
-  // تنظيف البيانات
+  // تنظيف المفاتيح والقيم
   const cleanRow: any = {};
-  Object.keys(row).forEach(key => {
-    const cleanKey = key.trim();
-    cleanRow[cleanKey] = typeof row[key] === 'string' ? row[key].trim() : row[key];
+  Object.keys(row).forEach((key) => {
+    const cleanKey = String(key).trim();
+    const value = row[key];
+    cleanRow[cleanKey] = typeof value === 'string' ? value.trim() : value;
   });
 
-  // استخراج البيانات
+  // استخراج الحقول مع دعم أكثر من تسمية عربية
   const fullName = cleanRow['الاسم الرباعي (مطلوب)'] || cleanRow['الاسم الرباعي'] || '';
+  const nationalId = cleanRow['الرقم الوطني (فريد)'] || cleanRow['الرقم الوطني'] || cleanRow['الرقم القومي'] || '';
   const birthDate = cleanRow['تاريخ الميلاد (YYYY-MM-DD)'] || cleanRow['تاريخ الميلاد'] || '';
-  const gender = cleanRow['الجنس (مطلوب: ذكر/أنثى)'] || cleanRow['الجنس'] || '';
-  const address = cleanRow['العنوان'] || 'غير محدد';
+  const genderRaw = cleanRow['الجنس (مطلوب: ذكر/أنثى)'] || cleanRow['الجنس'] || '';
+  const birthPlace = cleanRow['مكان الميلاد'] || cleanRow['مكان الولادة'] || '';
+  const nationality = cleanRow['الجنسية'] || '';
+  const address = cleanRow['العنوان'] || '';
   const studentPhone = cleanRow['هاتف الطالب'] || '';
-  const parentPhone = cleanRow['هاتف ولي الأمر'] || '';
-  const parentName = cleanRow['اسم ولي الأمر'] || '';
-  const gradeLevel = cleanRow['المرحلة الدراسية (اسم المرحلة كما هو في النظام، مطلوب)'] ||
-    cleanRow['المرحلة الدراسية'] || '';
-  const className = cleanRow['الفرع (مطلوب إذا لم يكن المستخدم مقيدًا بفرع)'] ||
-    cleanRow['الفرع'] || '';
 
-  // التحقق من البيانات المطلوبة
-  if (!fullName) {
-    throw new Error(`الاسم الرباعي مطلوب في الصف ${rowNumber}`);
-  }
-  if (!birthDate) {
-    throw new Error(`تاريخ الميلاد مطلوب في الصف ${rowNumber}`);
-  }
+  // التحقق من الحقول الإلزامية فقط
+  if (!fullName) throw new Error(`الاسم الرباعي مطلوب في الصف ${rowNumber}`);
+  if (!nationalId) throw new Error(`الرقم الوطني مطلوب في الصف ${rowNumber}`);
+  if (!birthDate) throw new Error(`تاريخ الميلاد مطلوب في الصف ${rowNumber}`);
+  if (!genderRaw) throw new Error(`الجنس مطلوب في الصف ${rowNumber}`);
+  if (!birthPlace) throw new Error(`مكان الميلاد مطلوب في الصف ${rowNumber}`);
+  if (!nationality) throw new Error(`الجنسية مطلوبة في الصف ${rowNumber}`);
+  if (!address) throw new Error(`العنوان مطلوب في الصف ${rowNumber}`);
 
-  if (!gender || (gender !== 'ذكر' && gender !== 'أنثى')) {
-    throw new Error(`الجنس مطلوب ويجب أن يكون 'ذكر' أو 'أنثى' في الصف ${rowNumber}`);
-  }
+  // تحويل الجنس
+  const genderNormalized = String(genderRaw).replace(/\s+/g, '').toLowerCase();
+  const sex = genderNormalized === 'ذكر' || genderNormalized === 'male' ? 'MALE' :
+              genderNormalized === 'أنثى' || genderNormalized === 'انثى' || genderNormalized === 'female' ? 'FEMALE' : null;
+  if (!sex) throw new Error(`قيمة الجنس غير صحيحة (يجب ذكر/أنثى) في الصف ${rowNumber}`);
 
-  // تقسيم الاسم
-  const nameParts = fullName.split(' ').filter((part: string | any[]) => part.length > 0);
-  const firstName = nameParts[0] || '';
-  const lastName = nameParts.slice(1).join(' ') || 'غير محدد';
-
- 
-  // تحويل تاريخ الميلاد
+  // تحويل تاريخ الميلاد (يدعم serial من Excel)
   let birthday: Date;
   try {
     if (typeof birthDate === 'number') {
-      // تحويل Excel serial date
       birthday = new Date((birthDate - 25569) * 86400 * 1000);
     } else {
       birthday = new Date(birthDate);
     }
-
-    if (isNaN(birthday.getTime())) {
-      throw new Error('تنسيق تاريخ غير صحيح');
-    }
-  } catch (error) {
+    if (isNaN(birthday.getTime())) throw new Error('bad');
+  } catch {
     throw new Error(`تنسيق تاريخ الميلاد غير صحيح في الصف ${rowNumber}`);
   }
 
   return {
-    fullName, // <--- أضف هذا السطر
+    fullName,
+    nationalId: String(nationalId),
     birthday,
-    address,
-    studentPhone,
-    parentPhone,
-    parentName,
-    gradeLevel: parseInt(gradeLevel) || 1,
-    className: className || 'الصف الافتراضي'
+    sex,
+    placeOfBirth: String(birthPlace),
+    nationality: String(nationality),
+    address: String(address),
+    studentPhone: studentPhone ? String(studentPhone) : null,
   };
 }
 
 async function createStudent(data: any) {
-  // إنشاء username فريد
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substr(2, 5);
-  const username = `student_${timestamp}_${random}`;
-
-  // البحث عن أو إنشاء Grade
-  let grade = await prisma.grade.findFirst({
-    where: { level: data.gradeLevel }
-  });
-
-  if (!grade) {
-    grade = await prisma.grade.create({
-      data: { level: data.gradeLevel }
-    });
+  // التحقق من التكرار بواسطة الرقم الوطني
+  const existing = await prisma.student.findUnique({ where: { nationalId: data.nationalId } });
+  if (existing) {
+    throw new Error('رقم الهوية/الرقم الوطني موجود مسبقاً');
   }
 
-  // البحث عن أو إنشاء Class
-  let classRecord = await prisma.class.findFirst({
-    where: {
-      name: data.className,
-      gradeId: grade.id
-    }
-  });
-
-  if (!classRecord) {
-    classRecord = await prisma.class.create({
+  // إنشاء الطالب بالحد الأدنى من الحقول الإلزامية، والباقي اختياري
+  try {
+    const student = await prisma.student.create({
       data: {
-        name: data.className,
-        capacity: 30,
-        gradeId: grade.id
+        fullName: data.fullName,
+        nationalId: data.nationalId,
+        sex: data.sex,
+        birthday: data.birthday,
+        placeOfBirth: data.placeOfBirth,
+        nationality: data.nationality,
+        address: data.address,
+        studentPhone: data.studentPhone || null,
+        // قيم اختيارية يمكن إضافتها لاحقاً من الواجهة
       }
     });
-  }
-
-  // البحث عن أو إنشاء Parent
-  let parent = await prisma.parent.findFirst({
-    where: {
-      OR: [
-        { phone: data.parentPhone },
-        { name: data.parentName }
-      ]
+    return student;
+  } catch (err: any) {
+    if (err?.code === 'P2002') {
+      throw new Error('رقم الهوية/الرقم الوطني موجود مسبقاً');
     }
-  });
-
-  if (!parent) {
-    const parentUsername = `parent_${timestamp}_${random}`;
-    parent = await prisma.parent.create({
-      data: {
-        id: parentUsername,
-        username: parentUsername,
-        name: data.parentName || 'ولي أمر',
-        surname: '',
-        phone: data.parentPhone || `phone_${timestamp}`,
-        address: data.address
-      }
-    });
+    throw err;
   }
-
-  // إنشاء الطالب
-  const student = await prisma.student.create({
-    data: {
-      id: username,
-      fullName: data.fullName,
-      studentPhone: data.studentPhone || null,
-      guardianPhone: data.guardianPhone || null,
-      // بقية الحقول كما هي في السكيما
-      birthday: data.birthday,
-      nationality: 'ليبي', // قيمة افتراضية أو من الملف
-      nationalId: `NID_${username}`, // يجب أن يكون فريدًا
-      placeOfBirth: 'غير محدد', // قيمة افتراضية أو من الملف
-      address: data.address,
-      guardianName: data.guardianName,
-      relationship: 'ولي أمر', // قيمة افتراضية
-      studentStatus: 'ACTIVE', // من الـ enum
-      studyMode: 'REGULAR', // من الـ enum
-      enrollmentStatus: 'NEW', // من الـ enum
-      academicYear: '2024-2025', // قيمة افتراضية
-      studyLevel: data.gradeLevel.toString(),
-      specialization: 'عام', // قيمة افتراضية
-
-      // العلاقات
-      parentId: parent.id,
-      classId: classRecord.id,
-      gradeId: grade.id
-    }
-  });
-
-  // قم بإرجاع الكائن الكامل لتستخدمه في رسالة النجاح
-  return student;
 }
-
+     
+  

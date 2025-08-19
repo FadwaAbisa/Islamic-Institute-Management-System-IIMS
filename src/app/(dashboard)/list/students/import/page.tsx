@@ -60,44 +60,24 @@ export default function ImportStudentsPage() {
   const downloadTemplate = () => {
     const headers = [
       'الاسم الرباعي (مطلوب)',
+      'الرقم الوطني (فريد)',
       'تاريخ الميلاد (YYYY-MM-DD)',
       'الجنس (مطلوب: ذكر/أنثى)',
-      'الجنسية',
-      'الرقم الوطني (فريد)',
       'مكان الميلاد',
+      'الجنسية',
       'العنوان',
-      'هاتف الطالب',
-      'هاتف ولي الأمر',
-      'اسم ولي الأمر',
-      'صلة القرابة',
-      'الفرع',
-      'حالة الطالب',
-      'النظام الدراسي',
-      'الصفة القيد',
-      'العام الدراسي',
-      'المرحلة الدراسية',
-      'الشعبة التخصصية'
+      'هاتف الطالب'
     ];
 
     const sampleData = [
       'أحمد محمد علي حسن',
+      '2199005007256',
       '2005-01-15',
       'ذكر',
-      'سعودي',
-      '1234567890',
-      'الرياض',
-      'حي الملز، الرياض',
-      '0501234567',
-      '0509876543',
-      'محمد علي حسن',
-      'الأب',
-      'الصف الأول الثانوي',
-      'مستمر',
-      'نظامي',
-      'مستجد',
-      '2024-2025',
-      '1',
-      'العلوم الطبيعية'
+      'طرابلس',
+      'ليبي',
+      'طرابلس، حي الأندلس',
+      '0912345678'
     ];
 
     let csvContent = '\\uFEFF' + headers.join(',') + '\\n'; // BOM للدعم العربي
@@ -142,7 +122,7 @@ export default function ImportStudentsPage() {
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>• الملف يجب أن يكون بصيغة Excel (.xlsx أو .xls)</li>
                 <li>• الصف الأول يحتوي على عناوين الأعمدة</li>
-                <li>• الحقول المطلوبة: الاسم، تاريخ الميلاد، الجنس، المرحلة</li>
+                <li>• الحقول المطلوبة: الاسم الرباعي، الرقم الوطني، تاريخ الميلاد، الجنس، مكان الميلاد، الجنسية، العنوان</li>
                 <li>• تنسيق التاريخ: YYYY-MM-DD</li>
                 <li>• الجنس: ذكر أو أنثى فقط</li>
               </ul>
@@ -290,6 +270,10 @@ export default function ImportStudentsPage() {
                 <span className="text-gray-600 mr-2">أحمد محمد علي</span>
               </div>
               <div>
+                <span className="font-medium text-gray-700">الرقم الوطني:</span>
+                <span className="text-gray-600 mr-2">2199005007256</span>
+              </div>
+              <div>
                 <span className="font-medium text-gray-700">التاريخ:</span>
                 <span className="text-gray-600 mr-2">2005-01-15</span>
               </div>
@@ -298,8 +282,8 @@ export default function ImportStudentsPage() {
                 <span className="text-gray-600 mr-2">ذكر</span>
               </div>
               <div>
-                <span className="font-medium text-gray-700">المرحلة:</span>
-                <span className="text-gray-600 mr-2">1</span>
+                <span className="font-medium text-gray-700">مكان الميلاد:</span>
+                <span className="text-gray-600 mr-2">طرابلس</span>
               </div>
             </div>
           </div>
