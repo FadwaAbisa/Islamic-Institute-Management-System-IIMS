@@ -3,76 +3,17 @@
 import { useState, useCallback, useEffect } from "react"
 import type { Student, FilterOptions, SearchOptions } from "../types/student"
 
-const initialStudents: Student[] = [
-  {
-    studentId: "2024001",
-    studentName: "أحمد محمد علي",
-    firstMonthGrade: 85,
-    secondMonthGrade: 90,
-    thirdMonthGrade: 88,
-    workTotal: 87.67,
-    finalExamGrade: 92,
-    periodTotal: 89.84,
-    status: "مكتمل",
-  },
-  {
-    studentId: "2024002",
-    studentName: "فاطمة أحمد حسن",
-    firstMonthGrade: 78,
-    secondMonthGrade: 82,
-    thirdMonthGrade: null,
-    workTotal: 80,
-    finalExamGrade: null,
-    periodTotal: 0,
-    status: "غير مكتمل",
-  },
-  {
-    studentId: "2024003",
-    studentName: "محمد عبدالله سالم",
-    firstMonthGrade: 95,
-    secondMonthGrade: 93,
-    thirdMonthGrade: 97,
-    workTotal: 95,
-    finalExamGrade: 96,
-    periodTotal: 95.5,
-    status: "مكتمل",
-  },
-  {
-    studentId: "2024004",
-    studentName: "نور الهدى محمود",
-    firstMonthGrade: 45,
-    secondMonthGrade: 52,
-    thirdMonthGrade: 48,
-    workTotal: 48.33,
-    finalExamGrade: 55,
-    periodTotal: 51.67,
-    status: "مكتمل",
-  },
-  {
-    studentId: "2024005",
-    studentName: "عبدالرحمن خالد",
-    firstMonthGrade: 88,
-    secondMonthGrade: null,
-    thirdMonthGrade: null,
-    workTotal: 88,
-    finalExamGrade: null,
-    periodTotal: 0,
-    status: "غير مكتمل",
-  },
-]
+const initialStudents: Student[] = []
 
 export function useStudentGrades() {
   const [students, setStudents] = useState<Student[]>(initialStudents)
   const [filteredStudents, setFilteredStudents] = useState<Student[]>(initialStudents)
   const [filters, setFilters] = useState<FilterOptions>({
     academicYear: "",
-    semester: "",
     educationLevel: "",
     section: "",
     studySystem: "",
-    gender: "",
     subject: "",
-    teacherName: "",
     evaluationPeriod: "",
   })
   const [searchOptions, setSearchOptions] = useState<SearchOptions>({
@@ -83,6 +24,57 @@ export function useStudentGrades() {
 
   // تحديد نوع الحساب بناءً على الفترة المختارة
   const isThirdPeriod = filters.evaluationPeriod === "الفترة الثالثة"
+
+  const mapPeriodToServer = (label: string): string => {
+    switch (label) {
+      case "الفترة الأولى":
+        return "FIRST"
+      case "الفترة الثانية":
+        return "SECOND"
+      case "الفترة الثالثة":
+        return "THIRD"
+      default:
+        return ""
+    }
+  }
+
+  const fetchSubjectGrades = useCallback(async () => {
+    try {
+      // نجلب الطلاب حتى بدون اكتمال كل الفلاتر لإظهار الأسماء، وتكون الدرجات فارغة لحين اكتمال المعايير
+      const params = new URLSearchParams({
+        subject: String(filters.subject),
+        period: String(filters.evaluationPeriod),
+        academicYear: String(filters.academicYear),
+        educationLevel: String(filters.educationLevel || ""),
+        section: String(filters.section || ""),
+        studySystem: String(filters.studySystem || ""),
+        searchType: String(searchOptions.searchType || ""),
+        searchValue: String(searchOptions.searchValue || ""),
+        displayFilter: String(searchOptions.displayFilter || ""),
+      })
+      const res = await fetch(`/api/subject-grades?${params.toString()}`)
+      if (!res.ok) {
+        setStudents([])
+        return
+      }
+      const data = await res.json()
+      const rows: Student[] = (data.students || []).map((r: any) => ({
+        studentId: r.studentId,
+        studentName: r.studentName,
+        firstMonthGrade: r.firstMonthGrade,
+        secondMonthGrade: r.secondMonthGrade,
+        thirdMonthGrade: r.thirdMonthGrade,
+        workTotal: r.workTotal,
+        finalExamGrade: r.finalExamGrade,
+        periodTotal: r.periodTotal,
+        status: r.status,
+        _dbStudentId: r._dbStudentId,
+      }))
+      setStudents(rows)
+    } catch (e) {
+      setStudents([])
+    }
+  }, [filters.subject, filters.evaluationPeriod, filters.academicYear, filters.educationLevel, filters.section, filters.studySystem, searchOptions.searchType, searchOptions.searchValue, searchOptions.displayFilter])
 
   const calculateWorkTotal = useCallback(
     (first: number | null, second: number | null, third: number | null): number => {
@@ -115,6 +107,24 @@ export function useStudentGrades() {
     [isThirdPeriod],
   )
 
+  const persistSingle = useCallback(async (row: Student) => {
+    if (!filters.subject || !filters.evaluationPeriod || !filters.academicYear) return
+    await fetch("/api/subject-grades", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subject: filters.subject,
+        academicYear: filters.academicYear,
+        period: filters.evaluationPeriod,
+        studentDbId: row._dbStudentId || row.studentId,
+        month1: row.firstMonthGrade,
+        month2: row.secondMonthGrade,
+        month3: isThirdPeriod ? null : row.thirdMonthGrade,
+        finalExam: row.finalExamGrade,
+      }),
+    })
+  }, [filters.subject, filters.evaluationPeriod, filters.academicYear, isThirdPeriod])
+
   const updateStudentGrade = useCallback(
     (studentId: string, field: keyof Student, value: any) => {
       setStudents((prevStudents) =>
@@ -135,16 +145,13 @@ export function useStudentGrades() {
               updatedStudent.periodTotal = calculatePeriodTotal(updatedStudent.workTotal, updatedStudent.finalExamGrade)
             }
 
-            // Update status
             let isComplete = false
             if (isThirdPeriod) {
-              // في الفترة الثالثة: نحتاج الفترتين السابقتين + امتحان الفترة الثالثة
               isComplete =
                 updatedStudent.firstMonthGrade !== null &&
                 updatedStudent.secondMonthGrade !== null &&
                 updatedStudent.finalExamGrade !== null
             } else {
-              // في الفترات الأخرى: نحتاج جميع الدرجات
               isComplete =
                 updatedStudent.firstMonthGrade !== null &&
                 updatedStudent.secondMonthGrade !== null &&
@@ -153,13 +160,16 @@ export function useStudentGrades() {
             }
             updatedStudent.status = isComplete ? "مكتمل" : "غير مكتمل"
 
+            // حفظ فوري للسطر المحدث
+            persistSingle(updatedStudent)
+
             return updatedStudent
           }
           return student
         }),
       )
     },
-    [calculateWorkTotal, calculatePeriodTotal, isThirdPeriod],
+    [calculateWorkTotal, calculatePeriodTotal, isThirdPeriod, persistSingle],
   )
 
   const filterStudents = useCallback(() => {
@@ -177,8 +187,6 @@ export function useStudentGrades() {
             return student.studentName.includes(searchOptions.searchValue)
           case "studentId":
             return student.studentId.includes(searchOptions.searchValue)
-          case "nationalId":
-            return student.studentId.includes(searchOptions.searchValue) // Assuming studentId is nationalId for demo
           default:
             return true
         }
@@ -202,6 +210,17 @@ export function useStudentGrades() {
   useEffect(() => {
     filterStudents()
   }, [filterStudents])
+
+  // جلب بيانات الدرجات من الخادم عند النقر على تطبيق أو عند تغيّر واضح
+  useEffect(() => {
+    // سنجلب تلقائياً عندما تتوفر المعايير الأساسية
+    fetchSubjectGrades()
+  }, [fetchSubjectGrades])
+
+  // واجهة لتفعيل زر "تطبيق الفلاتر" من المكون
+  const applyFilters = useCallback(() => {
+    fetchSubjectGrades()
+  }, [fetchSubjectGrades])
 
   // إعادة حساب الدرجات عند تغيير الفترة
   useEffect(() => {
@@ -262,6 +281,7 @@ export function useStudentGrades() {
     students: filteredStudents,
     filters,
     setFilters,
+    applyFilters,
     searchOptions,
     setSearchOptions,
     updateStudentGrade,

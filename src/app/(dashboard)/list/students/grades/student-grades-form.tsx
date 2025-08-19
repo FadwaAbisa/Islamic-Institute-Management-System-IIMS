@@ -11,6 +11,7 @@ export default function StudentGradesForm() {
     students,
     filters,
     setFilters,
+    applyFilters,
     searchOptions,
     setSearchOptions,
     updateStudentGrade,
@@ -30,10 +31,21 @@ export default function StudentGradesForm() {
         </div>
 
         {/* قسم المرشحات */}
-        <FilterSection filters={filters} setFilters={setFilters} />
+        <FilterSection filters={filters} setFilters={setFilters} onApply={applyFilters} />
 
-        {/* قسم البحث والتحكم */}
+        {/* قسم البحث والتحكم */
+        }
         <SearchAndControls searchOptions={searchOptions} setSearchOptions={setSearchOptions} />
+
+        {/* اسم المقرر المختار فوق الجدول */}
+        {filters.subject && (
+          <div className="mb-4 flex items-center justify-center">
+            <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-md border border-lamaSky text-lamaBlack">
+              <span className="text-sm text-lamaBlackLight">المقرر المختار:</span>
+              <span className="font-semibold">{filters.subject}</span>
+            </div>
+          </div>
+        )}
 
         {/* الجدول الرئيسي */}
         <GradesTable

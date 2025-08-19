@@ -68,24 +68,33 @@ model Student {
 
   attendances Attendance[]
   results     Result[]
+  subjectGrades SubjectGrade[]
 }
 
 model Teacher {
-  id        String    @id
-  username  String    @unique
-  name      String
-  surname   String
-  email     String?   @unique
-  phone     String?   @unique
-  address   String
-  img       String?
-  bloodType String
-  sex       UserSex
-  createdAt DateTime  @default(now())
-  subjects  Subject[]
-  lessons   Lesson[]
-  classes   Class[]
-  birthday  DateTime
+  id            String    @id @default(uuid())
+  // بيانات شخصية واتصال
+  fullName      String?
+  nationalId    String?   @unique
+  sex           UserSex?
+  birthday      DateTime?
+  placeOfBirth  String?
+  nationality   String?
+  address       String?
+  phone         String?   @unique
+  email         String?   @unique
+  img           String?
+
+  // حقول اختيارية/توافقية مع أجزاء أخرى من النظام
+  username      String?   @unique
+  name          String?
+  surname       String?
+  bloodType     String?
+
+  createdAt     DateTime  @default(now())
+  subjects      Subject[]
+  lessons       Lesson[]
+  classes       Class[]
 }
 
 model Parent {
@@ -128,6 +137,7 @@ model Subject {
   name     String    @unique
   teachers Teacher[]
   lessons  Lesson[]
+  grades   SubjectGrade[]
 }
 
 model Lesson {
@@ -212,6 +222,40 @@ model Announcement {
 
   classId Int?
   class   Class? @relation(fields: [classId], references: [id])
+}
+
+// درجات المواد حسب الطالب والمادة والسنة والفترة
+model SubjectGrade {
+  id           Int               @id @default(autoincrement())
+  academicYear String
+  period       EvaluationPeriod
+
+  // درجات الأشهر
+  month1       Int?
+  month2       Int?
+  month3       Int?
+
+  // مجاميع وأعمال
+  workTotal    Float             @default(0)
+  finalExam    Int?
+  periodTotal  Float             @default(0)
+
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // العلاقات
+  studentId    String
+  student      Student           @relation(fields: [studentId], references: [id])
+  subjectId    Int
+  subject      Subject           @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId, academicYear, period])
+}
+
+enum EvaluationPeriod {
+  FIRST
+  SECOND
+  THIRD
 }
 
 enum Day {

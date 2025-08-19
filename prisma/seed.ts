@@ -51,12 +51,20 @@ async function main() {
   }
   console.log("تم إنشاء الفصول.");
 
-  // 4. المواد الدراسية
+  // 4. المواد الدراسية (12 مادة بحسب المتطلبات)
   const subjectData = [
-    { name: "الرياضيات" }, { name: "العلوم" }, { name: "الإنجليزية" },
-    { name: "التاريخ" }, { name: "الجغرافيا" }, { name: "الفيزياء" },
-    { name: "الكيمياء" }, { name: "الأحياء" }, { name: "علوم الحاسوب" },
-    { name: "الفن" },
+    { name: "قرآن وأحكامه" },
+    { name: "سيرة" },
+    { name: "تفسير" },
+    { name: "عقيدة" },
+    { name: "فقه" },
+    { name: "دراسات الأدبية" },
+    { name: "دراسات اللغوية" },
+    { name: "أصول الفقه" },
+    { name: "منهج دعوة" },
+    { name: "علوم حديث" },
+    { name: "لغة إنجليزية" },
+    { name: "حاسوب" },
   ];
   await prisma.subject.createMany({
     data: subjectData,
@@ -80,7 +88,7 @@ async function main() {
         bloodType: "A+",
         sex: i % 2 === 0 ? UserSex.MALE : UserSex.FEMALE,
         birthday: new Date(new Date().setFullYear(new Date().getFullYear() - 30)),
-        subjects: { connect: { id: (i % 10) + 1 } },
+        subjects: { connect: { id: (i % 12) + 1 } },
         classes: { connect: { id: (i % 6) + 1 } },
       },
     });
@@ -148,7 +156,7 @@ async function main() {
             day: Object.values(Day)[i % 5], // طريقة أبسط لاختيار يوم
             startTime: new Date(new Date().setHours(8, 0, 0, 0)),
             endTime: new Date(new Date().setHours(9, 0, 0, 0)),
-            subjectId: (i % 10) + 1,
+            subjectId: (i % 12) + 1,
             classId: (i % 6) + 1,
             teacherId: `teacher${(i % 15) + 1}`,
         }

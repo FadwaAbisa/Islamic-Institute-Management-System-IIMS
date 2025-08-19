@@ -8,22 +8,20 @@ export interface Student {
   finalExamGrade: number | null
   periodTotal: number
   status: "مكتمل" | "غير مكتمل"
+  _dbStudentId?: string
 }
 
 export interface FilterOptions {
   academicYear: string
-  semester: string
   educationLevel: string
   section: string
   studySystem: string
-  gender: string
   subject: string
-  teacherName: string
   evaluationPeriod: string
 }
 
 export interface SearchOptions {
-  searchType: "name" | "nationalId" | "studentId"
+  searchType: "name" | "studentId"
   searchValue: string
   displayFilter: "all" | "complete" | "incomplete" | "byStatus"
 }
