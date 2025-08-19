@@ -54,11 +54,11 @@ export function SearchAndControls({ searchOptions, setSearchOptions }: SearchAnd
                   <SelectItem value="name" className="text-lamaBlack hover:bg-lamaSkyLight text-right">
                     البحث بالاسم
                   </SelectItem>
-                  <SelectItem value="nationalId" className="text-lamaBlack hover:bg-lamaSkyLight text-right">
-                    البحث بالرقم الوطني
+                  <SelectItem value="name" className="text-lamaBlack hover:bg-lamaSkyLight text-right">
+                    البحث بالاسم
                   </SelectItem>
                   <SelectItem value="studentId" className="text-lamaBlack hover:bg-lamaSkyLight text-right">
-                    البحث برقم الطالب
+                    البحث برقم القيد
                   </SelectItem>
                 </SelectContent>
               </Select>
