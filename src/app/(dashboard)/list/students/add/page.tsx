@@ -813,7 +813,7 @@ export default function AddStudentPage() {
             <Input
               id="equivalencyDocument"
               type="file"
-              accept="image/jpeg,image/png"
+              accept="image/jpeg,ىimage/png"
               onChange={(e) => handleFileChange("equivalencyDocument", e.target.files?.[0] || null)}
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-lamaSkyLight file:text-lamaYellow hover:file:bg-lamaSky hover:file:text-white"
             />

@@ -13,7 +13,6 @@ type ResultList = {
   id: number;
   title: string;
   studentName: string;
-  studentSurname: string;
   teacherName: string;
   teacherSurname: string;
   score: number;
@@ -78,7 +77,7 @@ const renderRow = (item: ResultList) => (
     className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
   >
     <td className="flex items-center gap-4 p-4">{item.title}</td>
-    <td>{item.studentName + " " + item.studentName}</td>
+    <td>{item.studentName}</td>
     <td className="hidden md:table-cell">{item.score}</td>
     <td className="hidden md:table-cell">
       {item.teacherName + " " + item.teacherSurname}
@@ -118,7 +117,7 @@ const renderRow = (item: ResultList) => (
           case "search":
             query.OR = [
               { exam: { title: { contains: value, mode: "insensitive" } } },
-              { student: { name: { contains: value, mode: "insensitive" } } },
+              { student: { fullName: { contains: value, mode: "insensitive" } } },
             ];
             break;
           default:
@@ -157,7 +156,7 @@ const renderRow = (item: ResultList) => (
     prisma.result.findMany({
       where: query,
       include: {
-        student: { select: { name: true, surname: true } },
+        student: { select: { fullName: true } },
         exam: {
           include: {
             lesson: {
@@ -195,10 +194,9 @@ const renderRow = (item: ResultList) => (
     return {
       id: item.id,
       title: assessment.title,
-      studentName: item.student.name,
-      studentSurname: item.student.surname,
-      teacherName: assessment.lesson.teacher.name,
-      teacherSurname: assessment.lesson.teacher.surname,
+      studentName: item.student.fullName,
+      teacherName: assessment.lesson.teacher.name || "",
+      teacherSurname: assessment.lesson.teacher.surname || "",
       score: item.score,
       className: assessment.lesson.class.name,
       startTime: isExam ? assessment.startTime : assessment.startDate,

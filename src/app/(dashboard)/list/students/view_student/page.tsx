@@ -2507,7 +2507,7 @@ export default function StudentsDataPage() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-right">تأكيد الحذف</AlertDialogTitle>
                                   <AlertDialogDescription className="text-right">
-                                    هل أنت متأكد من حذف بيانات الطالب "{student.fullName}"؟
+                                    هل أنت متأكد من حذف بيانات الطالب &quot;{student.fullName}&quot;؟
                                     <br />
                                     لا يمكن التراجع عن هذا الإجراء.
                                   </AlertDialogDescription>
