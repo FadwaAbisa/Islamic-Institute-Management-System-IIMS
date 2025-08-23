@@ -74,12 +74,7 @@ const menuItems = [
             href: "/list/students/reviews",
             description: "مراجعة طلبات الطلاب"
           },
-          {
-            icon: FileText,
-            label: "استعراض النتائج",
-            href: "/list/students/results",
-            description: "عرض نتائج الطلاب"
-          },
+
           {
             icon: Users,
             label: "قائمة الطلاب",
@@ -96,6 +91,26 @@ const menuItems = [
           
         ]
       },
+      {
+        icon: "/result.png",
+        label: "النتائج",
+        href: "/grades/results",
+        visible: ["admin", "teacher"],
+        description: "إدارة النتائج والتقارير",
+        color: "bg-emerald-50 text-emerald-600",
+        hasDropdown: true,
+        subItems: [
+          {
+            icon: FileText,
+            label: "تقارير النتائج",
+            href: "/grades/results",
+            description: "عرض تقارير النتائج المختلفة"
+          }
+        ]
+      },
+      //........................................................
+
+      //........................................................
       {
         icon: "/parent.png",
         label: "أولياء الأمور",
@@ -213,14 +228,14 @@ const menuItems = [
         description: "إدارة الواجبات المدرسية",
         color: "bg-yellow-50 text-yellow-600"
       },
-      {
-        icon: "/result.png",
-        label: "النتائج",
-        href: "/list/results",
-        visible: ["admin", "teacher", "student", "parent"],
-        description: "عرض نتائج الطلاب",
-        color: "bg-emerald-50 text-emerald-600"
-      },
+      // {
+      //   icon: "/result.png",
+      //   label: "النتائج",
+      //   href: "/list/results",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      //   description: "عرض نتائج الطلاب",
+      //   color: "bg-emerald-50 text-emerald-600"
+      // },
       {
         icon: "/attendance.png",
         label: "الحضور",

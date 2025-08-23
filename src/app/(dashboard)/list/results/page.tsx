@@ -105,7 +105,7 @@ const renderRow = (item: ResultList) => (
 
   // URL PARAMS CONDITION
 
-  const query: Prisma.ResultWhereInput = {};
+  const query: any = {};
 
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
@@ -184,7 +184,7 @@ const renderRow = (item: ResultList) => (
     prisma.result.count({ where: query }),
   ]);
 
-  const data = dataRes.map((item) => {
+  const data = dataRes.map((item: any) => {
     const assessment = item.exam || item.assignment;
 
     if (!assessment) return null;

@@ -1,7 +1,7 @@
 "use client"
 
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -271,7 +271,7 @@ export default function StudentsDataPage() {
   const [editFormData, setEditFormData] = useState<any>({})
 
   // دالة جلب البيانات من API
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       setLoading(true)
       setError("")
@@ -303,12 +303,12 @@ export default function StudentsDataPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchTerm, academicYearFilter, stageFilter, genderFilter, statusFilter, currentPage, itemsPerPage, sortColumn, sortDirection])
 
   // جلب البيانات عند تحميل الصفحة أو تغيير الفلاتر
   useEffect(() => {
     fetchStudents()
-  }, [searchTerm, academicYearFilter, stageFilter, genderFilter, statusFilter, currentPage, itemsPerPage, sortColumn, sortDirection])
+  }, [fetchStudents])
 
   // حساب البيانات للصفحة الحالية
   const currentStudents = students
