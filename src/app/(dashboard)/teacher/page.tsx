@@ -1,6 +1,7 @@
 import Announcements from "@/components/Announcements";
 import BigCalendarContainer from "@/components/BigCalendarContainer";
 import { auth } from "@clerk/nextjs/server";
+import { HomeAds } from "@/components/HomeAds";
 
 const TeacherPage = () => {
   const { userId } = auth();
@@ -15,6 +16,7 @@ const TeacherPage = () => {
       </div>
       {/* RIGHT */}
       <div className="w-full xl:w-1/3 flex flex-col gap-8">
+        <HomeAds />
         <Announcements />
       </div>
     </div>

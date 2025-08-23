@@ -275,7 +275,7 @@ export default function StudentsDataPage() {
     try {
       setLoading(true)
       setError("")
-      
+
       const params = new URLSearchParams({
         search: searchTerm,
         academicYear: academicYearFilter,
@@ -287,17 +287,17 @@ export default function StudentsDataPage() {
         sortBy: sortColumn || 'fullName',
         sortOrder: sortDirection
       })
-      
+
       const response = await fetch(`/api/students?${params}`)
-      
+
       if (!response.ok) {
         throw new Error('فشل في جلب البيانات')
       }
-      
+
       const data = await response.json()
       setStudents(data.students)
       setPagination(data.pagination)
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
     } finally {
@@ -327,19 +327,19 @@ export default function StudentsDataPage() {
     if (!confirm('هل أنت متأكد من حذف هذا الطالب؟')) {
       return
     }
-    
+
     try {
       const response = await fetch(`/api/students/${studentId}`, {
         method: 'DELETE'
       })
-      
+
       if (!response.ok) {
         throw new Error('فشل في حذف الطالب')
       }
-      
+
       // إعادة جلب البيانات
       fetchStudents()
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ أثناء الحذف')
     }
@@ -354,7 +354,7 @@ export default function StudentsDataPage() {
   // وظيفة حفظ التعديلات
   const handleSaveEdit = async () => {
     if (!editingStudent) return
-    
+
     try {
       const response = await fetch(`/api/students/${editingStudent.id}`, {
         method: 'PUT',
@@ -363,16 +363,16 @@ export default function StudentsDataPage() {
         },
         body: JSON.stringify(editFormData)
       })
-      
+
       if (!response.ok) {
         throw new Error('فشل في تحديث بيانات الطالب')
       }
-      
+
       // إعادة جلب البيانات
       fetchStudents()
       setEditingStudent(null)
       setEditFormData({})
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ أثناء التحديث')
     }
@@ -530,8 +530,8 @@ export default function StudentsDataPage() {
           </thead>
           <tbody>
             ${currentStudents
-              .map(
-                (student: any, index: number) => `
+        .map(
+          (student: any, index: number) => `
               <tr>
                 ${visibleColumns.index ? `<td>${index + 1}</td>` : ""}
                 ${visibleColumns.registrationNumber ? `<td>${student.registrationNumber}</td>` : ""}
@@ -544,8 +544,8 @@ export default function StudentsDataPage() {
                 ${visibleColumns.gender ? `<td>${student.gender}</td>` : ""}
               </tr>
             `,
-              )
-              .join("")}
+        )
+        .join("")}
           </tbody>
         </table>
 
@@ -836,9 +836,8 @@ export default function StudentsDataPage() {
           </div>
         </div>
 
-        ${
-          student.skills
-            ? `
+        ${student.skills
+        ? `
         <div class="section">
           <div class="section-header">ملاحظات (مهارات)</div>
           <div class="section-content">
@@ -848,8 +847,8 @@ export default function StudentsDataPage() {
           </div>
         </div>
         `
-            : ""
-        }
+        : ""
+      }
 
         <script>
           window.onload = function() {
@@ -2507,7 +2506,7 @@ export default function StudentsDataPage() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-right">تأكيد الحذف</AlertDialogTitle>
                                   <AlertDialogDescription className="text-right">
-                                    هل أنت متأكد من حذف بيانات الطالب "{student.fullName}"؟
+                                    هل أنت متأكد من حذف بيانات الطالب &quot;{student.fullName}&quot;؟
                                     <br />
                                     لا يمكن التراجع عن هذا الإجراء.
                                   </AlertDialogDescription>

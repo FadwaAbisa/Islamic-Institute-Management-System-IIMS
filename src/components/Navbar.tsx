@@ -1,6 +1,8 @@
 import { UserButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
+import Link from "next/link";
+import { AnnouncementCounter } from "@/components/AnnouncementCounter";
 import { useState } from "react";
 
 const Navbar = async () => {
@@ -29,11 +31,11 @@ const Navbar = async () => {
     <nav className="flex items-center justify-between p-4 bg-white shadow-sm border-b border-gray-100">
       {/* شريط البحث المحسن */}
       <div className="hidden md:flex items-center gap-2 text-xs rounded-full ring-[1.5px] ring-gray-300 px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-        <Image 
-          src="/search.png" 
-          alt="بحث" 
-          width={16} 
-          height={16} 
+        <Image
+          src="/search.png"
+          alt="بحث"
+          width={16}
+          height={16}
           className="opacity-60"
         />
         <input
@@ -51,44 +53,30 @@ const Navbar = async () => {
           title="الرسائل"
           className="bg-white rounded-full w-9 h-9 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors duration-200 shadow-sm border border-gray-200"
         >
-          <Image 
-            src="/message.png" 
-            alt="رسائل" 
-            width={18} 
-            height={18} 
+          <Image
+            src="/message.png"
+            alt="رسائل"
+            width={18}
+            height={18}
             className="opacity-70 hover:opacity-100 transition-opacity"
           />
         </div>
 
         {/* أيقونة الإعلانات مع عداد محسن */}
-        <div
-          title="الإعلانات"
-          className="bg-white rounded-full w-9 h-9 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors duration-200 shadow-sm border border-gray-200 relative"
-        >
-          <Image 
-            src="/announcement.png" 
-            alt="إعلانات" 
-            width={18} 
-            height={18} 
-            className="opacity-70 hover:opacity-100 transition-opacity"
+        <AnnouncementCounter />
+        {/* زر المستخدم مع تحسينات */}
+        <div className="relative">
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "w-10 h-10 ring-2 ring-gray-200 hover:ring-gray-300 transition-all duration-200",
+                userButtonPopoverCard: "shadow-lg border border-gray-200",
+              }
+            }}
           />
-          <div className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-red-500 text-white rounded-full text-xs font-medium shadow-sm animate-pulse">
-            1
-          </div>
         </div>
-       {/* زر المستخدم مع تحسينات */}
-          <div className="relative">
-            <UserButton 
-              appearance={{
-                elements: {
-                  avatarBox: "w-10 h-10 ring-2 ring-gray-200 hover:ring-gray-300 transition-all duration-200",
-                  userButtonPopoverCard: "shadow-lg border border-gray-200",
-                }
-              }}
-            />
-          </div>
         {/* معلومات المستخدم المحسنة */}
-        
+
         <div className="flex items-center gap-3">
           <div className="flex flex-col text-right">
             <span className="text-sm leading-4 font-semibold text-gray-800">
@@ -98,8 +86,8 @@ const Navbar = async () => {
               {getRoleInArabic(user?.publicMetadata?.role as string)}
             </span>
           </div>
-          
-         
+
+
         </div>
       </div>
 

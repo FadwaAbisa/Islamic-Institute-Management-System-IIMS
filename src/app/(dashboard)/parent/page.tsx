@@ -2,12 +2,13 @@ import Announcements from "@/components/Announcements";
 import BigCalendarContainer from "@/components/BigCalendarContainer";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { HomeAds } from "@/components/HomeAds";
 
 
 const ParentPage = async () => {
   const { userId } = auth();
   const currentUserId = userId;
-  
+
   const students = await prisma.student.findMany({
     where: {
       parentId: currentUserId!,
@@ -22,15 +23,20 @@ const ParentPage = async () => {
           <div className="w-full xl:w-2/3" key={student.id}>
             <div className="h-full bg-white p-4 rounded-md">
               <h1 className="text-xl font-semibold">
-                Schedule ({student.name + " " + student.surname})
+                Schedule ({student.fullName})
               </h1>
-              <BigCalendarContainer type="classId" id={student.classId} />
+              {student.classId ? (
+                <BigCalendarContainer type="classId" id={student.classId} />
+              ) : (
+                <p className="text-gray-500 mt-4">No class assigned to this student.</p>
+              )}
             </div>
           </div>
         ))}
       </div>
       {/* RIGHT */}
       <div className="w-full xl:w-1/3 flex flex-col gap-8">
+        <HomeAds />
         <Announcements />
       </div>
     </div>

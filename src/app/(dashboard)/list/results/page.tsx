@@ -1,236 +1,81 @@
-import FormContainer from "@/components/FormContainer";
-import Pagination from "@/components/Pagination";
-import Table from "@/components/Table";
-import TableSearch from "@/components/TableSearch";
-import prisma from "@/lib/prisma";
-import { ITEM_PER_PAGE } from "@/lib/settings";
-import { Prisma } from "@prisma/client";
-import Image from "next/image";
+import { Card, CardContent } from "@/components/ui/card"
+import { FileText, AlertTriangle, Award, ClipboardCheck, BarChart3 } from "lucide-react"
+import Link from "next/link"
 
-import { auth } from "@clerk/nextjs/server";
-
-type ResultList = {
-  id: number;
-  title: string;
-  studentName: string;
-  studentSurname: string;
-  teacherName: string;
-  teacherSurname: string;
-  score: number;
-  className: string;
-  startTime: Date;
-};
-
-
-const ResultListPage = async ({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | undefined };
-}) => {
-
-const { userId, sessionClaims } = auth();
-const role = (sessionClaims?.metadata as { role?: string })?.role;
-const currentUserId = userId;
-
-
-const columns = [
-  {
-    header: "Title",
-    accessor: "title",
-  },
-  {
-    header: "Student",
-    accessor: "student",
-  },
-  {
-    header: "Score",
-    accessor: "score",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Teacher",
-    accessor: "teacher",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Class",
-    accessor: "class",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Date",
-    accessor: "date",
-    className: "hidden md:table-cell",
-  },
-  ...(role === "admin" || role === "teacher"
-    ? [
-        {
-          header: "Actions",
-          accessor: "action",
-        },
-      ]
-    : []),
-];
-
-const renderRow = (item: ResultList) => (
-  <tr
-    key={item.id}
-    className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
-  >
-    <td className="flex items-center gap-4 p-4">{item.title}</td>
-    <td>{item.studentName + " " + item.studentName}</td>
-    <td className="hidden md:table-cell">{item.score}</td>
-    <td className="hidden md:table-cell">
-      {item.teacherName + " " + item.teacherSurname}
-    </td>
-    <td className="hidden md:table-cell">{item.className}</td>
-    <td className="hidden md:table-cell">
-      {new Intl.DateTimeFormat("en-US").format(item.startTime)}
-    </td>
-    <td>
-      <div className="flex items-center gap-2">
-        {(role === "admin" || role === "teacher") && (
-          <>
-            <FormContainer table="result" type="update" data={item} />
-            <FormContainer table="result" type="delete" id={item.id} />
-          </>
-        )}
-      </div>
-    </td>
-  </tr>
-);
-
-  const { page, ...queryParams } = searchParams;
-
-  const p = page ? parseInt(page) : 1;
-
-  // URL PARAMS CONDITION
-
-  const query: Prisma.ResultWhereInput = {};
-
-  if (queryParams) {
-    for (const [key, value] of Object.entries(queryParams)) {
-      if (value !== undefined) {
-        switch (key) {
-          case "studentId":
-            query.studentId = value;
-            break;
-          case "search":
-            query.OR = [
-              { exam: { title: { contains: value, mode: "insensitive" } } },
-              { student: { name: { contains: value, mode: "insensitive" } } },
-            ];
-            break;
-          default:
-            break;
-        }
-      }
-    }
-  }
-
-  // ROLE CONDITIONS
-
-  switch (role) {
-    case "admin":
-      break;
-    case "teacher":
-      query.OR = [
-        { exam: { lesson: { teacherId: currentUserId! } } },
-        { assignment: { lesson: { teacherId: currentUserId! } } },
-      ];
-      break;
-
-    case "student":
-      query.studentId = currentUserId!;
-      break;
-
-    case "parent":
-      query.student = {
-        parentId: currentUserId!,
-      };
-      break;
-    default:
-      break;
-  }
-
-  const [dataRes, count] = await prisma.$transaction([
-    prisma.result.findMany({
-      where: query,
-      include: {
-        student: { select: { name: true, surname: true } },
-        exam: {
-          include: {
-            lesson: {
-              select: {
-                class: { select: { name: true } },
-                teacher: { select: { name: true, surname: true } },
-              },
-            },
-          },
-        },
-        assignment: {
-          include: {
-            lesson: {
-              select: {
-                class: { select: { name: true } },
-                teacher: { select: { name: true, surname: true } },
-              },
-            },
-          },
-        },
-      },
-      take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (p - 1),
-    }),
-    prisma.result.count({ where: query }),
-  ]);
-
-  const data = dataRes.map((item) => {
-    const assessment = item.exam || item.assignment;
-
-    if (!assessment) return null;
-
-    const isExam = "startTime" in assessment;
-
-    return {
-      id: item.id,
-      title: assessment.title,
-      studentName: item.student.name,
-      studentSurname: item.student.surname,
-      teacherName: assessment.lesson.teacher.name,
-      teacherSurname: assessment.lesson.teacher.surname,
-      score: item.score,
-      className: assessment.lesson.class.name,
-      startTime: isExam ? assessment.startTime : assessment.startDate,
-    };
-  });
-
+export default function ResultsPage() {
   return (
-    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
-      {/* TOP */}
-      <div className="flex items-center justify-between">
-        <h1 className="hidden md:block text-lg font-semibold">All Results</h1>
-        <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-          <TableSearch />
-          <div className="flex items-center gap-4 self-end">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/filter.png" alt="" width={14} height={14} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/sort.png" alt="" width={14} height={14} />
-            </button>
-            {(role === "admin" || role === "teacher") && (
-              <FormContainer table="result" type="create" />
-            )}
+    <div className="min-h-screen bg-lamaPurpleLight p-6 font-tajawal" dir="rtl">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-800 mb-3 font-cairo">صفحة الدرجات الرئيسية</h1>
+          <p className="text-gray-600 text-lg font-tajawal">اختر المهمة التي تريد تنفيذها من القائمة أدناه</p>
+        </div>
+
+        {/* Reports Section */}
+        <div>
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <BarChart3 className="w-7 h-7 text-lamaYellow" />
+            <h2 className="text-2xl font-bold text-gray-800 font-cairo">التقارير</h2>
+          </div>
+
+          <div className="grid grid-cols-4 gap-4">
+            {/* Review List */}
+            <Link href="/review">
+              <Card className="bg-white border-lamaYellowLight hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer group">
+                <CardContent className="p-4 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-lamaSky to-lamaYellow rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:rotate-12 transition-transform duration-300">
+                    <ClipboardCheck className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-1 text-sm font-tajawal">كشف المراجعة</h3>
+                  <p className="text-gray-600 text-xs leading-relaxed font-tajawal">كشوفات المراجعة والتدقيق</p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Top Students */}
+            <Link href="/top-students">
+              <Card className="bg-white border-lamaYellowLight hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer group">
+                <CardContent className="p-4 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-lamaSky to-lamaYellow rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:rotate-12 transition-transform duration-300">
+                    <Award className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-1 text-sm font-tajawal">كشف الأوائل</h3>
+                  <p className="text-gray-600 text-xs leading-relaxed font-tajawal">قائمة الطلاب المتفوقين والأوائل</p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Second Round Students */}
+            <Link href="/second-round">
+              <Card className="bg-white border-lamaYellowLight hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer group">
+                <CardContent className="p-4 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-lamaSky to-lamaYellow rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:rotate-12 transition-transform duration-300">
+                    <AlertTriangle className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-1 text-sm font-tajawal">طلاب الدور الثاني</h3>
+                  <p className="text-gray-600 text-xs leading-relaxed font-tajawal">
+                    قائمة الطلاب المؤجلين للدور الثاني
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Approved Transcripts */}
+            <Link href="/approved-transcripts">
+              <Card className="bg-white border-lamaYellowLight hover:shadow-xl hover:scale-105 hover:-translate-y-2 transition-all duration-300 cursor-pointer group">
+                <CardContent className="p-4 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-lamaSky to-lamaYellow rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:rotate-12 transition-transform duration-300">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-1 text-sm font-tajawal">الكشوفات المعتمدة</h3>
+                  <p className="text-gray-600 text-xs leading-relaxed font-tajawal">عرض وطباعة الكشوفات المعتمدة</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
       </div>
-      {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={data} />
-      {/* PAGINATION */}
-      <Pagination page={p} count={count} />
     </div>
-  );
-};
-
-export default ResultListPage;
+  )
+}

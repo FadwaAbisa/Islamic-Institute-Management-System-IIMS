@@ -78,6 +78,13 @@ const config: Config = {
         lamaPurpleLight: "#FCFAF8",
         lamaYellow: "#B8956A",
         lamaYellowLight: "#E2D5C7",
+        // إضافة الألوان بأسماء مختلفة للتوافق
+        "lama-sky": "#D2B48C",
+        "lama-sky-light": "#F0E6D6",
+        "lama-purple": "#F7F3EE",
+        "lama-purple-light": "#FCFAF8",
+        "lama-yellow": "#B8956A",
+        "lama-yellow-light": "#E2D5C7",
       },
       borderRadius: {
         lg: "var(--radius)",

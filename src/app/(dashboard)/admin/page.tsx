@@ -1,9 +1,10 @@
-import  Announcements from "@/components/Announcements";
+import Announcements from "@/components/Announcements";
 import AttendanceChartContainer from "@/components/AttendanceChartContainer";
 import CountChartContainer from "@/components/CountChartContainer";
 import EventCalendarContainer from "@/components/EventCalendarContainer";
 import FinanceChart from "@/components/FinanceChart";
 import UserCard from "@/components/UserCard";
+import { HomeAds } from "@/components/HomeAds";
 
 const AdminPage = ({
   searchParams,
@@ -39,7 +40,8 @@ const AdminPage = ({
       </div>
       {/* RIGHT */}
       <div className="w-full lg:w-1/3 flex flex-col gap-8">
-        <EventCalendarContainer searchParams={searchParams}/>
+        <EventCalendarContainer searchParams={searchParams} />
+        <HomeAds />
         <Announcements />
       </div>
     </div>
