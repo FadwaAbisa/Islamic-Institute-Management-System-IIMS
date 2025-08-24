@@ -1,5 +1,6 @@
 import Announcements from "@/components/Announcements";
 import BigCalendarContainer from "@/components/BigCalendarContainer";
+import StudentAttendanceCard from "@/components/StudentAttendanceCard";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { HomeAds } from "@/components/HomeAds";
@@ -36,6 +37,15 @@ const ParentPage = async () => {
       </div>
       {/* RIGHT */}
       <div className="w-full xl:w-1/3 flex flex-col gap-8">
+        {/* إضافة كشف الحضور للأطفال */}
+        {students.map((student) => (
+          <div key={student.id} className="bg-white p-4 rounded-md">
+            <h2 className="text-lg font-semibold mb-4">
+              حضور {student.fullName}
+            </h2>
+            <StudentAttendanceCard id={student.id} />
+          </div>
+        ))}
         <HomeAds />
         <Announcements />
       </div>

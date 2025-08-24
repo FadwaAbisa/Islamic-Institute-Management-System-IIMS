@@ -1,30 +1,31 @@
 "use client";
 
-import * as Clerk from "@clerk/elements/common";
-import * as SignIn from "@clerk/elements/sign-in";
+import { SignIn } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, User, Lock, BookOpen } from "lucide-react";
 
 const LoginPage = () => {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       const role = user?.publicMetadata?.role;
+      const redirectUrl = searchParams.get('redirect_url');
+
       if (role) {
         setIsLoading(true);
         setTimeout(() => {
-          router.replace(`/${role}`);
+          // إذا كان هناك مسار إعادة توجيه، استخدمه، وإلا استخدم المسار الافتراضي
+          const targetUrl = redirectUrl || `/${role}`;
+          router.replace(targetUrl);
         }, 500);
       }
     }
-  }, [isLoaded, isSignedIn, user, router]);
+  }, [isLoaded, isSignedIn, user, router, searchParams]);
 
   if (isLoading) {
     return (
@@ -47,90 +48,35 @@ const LoginPage = () => {
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        <SignIn.Root>
-          <SignIn.Step name="start">
             <div className="bg-white/95 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-amber-100/50 relative overflow-hidden">
               {/* Card header decoration */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400"></div>
               
-              {/* Header Section */}
+          {/* Header */}
               <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl mb-4 shadow-lg">
-                  <BookOpen className="w-8 h-8 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-2">
                   مرحباً بك
                 </h1>
-                <p className="text-gray-500 text-sm">
-                  قم بتسجيل الدخول للوصول إلى حسابك
+            <p className="text-gray-600 text-sm">
+              سجل دخولك للوصول إلى نظام إدارة المدرسة
                 </p>
               </div>
 
-              <Clerk.GlobalError className="text-sm text-red-500 bg-red-50 p-3 rounded-lg mb-4 border border-red-200" />
-
-              <div className="space-y-6">
-                {/* Username Field */}
-                <Clerk.Field name="identifier" className="space-y-2">
-                  <Clerk.Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <User className="w-4 h-4 text-amber-600" />
-                    اسم المستخدم
-                  </Clerk.Label>
-                  <div className="relative">
-                    <Clerk.Input
-                      type="text"
-                      required
-                      className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-200 bg-gray-50/50 hover:bg-white"
-                      placeholder="أدخل اسم المستخدم"
-                    />
-                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                      <User className="w-5 h-5 text-gray-400" />
-                    </div>
-                  </div>
-                  <Clerk.FieldError className="text-xs text-red-500 flex items-center gap-1 mt-1" />
-                </Clerk.Field>
-
-                {/* Password Field */}
-                <Clerk.Field name="password" className="space-y-2">
-                  <Clerk.Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-amber-600" />
-                    كلمة المرور
-                  </Clerk.Label>
-                  <div className="relative">
-                    <Clerk.Input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      className="w-full px-4 py-3 pr-12 pl-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-200 bg-gray-50/50 hover:bg-white"
-                      placeholder="أدخل كلمة المرور"
-                    />
-                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                      <Lock className="w-5 h-5 text-gray-400" />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                  <Clerk.FieldError className="text-xs text-red-500 flex items-center gap-1 mt-1" />
-                </Clerk.Field>
-
-                {/* Submit Button */}
-                <SignIn.Action
-                  submit
-                  className="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:via-orange-600 hover:to-amber-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    تسجيل الدخول
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin hidden group-disabled:block"></div>
-                  </span>
-                </SignIn.Action>
-              </div>
+          {/* Clerk SignIn Component */}
+          <SignIn
+            appearance={{
+              elements: {
+                formButtonPrimary: "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:via-orange-600 hover:to-amber-700 text-white font-semibold rounded-xl transition-all duration-300",
+                card: "shadow-none bg-transparent",
+                headerTitle: "hidden",
+                headerSubtitle: "hidden",
+                socialButtonsBlockButton: "border-amber-200 hover:bg-amber-50",
+                formFieldInput: "border-gray-200 rounded-xl focus:ring-amber-400 focus:border-transparent",
+                footerAction: "hidden"
+              }
+            }}
+            redirectUrl={`/${user?.publicMetadata?.role || 'student'}`}
+          />
 
               {/* Footer */}
               <div className="mt-8 pt-6 border-t border-gray-100">
@@ -146,8 +92,6 @@ const LoginPage = () => {
                 </div>
               </div>
             </div>
-          </SignIn.Step>
-        </SignIn.Root>
       </div>
     </div>
   );

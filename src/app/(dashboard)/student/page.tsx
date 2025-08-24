@@ -2,6 +2,7 @@ import Announcements from "@/components/Announcements";
 import BigCalendarContainer from "@/components/BigCalendarContainer";
 import BigCalendar from "@/components/BigCalender";
 import EventCalendar from "@/components/EventCalendar";
+import StudentAttendanceCard from "@/components/StudentAttendanceCard";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
@@ -22,15 +23,22 @@ const StudentPage = async () => {
         <div className="h-full bg-white p-4 rounded-md">
           <h1 className="text-xl font-semibold">Schedule (4A)</h1>
           {classItem.length > 0 ? (
-  <BigCalendarContainer type="classId" id={classItem[0].id} />
-) : (
-  <p>لا توجد بيانات صف للطالب.</p>
-)}
-         {/* <BigCalendarContainer type="classId" id={classItem[0].id} /> */}
+            <BigCalendarContainer type="classId" id={classItem[0].id} />
+          ) : (
+            <p>لا توجد بيانات صف للطالب.</p>
+          )}
+          {/* <BigCalendarContainer type="classId" id={classItem[0].id} /> */}
         </div>
       </div>
       {/* RIGHT */}
       <div className="w-full xl:w-1/3 flex flex-col gap-8">
+        {/* إضافة كشف الحضور للطالب */}
+        <div className="bg-white p-4 rounded-md">
+          <h2 className="text-lg font-semibold mb-4">
+            نسبة الحضور
+          </h2>
+          <StudentAttendanceCard id={userId!} />
+        </div>
         <EventCalendar />
         <Announcements />
       </div>

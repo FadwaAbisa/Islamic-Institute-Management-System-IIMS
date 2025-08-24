@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
 import BigCalendar from "./BigCalender";
-import { adjustScheduleToCurrentWeek } from "@/lib/utils";
 
 // تجهيز جدول الحصص بناءً على المعلم أو الصف
 const BigCalendarContainer = async ({
@@ -24,11 +23,9 @@ const BigCalendarContainer = async ({
     end: lesson.endTime,
   }));
 
-  const schedule = adjustScheduleToCurrentWeek(data);
-
   return (
     <div className="">
-      <BigCalendar data={schedule} />
+      <BigCalendar data={data} />
     </div>
   );
 };

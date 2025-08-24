@@ -74,12 +74,7 @@ const menuItems = [
             href: "/list/students/reviews",
             description: "مراجعة طلبات الطلاب"
           },
-          {
-            icon: FileText,
-            label: "استعراض النتائج",
-            href: "/list/students/results",
-            description: "عرض نتائج الطلاب"
-          },
+
           {
             icon: Users,
             label: "قائمة الطلاب",
@@ -87,15 +82,64 @@ const menuItems = [
             description: "عرض جميع الطلاب"
           },
 
-         {
+          {
             icon: Users,
             label: "استيراد الطلاب",
             href: "/list/students/import",
             description: "عمليات استيراد الطلاب من ملف",
           }
-          
+
         ]
       },
+      {
+        icon: "/attendance.png",
+        label: "الحضور والغياب",
+        href: "/list/attendance",
+        visible: ["admin", "teacher", "student", "parent"],
+        description: "إدارة الحضور والغياب",
+        color: "bg-yellow-50 text-yellow-600",
+        hasDropdown: true,
+        subItems: [
+          {
+            icon: ClipboardCheck,
+            label: "كشف الحضور",
+            href: "/list/attendance",
+            description: "عرض سجلات الحضور والغياب"
+          },
+          {
+            icon: BarChart3,
+            label: "إحصائيات الحضور",
+            href: "/list/attendance/stats",
+            description: "تقارير وإحصائيات الحضور"
+          },
+          {
+            icon: Plus,
+            label: "تسجيل الحضور",
+            href: "/list/attendance/mark",
+            description: "تسجيل حضور وغياب الطلاب"
+          }
+        ]
+      },
+      {
+        icon: "/result.png",
+        label: "النتائج",
+        href: "/grades/results",
+        visible: ["admin", "teacher"],
+        description: "إدارة النتائج والتقارير",
+        color: "bg-emerald-50 text-emerald-600",
+        hasDropdown: true,
+        subItems: [
+          {
+            icon: FileText,
+            label: "تقارير النتائج",
+            href: "/grades/results",
+            description: "عرض تقارير النتائج المختلفة"
+          }
+        ]
+      },
+      //........................................................
+
+      //........................................................
       {
         icon: "/parent.png",
         label: "أولياء الأمور",
@@ -213,14 +257,14 @@ const menuItems = [
         description: "إدارة الواجبات المدرسية",
         color: "bg-yellow-50 text-yellow-600"
       },
-      {
-        icon: "/result.png",
-        label: "النتائج",
-        href: "/list/results",
-        visible: ["admin", "teacher", "student", "parent"],
-        description: "عرض نتائج الطلاب",
-        color: "bg-emerald-50 text-emerald-600"
-      },
+      // {
+      //   icon: "/result.png",
+      //   label: "النتائج",
+      //   href: "/list/results",
+      //   visible: ["admin", "teacher", "student", "parent"],
+      //   description: "عرض نتائج الطلاب",
+      //   color: "bg-emerald-50 text-emerald-600"
+      // },
       {
         icon: "/attendance.png",
         label: "الحضور",
@@ -303,7 +347,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
       [itemLabel]: !prev[itemLabel]
     }));
   };
-  
+
   return (
     <div className="h-full bg-white">
       {/* Header */}
@@ -323,9 +367,9 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
       <div className="flex-1 overflow-y-auto px-4 py-6">
         {menuItems.map((section, sectionIndex) => {
           const visibleItems = section.items.filter(item => item.visible.includes(role));
-          
+
           if (visibleItems.length === 0) return null;
-          
+
           return (
             <div key={section.title} className="mb-8">
               {/* Section Header */}
@@ -350,10 +394,10 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
                       >
                         {/* Icon Container */}
                         <div className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${item.color}`}>
-                          <Image 
-                            src={item.icon} 
-                            alt={item.label} 
-                            width={20} 
+                          <Image
+                            src={item.icon}
+                            alt={item.label}
+                            width={20}
                             height={20}
                             className="transition-all duration-300 group-hover:scale-110"
                           />
@@ -371,10 +415,9 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
 
                         {/* Dropdown Arrow */}
                         <div className="hidden lg:block">
-                          <ChevronDown 
-                            className={`w-4 h-4 text-lamaSky transition-transform duration-300 ${
-                              openDropdowns[item.label] ? 'rotate-180' : ''
-                            }`} 
+                          <ChevronDown
+                            className={`w-4 h-4 text-lamaSky transition-transform duration-300 ${openDropdowns[item.label] ? 'rotate-180' : ''
+                              }`}
                           />
                         </div>
 
@@ -388,14 +431,14 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
                       >
                         {/* Icon Container */}
                         <div className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${item.color}`}>
-                          <Image 
-                            src={item.icon} 
-                            alt={item.label} 
-                            width={20} 
+                          <Image
+                            src={item.icon}
+                            alt={item.label}
+                            width={20}
                             height={20}
                             className="transition-all duration-300 group-hover:scale-110"
                           />
-                          
+
                           {/* Notification Badge */}
                           {item.label === "الرسائل" && (
                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -426,9 +469,8 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
 
                     {/* Dropdown Sub Items */}
                     {item.hasDropdown && item.subItems && (
-                      <div className={`overflow-hidden transition-all duration-300 ${
-                        openDropdowns[item.label] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                      }`}>
+                      <div className={`overflow-hidden transition-all duration-300 ${openDropdowns[item.label] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                        }`}>
                         <div className="mr-6 mt-2 space-y-1 border-r-2 border-lamaSkyLight">
                           {item.subItems.map((subItem, subIndex) => (
                             <Link
@@ -439,7 +481,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
                               <div className="w-8 h-8 bg-white border-2 border-lamaSkyLight rounded-lg flex items-center justify-center group-hover:border-lamaSky group-hover:bg-lamaSky transition-all duration-200">
                                 <subItem.icon className="w-4 h-4 text-lamaSky group-hover:text-white transition-colors duration-200" />
                               </div>
-                              
+
                               <div className="hidden lg:flex flex-col flex-1 min-w-0">
                                 <span className="text-sm font-medium text-gray-700 group-hover:text-lamaSky transition-colors duration-200">
                                   {subItem.label}
@@ -472,9 +514,9 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
               {initialUser?.firstName} {initialUser?.lastName}
             </p>
             <p className="text-xs text-gray-500 capitalize">
-              {role === 'admin' ? 'مدير النظام' : 
-               role === 'teacher' ? 'معلم' : 
-               role === 'student' ? 'طالب' : 'ولي أمر'}
+              {role === 'admin' ? 'مدير النظام' :
+                role === 'teacher' ? 'معلم' :
+                  role === 'student' ? 'طالب' : 'ولي أمر'}
             </p>
           </div>
         </div>
