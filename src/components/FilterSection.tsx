@@ -13,21 +13,39 @@ interface FilterSectionProps {
 
 export function FilterSection({ filters, setFilters, onApply }: FilterSectionProps) {
   const updateFilter = (key: keyof FilterOptions, value: string) => {
-    setFilters({ ...filters, [key]: value })
+    console.log("🔍 Updating filter:", key, "to value:", value)
+    const newFilters = { ...filters, [key]: value }
+    console.log("🔍 New filters state:", newFilters)
+    setFilters(newFilters)
   }
 
   // جلب المواد ديناميكياً
   const [subjects, setSubjects] = useState<{ id: number; name: string }[]>([])
+  // جلب الأعوام الدراسية ديناميكياً
+  const [academicYears, setAcademicYears] = useState<string[]>([])
+
   useEffect(() => {
-    const load = async () => {
+    const loadSubjects = async () => {
       try {
         const res = await fetch("/api/subjects")
         if (!res.ok) return
         const data = await res.json()
         setSubjects(data.subjects || [])
-      } catch {}
+      } catch { }
     }
-    load()
+
+    const loadAcademicYears = async () => {
+      try {
+        const res = await fetch("/api/academic-years")
+        if (!res.ok) return
+        const data = await res.json()
+        console.log("🔍 Loaded academic years:", data.academicYears)
+        setAcademicYears(data.academicYears || [])
+      } catch { }
+    }
+
+    loadSubjects()
+    loadAcademicYears()
   }, [])
 
   return (
@@ -35,7 +53,7 @@ export function FilterSection({ filters, setFilters, onApply }: FilterSectionPro
       <h2 className="text-lg font-semibold text-lamaBlack mb-4">المرشحات</h2>
 
       {/* الصف الأول */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
           <Label htmlFor="academicYear" className="text-lamaBlack font-medium">
             العام الدراسي
@@ -45,8 +63,11 @@ export function FilterSection({ filters, setFilters, onApply }: FilterSectionPro
               <SelectValue placeholder="اختر العام الدراسي" className="text-lamaBlackLight" />
             </SelectTrigger>
             <SelectContent className="bg-white" dir="rtl">
-              <SelectItem value="2024-2025" className="text-lamaBlack hover:bg-lamaSkyLight text-right">2024-2025</SelectItem>
-              <SelectItem value="2025-2026" className="text-lamaBlack hover:bg-lamaSkyLight text-right">2025-2026</SelectItem>
+              {academicYears.map((year) => (
+                <SelectItem key={year} value={year} className="text-lamaBlack hover:bg-lamaSkyLight text-right">
+                  {year}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -68,24 +89,6 @@ export function FilterSection({ filters, setFilters, onApply }: FilterSectionPro
         </div>
 
         <div>
-          <Label htmlFor="section" className="text-lamaBlack font-medium">
-            الشعبة
-          </Label>
-          <Select value={filters.section} onValueChange={(value) => updateFilter("section", value)}>
-            <SelectTrigger className="bg-white text-lamaBlack border-lamaSky" dir="rtl">
-              <SelectValue placeholder="اختر الشعبة" className="text-lamaBlackLight" />
-            </SelectTrigger>
-            <SelectContent className="bg-white" dir="rtl">
-              <SelectItem value="الدراسات الإسلامية" className="text-lamaBlack hover:bg-lamaSkyLight text-right">الدراسات الإسلامية</SelectItem>
-              <SelectItem value="القراءات" className="text-lamaBlack hover:bg-lamaSkyLight text-right">القراءات</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* الصف الثاني */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <div>
           <Label htmlFor="studySystem" className="text-lamaBlack font-medium">
             نظام الدراسة
           </Label>
@@ -99,7 +102,10 @@ export function FilterSection({ filters, setFilters, onApply }: FilterSectionPro
             </SelectContent>
           </Select>
         </div>
+      </div>
 
+      {/* الصف الثاني */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
           <Label htmlFor="subject" className="text-lamaBlack font-medium">
             المادة
@@ -117,10 +123,7 @@ export function FilterSection({ filters, setFilters, onApply }: FilterSectionPro
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      {/* الصف الثالث */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="evaluationPeriod" className="text-lamaBlack font-medium">
             فترة التقييم
@@ -142,15 +145,17 @@ export function FilterSection({ filters, setFilters, onApply }: FilterSectionPro
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-end">
-          <button
-            type="button"
-            onClick={onApply}
-            className="w-full bg-lamaSky text-white hover:bg-lamaYellow transition-colors rounded-md h-10"
-          >
-            تطبيق الفلاتر
-          </button>
-        </div>
+      </div>
+
+      {/* زر التطبيق */}
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={onApply}
+          className="bg-lamaSky text-white hover:bg-lamaYellow transition-colors rounded-md px-8 py-3 font-medium"
+        >
+          تطبيق الفلاتر
+        </button>
       </div>
     </div>
   )

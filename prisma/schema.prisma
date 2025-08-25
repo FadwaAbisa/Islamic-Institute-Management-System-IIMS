@@ -13,18 +13,18 @@ model Admin {
 }
 
 model Student {
-  id               String           @id @default(uuid())
-  
+  id String @id @default(uuid())
+
   // البيانات الشخصية والاتصال
-  fullName         String // الاسم الرباعي
-  nationalId       String           @unique // رقم الهوية/الرقم الوطني
-  sex              UserSex // الجنس (ذكر/أنثى)
-  birthday         DateTime // تاريخ الميلاد
-  placeOfBirth     String // مكان الميلاد
-  nationality      String // الجنسية
-  address          String // العنوان
-  studentPhone     String? // رقم هاتف الطالب
-  
+  fullName     String // الاسم الرباعي
+  nationalId   String   @unique // رقم الهوية/الرقم الوطني
+  sex          UserSex // الجنس (ذكر/أنثى)
+  birthday     DateTime // تاريخ الميلاد
+  placeOfBirth String // مكان الميلاد
+  nationality  String // الجنسية
+  address      String // العنوان
+  studentPhone String? // رقم هاتف الطالب
+
   // بيانات التسجيل الأكاديمي
   academicYear     String? // العام الدراسي (2024-2025 مثلاً)
   studyLevel       String? // المرحلة الدراسية
@@ -32,31 +32,31 @@ model Student {
   studyMode        StudyMode? // النظام الدراسي (نظامي/انتساب)
   enrollmentStatus EnrollmentStatus? // صفة القيد (مستجد/معيد)
   studentStatus    StudentStatus? // حالة الطالب (مستمر/منقطع...)
-  
+
   // البيانات الإضافية
-  guardianName         String? // اسم ولي الأمر
-  relationship         String? // صلة القرابة
-  guardianPhone        String? // هاتف ولي الأمر
-  previousSchool       String? // المدرسة السابقة
-  previousLevel        String? // المستوى الأكاديمي السابق
-  healthCondition      String? // الحالة الصحية
-  chronicDiseases      String? // الأمراض المزمنة
-  allergies            String? // الحساسيات
-  specialNeeds         String? // الاحتياجات الخاصة
+  guardianName            String? // اسم ولي الأمر
+  relationship            String? // صلة القرابة
+  guardianPhone           String? // هاتف ولي الأمر
+  previousSchool          String? // المدرسة السابقة
+  previousLevel           String? // المستوى الأكاديمي السابق
+  healthCondition         String? // الحالة الصحية
+  chronicDiseases         String? // الأمراض المزمنة
+  allergies               String? // الحساسيات
+  specialNeeds            String? // الاحتياجات الخاصة
   emergencyContactName    String? // اسم جهة الاتصال للطوارئ
   emergencyContactPhone   String? // هاتف جهة الاتصال الطوارئ
   emergencyContactAddress String? // عنوان جهة الاتصال الطوارئ
-  notes                String? // ملاحظات
-  
+  notes                   String? // ملاحظات
+
   // بيانات المستندات (مسارات الملفات)
-  studentPhoto       String? // مسار صورة الطالب
-  nationalIdCopy     String? // مسار صورة الهوية
-  birthCertificate   String? // مسار شهادة الميلاد
-  educationForm      String? // مسار استمارة التعليم
+  studentPhoto        String? // مسار صورة الطالب
+  nationalIdCopy      String? // مسار صورة الهوية
+  birthCertificate    String? // مسار شهادة الميلاد
+  educationForm       String? // مسار استمارة التعليم
   equivalencyDocument String? // مسار وثيقة المعادلة
-  otherDocuments     Json? // مصفوفة مسارات المستندات الأخرى
-  
-  createdAt        DateTime         @default(now())
+  otherDocuments      Json? // مصفوفة مسارات المستندات الأخرى
+
+  createdAt DateTime @default(now())
 
   // العلاقات (اختيارية الآن)
   parentId String?
@@ -66,35 +66,35 @@ model Student {
   gradeId  Int?
   grade    Grade?  @relation(fields: [gradeId], references: [id])
 
-  attendances Attendance[]
-  results     Result[]
+  attendances   Attendance[]
+  results       Result[]
   subjectGrades SubjectGrade[]
 }
 
 model Teacher {
-  id            String    @id @default(uuid())
+  id           String    @id @default(uuid())
   // بيانات شخصية واتصال
-  fullName      String?
-  nationalId    String?   @unique
-  sex           UserSex?
-  birthday      DateTime?
-  placeOfBirth  String?
-  nationality   String?
-  address       String?
-  phone         String?   @unique
-  email         String?   @unique
-  img           String?
+  fullName     String?
+  nationalId   String?   @unique
+  sex          UserSex?
+  birthday     DateTime?
+  placeOfBirth String?
+  nationality  String?
+  address      String?
+  phone        String?   @unique
+  email        String?   @unique
+  img          String?
 
   // حقول اختيارية/توافقية مع أجزاء أخرى من النظام
-  username      String?   @unique
-  name          String?
-  surname       String?
-  bloodType     String?
+  username  String? @unique
+  name      String?
+  surname   String?
+  bloodType String?
 
-  createdAt     DateTime  @default(now())
-  subjects      Subject[]
-  lessons       Lesson[]
-  classes       Class[]
+  createdAt DateTime  @default(now())
+  subjects  Subject[]
+  lessons   Lesson[]
+  classes   Class[]
 }
 
 model Parent {
@@ -133,8 +133,8 @@ model Class {
 }
 
 model Subject {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
+  id       Int            @id @default(autoincrement())
+  name     String         @unique
   teachers Teacher[]
   lessons  Lesson[]
   grades   SubjectGrade[]
@@ -226,28 +226,28 @@ model Announcement {
 
 // درجات المواد حسب الطالب والمادة والسنة والفترة
 model SubjectGrade {
-  id           Int               @id @default(autoincrement())
+  id           Int              @id @default(autoincrement())
   academicYear String
   period       EvaluationPeriod
 
   // درجات الأشهر
-  month1       Int?
-  month2       Int?
-  month3       Int?
+  month1 Int?
+  month2 Int?
+  month3 Int?
 
   // مجاميع وأعمال
-  workTotal    Float             @default(0)
-  finalExam    Int?
-  periodTotal  Float             @default(0)
+  workTotal   Float @default(0)
+  finalExam   Int?
+  periodTotal Float @default(0)
 
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // العلاقات
-  studentId    String
-  student      Student           @relation(fields: [studentId], references: [id])
-  subjectId    Int
-  subject      Subject           @relation(fields: [subjectId], references: [id])
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+  subjectId Int
+  subject   Subject @relation(fields: [subjectId], references: [id])
 
   @@unique([studentId, subjectId, academicYear, period])
 }
@@ -277,6 +277,7 @@ enum StudentStatus {
   SUSPENDED // موقوف
   EXPELLED // مطرود
   PAUSED // إيقاف قيد
+  GRADUATED // متخرج
 }
 
 enum StudyMode {

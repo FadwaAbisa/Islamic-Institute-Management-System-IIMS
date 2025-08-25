@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  GraduationCap, 
-  UserPlus, 
-  ClipboardList, 
-  Users, 
+import {
+  GraduationCap,
+  UserPlus,
+  ClipboardList,
+  Users,
   FileSearch,
-  BookOpen
+  BookOpen,
+  TestTube
 } from "lucide-react";
 
 export default function GradesPage() {
@@ -22,7 +23,7 @@ export default function GradesPage() {
     {
       title: "إضافة طالب",
       description: "تسجيل طالب جديد في النظام",
-      href: "/grades/add-student", 
+      href: "/grades/add-student",
       icon: UserPlus,
       color: "bg-green-500"
     },
@@ -34,7 +35,7 @@ export default function GradesPage() {
       color: "bg-purple-500"
     },
     {
-      title: "إدارة الطلاب", 
+      title: "إدارة الطلاب",
       description: "عرض وإدارة بيانات الطلاب",
       href: "/grades/students",
       icon: Users,
@@ -46,6 +47,20 @@ export default function GradesPage() {
       href: "/grades/review-requests",
       icon: FileSearch,
       color: "bg-red-500"
+    },
+    {
+      title: "فحص البيانات",
+      description: "فحص البيانات في قاعدة البيانات",
+      href: "/test-data",
+      icon: BookOpen,
+      color: "bg-indigo-500"
+    },
+    {
+      title: "اختبار API",
+      description: "اختبار APIs",
+      href: "/test-api",
+      icon: TestTube,
+      color: "bg-green-500"
     }
   ];
 
@@ -81,7 +96,7 @@ export default function GradesPage() {
               </CardHeader>
               <CardContent>
                 <Link href={item.href}>
-                  <Button 
+                  <Button
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
                     size="lg"
                   >
@@ -102,15 +117,15 @@ export default function GradesPage() {
             <CardDescription>الأقسام المتاحة</CardDescription>
           </CardHeader>
         </Card>
-        
+
         <Card className="text-center">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-green-600">∞</CardTitle>
             <CardDescription>الطلاب المسجلين</CardDescription>
           </CardHeader>
         </Card>
-        
-        <Card className="text-center">  
+
+        <Card className="text-center">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-purple-600">24/7</CardTitle>
             <CardDescription>متاح دائماً</CardDescription>

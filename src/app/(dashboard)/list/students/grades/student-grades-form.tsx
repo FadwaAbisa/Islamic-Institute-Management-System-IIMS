@@ -5,6 +5,7 @@ import { FilterSection } from "@/components/FilterSection"
 import { SearchAndControls } from "@/components/SearchAndControls"
 import { GradesTable } from "@/components/GradesTable"
 import { StatsSection } from "@/components/StatsSection"
+import { ExportGradesButton } from "@/components/ExportGradesButton"
 
 export default function StudentGradesForm() {
   const {
@@ -19,6 +20,7 @@ export default function StudentGradesForm() {
     getGradeBgColor,
     stats,
     isThirdPeriod,
+    savePopup,
   } = useStudentGrades()
 
   return (
@@ -33,17 +35,19 @@ export default function StudentGradesForm() {
         {/* قسم المرشحات */}
         <FilterSection filters={filters} setFilters={setFilters} onApply={applyFilters} />
 
-        {/* قسم البحث والتحكم */
-        }
+        {/* قسم البحث والتحكم */}
         <SearchAndControls searchOptions={searchOptions} setSearchOptions={setSearchOptions} />
 
-        {/* اسم المقرر المختار فوق الجدول */}
+        {/* اسم المقرر المختار وأدوات التحكم */}
         {filters.subject && (
-          <div className="mb-4 flex items-center justify-center">
+          <div className="mb-4 flex items-center justify-between">
             <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-md border border-lamaSky text-lamaBlack">
               <span className="text-sm text-lamaBlackLight">المقرر المختار:</span>
               <span className="font-semibold">{filters.subject}</span>
             </div>
+
+            {/* زر التصدير */}
+            <ExportGradesButton filters={filters} />
           </div>
         )}
 
@@ -54,6 +58,7 @@ export default function StudentGradesForm() {
           getGradeColor={getGradeColor}
           getGradeBgColor={getGradeBgColor}
           isThirdPeriod={isThirdPeriod}
+          subjectName={filters.subject || ""}
         />
 
         {/* قسم الإحصائيات */}
@@ -66,9 +71,26 @@ export default function StudentGradesForm() {
             <li>• جميع الدرجات يجب أن تكون بين 0-100</li>
             <li>• الدرجات أقل من 50 تظهر باللون الأحمر</li>
             <li>• يتم حساب المجاميع تلقائياً عند إدخال الدرجات</li>
-            <li>• يتم الحفظ التلقائي كل 30 ثانية</li>
+            <li>• يتم الحفظ التلقائي عند إدخال أي درجة</li>
           </ul>
         </div>
+
+        {/* Popup الحفظ */}
+        {savePopup.show && (
+          <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg animate-in slide-in-from-top-2">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold">{savePopup.message}</p>
+                <p className="text-sm opacity-90">المقرر: {savePopup.subjectName}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

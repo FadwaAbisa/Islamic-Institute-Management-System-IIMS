@@ -11,15 +11,37 @@ export function useStudentGrades() {
   const [filters, setFilters] = useState<FilterOptions>({
     academicYear: "",
     educationLevel: "",
-    section: "",
     studySystem: "",
     subject: "",
     evaluationPeriod: "",
   })
+
+  // إضافة console.log عند تحديث الفلاتر
+  const updateFilters = (newFilters: FilterOptions) => {
+    console.log("🔍 Updating filters from:", filters, "to:", newFilters)
+    setFilters(newFilters)
+  }
+
+  // إضافة console.log في setFilters الأصلي
+  const setFiltersWithLog = (newFilters: FilterOptions) => {
+    console.log("🔍 setFilters called with:", newFilters)
+    setFilters(newFilters)
+  }
   const [searchOptions, setSearchOptions] = useState<SearchOptions>({
     searchType: "name",
     searchValue: "",
     displayFilter: "all",
+  })
+
+  // حالة popup الحفظ
+  const [savePopup, setSavePopup] = useState<{
+    show: boolean
+    message: string
+    subjectName: string
+  }>({
+    show: false,
+    message: "",
+    subjectName: ""
   })
 
   // تحديد نوع الحساب بناءً على الفترة المختارة
@@ -39,52 +61,69 @@ export function useStudentGrades() {
   }
 
   const fetchSubjectGrades = useCallback(async () => {
+    console.log("🔍 fetchSubjectGrades called with filters:", filters)
     try {
-      // نجلب الطلاب حتى بدون اكتمال كل الفلاتر لإظهار الأسماء، وتكون الدرجات فارغة لحين اكتمال المعايير
       const params = new URLSearchParams({
         subject: String(filters.subject),
         period: String(filters.evaluationPeriod),
         academicYear: String(filters.academicYear),
         educationLevel: String(filters.educationLevel || ""),
-        section: String(filters.section || ""),
         studySystem: String(filters.studySystem || ""),
         searchType: String(searchOptions.searchType || ""),
         searchValue: String(searchOptions.searchValue || ""),
         displayFilter: String(searchOptions.displayFilter || ""),
       })
+      console.log("🔍 API params:", params.toString())
       const res = await fetch(`/api/subject-grades?${params.toString()}`)
       if (!res.ok) {
         setStudents([])
         return
       }
       const data = await res.json()
-      const rows: Student[] = (data.students || []).map((r: any) => ({
-        studentId: r.studentId,
-        studentName: r.studentName,
-        firstMonthGrade: r.firstMonthGrade,
-        secondMonthGrade: r.secondMonthGrade,
-        thirdMonthGrade: r.thirdMonthGrade,
-        workTotal: r.workTotal,
-        finalExamGrade: r.finalExamGrade,
-        periodTotal: r.periodTotal,
-        status: r.status,
-        _dbStudentId: r._dbStudentId,
-      }))
+      console.log("🔍 Raw API response:", data.students)
+      const rows: Student[] = (data.students || []).map((r: any) => {
+        console.log("🔍 Processing student:", r)
+        return {
+          studentId: r.studentId,
+          studentName: r.studentName,
+          firstMonthGrade: r.firstMonthGrade,
+          secondMonthGrade: r.secondMonthGrade,
+          thirdMonthGrade: r.thirdMonthGrade,
+          workTotal: r.workTotal,
+          finalExamGrade: r.finalExamGrade,
+          periodTotal: r.periodTotal,
+          status: r.status,
+          _dbStudentId: r._dbStudentId,
+          // بيانات إضافية من قاعدة البيانات
+          academicYear: r.academicYear,
+          studyLevel: r.studyLevel,
+          studyMode: r.studyMode,
+          specialization: r.specialization,
+          birthday: r.birthday,
+          address: r.address,
+          studentPhone: r.studentPhone,
+          guardianName: r.guardianName,
+          guardianPhone: r.guardianPhone,
+          enrollmentStatus: r.enrollmentStatus,
+          studentStatus: r.studentStatus,
+        }
+      })
+      console.log("🔍 Processed students:", rows)
       setStudents(rows)
     } catch (e) {
       setStudents([])
     }
-  }, [filters.subject, filters.evaluationPeriod, filters.academicYear, filters.educationLevel, filters.section, filters.studySystem, searchOptions.searchType, searchOptions.searchValue, searchOptions.displayFilter])
+  }, [filters.subject, filters.evaluationPeriod, filters.academicYear, filters.educationLevel, filters.studySystem, searchOptions.searchType, searchOptions.searchValue, searchOptions.displayFilter])
 
   const calculateWorkTotal = useCallback(
     (first: number | null, second: number | null, third: number | null): number => {
       if (isThirdPeriod) {
-        // في الفترة الثالثة: نحسب مجموع الفترتين السابقتين
+        // في الفترة الثالثة: month1 و month2 هما مجموع الفترتين السابقتين
         const firstPeriodTotal = first !== null ? first : 0
         const secondPeriodTotal = second !== null ? second : 0
         return Math.round((firstPeriodTotal + secondPeriodTotal) * 100) / 100
       } else {
-        // في الفترات الأخرى: نحسب متوسط الأشهر
+        // في الفترات الأخرى: نحسب متوسط الأشهر الثلاثة
         const grades = [first, second, third].filter((grade) => grade !== null) as number[]
         if (grades.length === 0) return 0
         return Math.round((grades.reduce((sum, grade) => sum + grade, 0) / grades.length) * 100) / 100
@@ -108,21 +147,78 @@ export function useStudentGrades() {
   )
 
   const persistSingle = useCallback(async (row: Student) => {
-    if (!filters.subject || !filters.evaluationPeriod || !filters.academicYear) return
-    await fetch("/api/subject-grades", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    console.log("🔍 persistSingle called with filters:", filters)
+    console.log("🔍 persistSingle called with row:", row)
+
+    if (!filters.subject || !filters.evaluationPeriod || !filters.academicYear) {
+      console.log("❌ Cannot persist - missing filters:", {
         subject: filters.subject,
-        academicYear: filters.academicYear,
-        period: filters.evaluationPeriod,
-        studentDbId: row._dbStudentId || row.studentId,
-        month1: row.firstMonthGrade,
-        month2: row.secondMonthGrade,
-        month3: isThirdPeriod ? null : row.thirdMonthGrade,
-        finalExam: row.finalExamGrade,
-      }),
+        evaluationPeriod: filters.evaluationPeriod,
+        academicYear: filters.academicYear
+      })
+      return
+    }
+
+    console.log("💾 Persisting student grades:", {
+      studentId: row.studentId,
+      studentName: row.studentName,
+      subject: filters.subject,
+      academicYear: filters.academicYear,
+      period: filters.evaluationPeriod,
+      month1: row.firstMonthGrade,
+      month2: row.secondMonthGrade,
+      month3: isThirdPeriod ? null : row.thirdMonthGrade, // في الفترة الثالثة: month3 = null
+      finalExam: row.finalExamGrade
     })
+
+    try {
+      const response = await fetch("/api/subject-grades", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: filters.subject,
+          academicYear: filters.academicYear,
+          period: filters.evaluationPeriod,
+          studentDbId: row._dbStudentId || row.studentId,
+          month1: row.firstMonthGrade,
+          month2: row.secondMonthGrade,
+          month3: isThirdPeriod ? null : row.thirdMonthGrade, // في الفترة الثالثة: month3 = null
+          finalExam: row.finalExamGrade,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log("✅ Grades saved successfully:", data)
+        // إظهار popup النجاح
+        setSavePopup({
+          show: true,
+          message: data.message || "تم حفظ الدرجات بنجاح",
+          subjectName: data.subjectName || filters.subject
+        })
+
+        // إخفاء popup بعد 3 ثواني
+        setTimeout(() => {
+          setSavePopup(prev => ({ ...prev, show: false }))
+        }, 3000)
+      } else {
+        console.error("❌ Failed to save grades:", response.status, response.statusText)
+        const errorData = await response.json()
+        console.error("❌ Error details:", errorData)
+      }
+    } catch (error) {
+      console.error("❌ Error saving grade:", error)
+      // إظهار popup الخطأ
+      setSavePopup({
+        show: true,
+        message: "حدث خطأ في حفظ الدرجات",
+        subjectName: filters.subject
+      })
+
+      setTimeout(() => {
+        setSavePopup(prev => ({ ...prev, show: false }))
+      }, 3000)
+    }
   }, [filters.subject, filters.evaluationPeriod, filters.academicYear, isThirdPeriod])
 
   const updateStudentGrade = useCallback(
@@ -160,8 +256,12 @@ export function useStudentGrades() {
             }
             updatedStudent.status = isComplete ? "مكتمل" : "غير مكتمل"
 
-            // حفظ فوري للسطر المحدث
-            persistSingle(updatedStudent)
+            // حفظ الدرجات تلقائياً في قاعدة البيانات
+            console.log("💾 Scheduling auto-save for student:", updatedStudent.studentName)
+            setTimeout(() => {
+              console.log("💾 Executing auto-save for student:", updatedStudent.studentName)
+              persistSingle(updatedStudent)
+            }, 500) // تأخير 500ms لتجنب الطلبات المتكررة
 
             return updatedStudent
           }
@@ -174,11 +274,6 @@ export function useStudentGrades() {
 
   const filterStudents = useCallback(() => {
     let filtered = [...students]
-
-    // تطبيق المرشحات فقط إذا كانت محددة
-    if (filters.academicYear) {
-      // يمكن إضافة منطق الترشيح هنا
-    }
 
     if (searchOptions.searchValue) {
       filtered = filtered.filter((student) => {
@@ -205,7 +300,7 @@ export function useStudentGrades() {
     }
 
     setFilteredStudents(filtered)
-  }, [students, searchOptions, filters])
+  }, [students, searchOptions])
 
   useEffect(() => {
     filterStudents()
@@ -213,7 +308,6 @@ export function useStudentGrades() {
 
   // جلب بيانات الدرجات من الخادم عند النقر على تطبيق أو عند تغيّر واضح
   useEffect(() => {
-    // سنجلب تلقائياً عندما تتوفر المعايير الأساسية
     fetchSubjectGrades()
   }, [fetchSubjectGrades])
 
@@ -239,7 +333,9 @@ export function useStudentGrades() {
           let isComplete = false
           if (isThirdPeriod) {
             isComplete =
-              student.firstMonthGrade !== null && student.secondMonthGrade !== null && student.finalExamGrade !== null
+              student.firstMonthGrade !== null &&
+              student.secondMonthGrade !== null &&
+              student.finalExamGrade !== null
           } else {
             isComplete =
               student.firstMonthGrade !== null &&
@@ -280,7 +376,7 @@ export function useStudentGrades() {
   return {
     students: filteredStudents,
     filters,
-    setFilters,
+    setFilters: setFiltersWithLog,
     applyFilters,
     searchOptions,
     setSearchOptions,
@@ -289,5 +385,7 @@ export function useStudentGrades() {
     getGradeBgColor,
     stats,
     isThirdPeriod,
+    savePopup,
+    setSavePopup,
   }
 }
