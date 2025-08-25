@@ -228,9 +228,9 @@ export default function ReviewPage() {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <h3 className="text-sm font-medium text-gray-700 mb-2 text-center">معلومات التصحيح:</h3>
               <div className="text-xs text-gray-600 text-center space-y-1">
-                <p>العام الدراسي: <span className="font-mono">{academicYear || 'غير محدد'}</span></p>
-                <p>المرحلة: <span className="font-mono">{stage || 'غير محدد'}</span></p>
-                <p>نظام الدراسة: <span className="font-mono">{studySystem || 'غير محدد'}</span></p>
+                <p>العام الدراسي: <span className="font-mono">{academicYear ? academicYear.toString() : 'غير محدد'}</span></p>
+                <p>المرحلة: <span className="font-mono">{stage ? stage.toString() : 'غير محدد'}</span></p>
+                <p>نظام الدراسة: <span className="font-mono">{studySystem ? studySystem.toString() : 'غير محدد'}</span></p>
                 <p>حالة الزر: <span className={`font-mono ${(!academicYear || !stage || !studySystem) ? 'text-red-500' : 'text-green-500'}`}>
                   {(!academicYear || !stage || !studySystem) ? 'معطل' : 'مفعل'}
                 </span></p>
