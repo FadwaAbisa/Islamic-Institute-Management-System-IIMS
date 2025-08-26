@@ -1,0 +1,382 @@
+@startuml "نظام إدارة المعهد المتوسط للدراسات الإسلامية - البيان"
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E8F4FD
+  BorderColor #2E86AB
+  ArrowColor #2E86AB
+}
+
+title "نظام إدارة المعهد المتوسط للدراسات الإسلامية - البيان\nUse Case Diagram"
+
+' تعريف الممثلين (Actors)
+actor "المدير" as Admin #FF6B6B
+actor "المدرس" as Teacher #4ECDC4
+actor "الطالب" as Student #45B7D1
+actor "الإداري" as Staff #96CEB4
+actor "ولي الأمر" as Parent #FFEAA7
+
+' تعريف النظام
+rectangle "نظام إدارة المعهد" {
+  
+  ' مجموعة حالات الاستخدام الأساسية
+  package "إدارة المستخدمين والصلاحيات" {
+    usecase "تسجيل الدخول" as UC1
+    usecase "تسجيل الخروج" as UC2
+    usecase "إدارة المستخدمين" as UC3
+    usecase "منح الصلاحيات" as UC4
+    usecase "تغيير كلمة المرور" as UC5
+    usecase "إيقاف مستخدم" as UC6
+    usecase "تعديل صلاحيات المستخدم" as UC7
+  }
+  
+  ' مجموعة إدارة الطلاب
+  package "إدارة الطلاب" {
+    usecase "إضافة طالب" as UC8
+    usecase "تعديل بيانات طالب" as UC9
+    usecase "حذف طالب" as UC10
+    usecase "عرض بيانات الطلاب" as UC11
+    usecase "البحث عن طالب" as UC12
+    usecase "استيراد بيانات الطلاب" as UC13
+    usecase "إدارة ملفات الطلاب" as UC14
+  }
+  
+  ' مجموعة إدارة المدرسين
+  package "إدارة المدرسين" {
+    usecase "إضافة مدرس" as UC15
+    usecase "تعديل بيانات مدرس" as UC16
+    usecase "حذف مدرس" as UC17
+    usecase "عرض بيانات المدرسين" as UC18
+    usecase "البحث عن مدرس" as UC19
+    usecase "إدارة تخصصات المدرسين" as UC20
+  }
+  
+  ' مجموعة إدارة المواد الدراسية
+  package "إدارة المواد الدراسية" {
+    usecase "إضافة مادة دراسية" as UC21
+    usecase "تعديل مادة دراسية" as UC22
+    usecase "حذف مادة دراسية" as UC23
+    usecase "عرض المواد الدراسية" as UC24
+    usecase "إدارة توزيع المواد" as UC25
+  }
+  
+  ' مجموعة إدارة الفصول الدراسية
+  package "إدارة الفصول الدراسية" {
+    usecase "إضافة فصل دراسي" as UC26
+    usecase "تعديل فصل دراسي" as UC27
+    usecase "حذف فصل دراسي" as UC28
+    usecase "عرض الفصول الدراسية" as UC29
+    usecase "إدارة طلاب الفصل" as UC30
+    usecase "تعيين مدرس للفصل" as UC31
+  }
+  
+  ' مجموعة إدارة الحضور والغياب
+  package "إدارة الحضور والغياب" {
+    usecase "تسجيل الحضور" as UC32
+    usecase "تعديل سجل الحضور" as UC33
+    usecase "عرض سجلات الحضور" as UC34
+    usecase "تقرير الحضور اليومي" as UC35
+    usecase "تقرير الحضور الشهري" as UC36
+    usecase "إدارة الغياب" as UC37
+  }
+  
+  ' مجموعة إدارة الدرجات
+  package "إدارة الدرجات" {
+    usecase "إدخال الدرجات" as UC38
+    usecase "تعديل الدرجات" as UC39
+    usecase "عرض الدرجات" as UC40
+    usecase "حساب المعدل" as UC41
+    usecase "تقرير الدرجات" as UC42
+    usecase "إدارة التقييمات" as UC43
+  }
+  
+  ' مجموعة إدارة الأحداث والإعلانات
+  package "إدارة الأحداث والإعلانات" {
+    usecase "إضافة حدث" as UC44
+    usecase "تعديل حدث" as UC45
+    usecase "حذف حدث" as UC46
+    usecase "عرض الأحداث" as UC47
+    usecase "إدارة الإعلانات" as UC48
+    usecase "تقويم الأحداث" as UC49
+  }
+  
+  ' مجموعة إدارة الواجبات والامتحانات
+  package "إدارة الواجبات والامتحانات" {
+    usecase "إضافة واجب" as UC50
+    usecase "تعديل واجب" as UC51
+    usecase "حذف واجب" as UC52
+    usecase "إضافة امتحان" as UC53
+    usecase "تعديل امتحان" as UC54
+    usecase "حذف امتحان" as UC55
+    usecase "عرض الواجبات والامتحانات" as UC56
+  }
+  
+  ' مجموعة إدارة التقارير
+  package "إدارة التقارير" {
+    usecase "تقرير الطلاب" as UC57
+    usecase "تقرير المدرسين" as UC58
+    usecase "تقرير الدرجات" as UC59
+    usecase "تقرير الحضور" as UC60
+    usecase "تقرير مالي" as UC61
+    usecase "تقرير إحصائي" as UC62
+    usecase "تصدير التقارير" as UC63
+  }
+  
+  ' مجموعة إدارة النظام
+  package "إدارة النظام" {
+    usecase "النسخ الاحتياطي" as UC64
+    usecase "استرجاع البيانات" as UC65
+    usecase "إعدادات النظام" as UC66
+    usecase "سجل العمليات" as UC67
+    usecase "إدارة قاعدة البيانات" as UC68
+  }
+}
+
+' العلاقات بين الممثلين وحالات الاستخدام
+
+' المدير - جميع الصلاحيات
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC4
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+Admin --> UC8
+Admin --> UC9
+Admin --> UC10
+Admin --> UC11
+Admin --> UC12
+Admin --> UC13
+Admin --> UC14
+Admin --> UC15
+Admin --> UC16
+Admin --> UC17
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+Admin --> UC21
+Admin --> UC22
+Admin --> UC23
+Admin --> UC24
+Admin --> UC25
+Admin --> UC26
+Admin --> UC27
+Admin --> UC28
+Admin --> UC29
+Admin --> UC30
+Admin --> UC31
+Admin --> UC32
+Admin --> UC33
+Admin --> UC34
+Admin --> UC35
+Admin --> UC36
+Admin --> UC37
+Admin --> UC38
+Admin --> UC39
+Admin --> UC40
+Admin --> UC41
+Admin --> UC42
+Admin --> UC43
+Admin --> UC44
+Admin --> UC45
+Admin --> UC46
+Admin --> UC47
+Admin --> UC48
+Admin --> UC49
+Admin --> UC50
+Admin --> UC51
+Admin --> UC52
+Admin --> UC53
+Admin --> UC54
+Admin --> UC55
+Admin --> UC56
+Admin --> UC57
+Admin --> UC58
+Admin --> UC59
+Admin --> UC60
+Admin --> UC61
+Admin --> UC62
+Admin --> UC63
+Admin --> UC64
+Admin --> UC65
+Admin --> UC66
+Admin --> UC67
+Admin --> UC68
+
+' المدرس - صلاحيات محدودة
+Teacher --> UC1
+Teacher --> UC2
+Teacher --> UC5
+Teacher --> UC11
+Teacher --> UC18
+Teacher --> UC24
+Teacher --> UC29
+Teacher --> UC32
+Teacher --> UC33
+Teacher --> UC34
+Teacher --> UC35
+Teacher --> UC36
+Teacher --> UC37
+Teacher --> UC38
+Teacher --> UC39
+Teacher --> UC40
+Teacher --> UC41
+Teacher --> UC42
+Teacher --> UC43
+Teacher --> UC47
+Teacher --> UC50
+Teacher --> UC51
+Teacher --> UC52
+Teacher --> UC53
+Teacher --> UC54
+Teacher --> UC55
+Teacher --> UC56
+Teacher --> UC59
+Teacher --> UC60
+
+' الطالب - صلاحيات محدودة جداً
+Student --> UC1
+Student --> UC2
+Student --> UC5
+Student --> UC11
+Student --> UC24
+Student --> UC29
+Student --> UC34
+Student --> UC40
+Student --> UC41
+Student --> UC47
+Student --> UC56
+
+' الإداري - صلاحيات إدارية
+Staff --> UC1
+Staff --> UC2
+Staff --> UC5
+Staff --> UC8
+Staff --> UC9
+Staff --> UC10
+Staff --> UC11
+Staff --> UC12
+Staff --> UC13
+Staff --> UC14
+Staff --> UC15
+Staff --> UC16
+Staff --> UC17
+Staff --> UC18
+Staff --> UC19
+Staff --> UC20
+Staff --> UC21
+Staff --> UC22
+Staff --> UC23
+Staff --> UC24
+Staff --> UC25
+Staff --> UC26
+Staff --> UC27
+Staff --> UC28
+Staff --> UC29
+Staff --> UC30
+Staff --> UC31
+Staff --> UC32
+Staff --> UC33
+Staff --> UC34
+Staff --> UC35
+Staff --> UC36
+Staff --> UC37
+Staff --> UC38
+Staff --> UC39
+Staff --> UC40
+Staff --> UC41
+Staff --> UC42
+Staff --> UC43
+Staff --> UC44
+Staff --> UC45
+Staff --> UC46
+Staff --> UC47
+Staff --> UC48
+Staff --> UC49
+Staff --> UC50
+Staff --> UC51
+Staff --> UC52
+Staff --> UC53
+Staff --> UC54
+Staff --> UC55
+Staff --> UC56
+Staff --> UC57
+Staff --> UC58
+Staff --> UC59
+Staff --> UC60
+Staff --> UC61
+Staff --> UC62
+Staff --> UC63
+
+' ولي الأمر - صلاحيات محدودة
+Parent --> UC1
+Parent --> UC2
+Parent --> UC5
+Parent --> UC11
+Parent --> UC34
+Parent --> UC40
+Parent --> UC41
+Parent --> UC47
+
+' العلاقات بين حالات الاستخدام (Include/Extend)
+
+' علاقات Include
+UC8 ..> UC3 : <<include>>
+UC15 ..> UC3 : <<include>>
+UC21 ..> UC3 : <<include>>
+UC26 ..> UC3 : <<include>>
+UC32 ..> UC11 : <<include>>
+UC38 ..> UC11 : <<include>>
+UC38 ..> UC24 : <<include>>
+UC57 ..> UC11 : <<include>>
+UC58 ..> UC18 : <<include>>
+UC59 ..> UC40 : <<include>>
+UC60 ..> UC34 : <<include>>
+
+' علاقات Extend
+UC12 ..> UC11 : <<extend>>
+UC19 ..> UC18 : <<extend>>
+UC30 ..> UC29 : <<extend>>
+UC35 ..> UC34 : <<extend>>
+UC36 ..> UC34 : <<extend>>
+UC41 ..> UC40 : <<extend>>
+UC42 ..> UC40 : <<extend>>
+UC47 ..> UC44 : <<extend>>
+UC56 ..> UC50 : <<extend>>
+UC56 ..> UC53 : <<extend>>
+UC63 ..> UC57 : <<extend>>
+UC63 ..> UC58 : <<extend>>
+UC63 ..> UC59 : <<extend>>
+UC63 ..> UC60 : <<extend>>
+
+' ملاحظات توضيحية
+note right of Admin
+  المدير لديه جميع الصلاحيات
+  في النظام
+end note
+
+note right of Teacher
+  المدرس يدير الفصول والدرجات
+  والحضور للمواد التي يدرسها
+end note
+
+note right of Student
+  الطالب يستعرض بياناته
+  ودرجاته وحضوره
+end note
+
+note right of Staff
+  الإداري يدير العمليات
+  اليومية للنظام
+end note
+
+note right of Parent
+  ولي الأمر يستعرض
+  بيانات ابنه/ابنته
+end note
+
+@enduml
+

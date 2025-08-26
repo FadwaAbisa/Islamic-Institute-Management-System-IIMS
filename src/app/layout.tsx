@@ -11,7 +11,12 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "نظام إدارة المدرسة - المعهد المتوسط للدراسات الإسلامية",
   description: "نظام إدارة شامل للمدرسة في المعهد المتوسط للدراسات الإسلامية - عثمان بن عفان",
-  generator: 'Next.js'
+  generator: 'Next.js',
+  icons: {
+    icon: '/icons/logo.png',
+    shortcut: '/icons/logo.png',
+    apple: '/icons/logo.png',
+  },
 };
 
 export default function RootLayout({
@@ -22,6 +27,7 @@ export default function RootLayout({
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      signInFallbackRedirectUrl="/"
     >
       <html lang="ar" dir="rtl">
         <body className={inter.className}>
