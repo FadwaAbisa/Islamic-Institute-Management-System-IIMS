@@ -43,16 +43,16 @@ async function main() {
                     specialization: row.specialization?.toString().trim() || row.subject?.toString().trim() || "الدراسات الإسلامية",
 
                     // تحويل Enums
-                    studyMode: row.studyMode ?
-                        (row.studyMode.toString().toUpperCase() === "REGULAR" ? "REGULAR" : "DISTANCE")
-                        : (row.StudyMode ?
-                            (row.StudyMode.toString().toUpperCase() === "REGULAR" ? "REGULAR" : "DISTANCE")
+                    studyMode: row.StudyMode ?
+                        (row.StudyMode.toString().toUpperCase() === "نظامي" ? "REGULAR" : "DISTANCE")
+                        : (row.studyMode ?
+                            (row.studyMode.toString().toUpperCase() === "REGULAR" ? "REGULAR" : "DISTANCE")
                             : "REGULAR"),
 
-                    enrollmentStatus: row.enrollmentStatus ?
-                        (row.enrollmentStatus.toString().toUpperCase() === "NEW" ? "NEW" : "REPEATER")
-                        : (row.EnrollmentStatus ?
-                            (row.EnrollmentStatus.toString().toUpperCase() === "NEW" ? "NEW" : "REPEATER")
+                    enrollmentStatus: row.EnrollmentStatus ?
+                        (row.EnrollmentStatus.toString().toUpperCase() === "مستجد" || row.EnrollmentStatus.toString().toUpperCase() === "مستجدة" ? "NEW" : "REPEATER")
+                        : (row.enrollmentStatus ?
+                            (row.enrollmentStatus.toString().toUpperCase() === "NEW" ? "NEW" : "REPEATER")
                             : "NEW"),
 
                     studentStatus: row.studentStatus ?
@@ -63,10 +63,10 @@ async function main() {
                     studentPhone: row.studentPhone?.toString().trim() || row.phone?.toString().trim() || null,
                     guardianName: row.guardianName?.toString().trim() || row.parentName?.toString().trim() || null,
 
-                    // ربط مع الجداول الأخرى (اختياري)
-                    parentId: row.parentId?.toString().trim() || null,
-                    gradeId: row.gradeId ? Number(row.gradeId) : null,
-                    classId: row.classId ? Number(row.classId) : null,
+                    // ربط مع الجداول الأخرى (اختياري) - تم إزالة الحقول غير الموجودة في schema
+                    // parentId: row.parentId?.toString().trim() || null,
+                    // gradeId: row.gradeId ? Number(row.gradeId) : null,
+                    // classId: row.classId ? Number(row.classId) : null,
                 };
 
                 // التحقق من البيانات المطلوبة
@@ -114,20 +114,17 @@ async function main() {
 
 // دالة مساعدة لتحويل المرحلة الدراسية
 function convertStudyLevel(level) {
-    if (!level) return "1";
+    if (!level) return "FIRST_YEAR";
 
     const levelStr = level.trim();
 
-    if (levelStr.includes("الأولى") || levelStr.includes("اولى")) return "1";
-    if (levelStr.includes("الثانية") || levelStr.includes("ثانية")) return "2";
-    if (levelStr.includes("الثالثة") || levelStr.includes("ثالثة")) return "3";
-    if (levelStr.includes("التخرج") || levelStr.includes("تخرج")) return "4";
-
-    // إذا كان رقم
-    if (/^\d+$/.test(levelStr)) return levelStr;
+    if (levelStr.includes("الأولى") || levelStr.includes("اولى") || levelStr === "1") return "FIRST_YEAR";
+    if (levelStr.includes("الثانية") || levelStr.includes("ثانية") || levelStr === "2") return "SECOND_YEAR";
+    if (levelStr.includes("الثالثة") || levelStr.includes("ثالثة") || levelStr === "3") return "THIRD_YEAR";
+    if (levelStr.includes("التخرج") || levelStr.includes("تخرج") || levelStr === "4") return "GRADUATION";
 
     // افتراضي
-    return "1";
+    return "FIRST_YEAR";
 }
 
 // دالة مساعدة لتحويل حالة الطالب

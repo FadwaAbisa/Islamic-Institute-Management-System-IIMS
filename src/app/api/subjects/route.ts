@@ -13,7 +13,7 @@ const ALLOWED_SUBJECTS = [
   "منهج دعوة",
   "علوم حديث",
   "لغة إنجليزية",
-  "حاسوب",
+  "حاسوب"
 ]
 
 export async function GET() {

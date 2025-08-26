@@ -16,25 +16,26 @@ model Student {
   id String @id @default(uuid())
 
   // البيانات الشخصية والاتصال
-  fullName     String // الاسم الرباعي
-  nationalId   String   @unique // رقم الهوية/الرقم الوطني
-  sex          UserSex // الجنس (ذكر/أنثى)
+  fullName   String // الاسم الرباعي
+  nationalId String @unique // رقم الهوية/الرقم الوطني
+
+  guardianName String? // اسم ولي الأمر
+  studentPhone String? // رقم هاتف الطالب
   birthday     DateTime // تاريخ الميلاد
   placeOfBirth String // مكان الميلاد
-  nationality  String // الجنسية
   address      String // العنوان
-  studentPhone String? // رقم هاتف الطالب
+  nationality  String // الجنسية
 
   // بيانات التسجيل الأكاديمي
   academicYear     String? // العام الدراسي (2024-2025 مثلاً)
-  studyLevel       String? // المرحلة الدراسية
+  studyLevel       StudyLevel? // المرحلة الدراسية
   specialization   String? // الشعبة التخصصية
   studyMode        StudyMode? // النظام الدراسي (نظامي/انتساب)
   enrollmentStatus EnrollmentStatus? // صفة القيد (مستجد/معيد)
   studentStatus    StudentStatus? // حالة الطالب (مستمر/منقطع...)
 
   // البيانات الإضافية
-  guardianName            String? // اسم ولي الأمر
+
   relationship            String? // صلة القرابة
   guardianPhone           String? // هاتف ولي الأمر
   previousSchool          String? // المدرسة السابقة
@@ -59,137 +60,70 @@ model Student {
   createdAt DateTime @default(now())
 
   // العلاقات (اختيارية الآن)
-  parentId String?
-  parent   Parent? @relation(fields: [parentId], references: [id])
-  classId  Int?
-  class    Class?  @relation(fields: [classId], references: [id])
-  gradeId  Int?
-  grade    Grade?  @relation(fields: [gradeId], references: [id])
 
   attendances   Attendance[]
-  results       Result[]
   subjectGrades SubjectGrade[]
 }
 
 model Teacher {
-  id           String    @id @default(uuid())
-  // بيانات شخصية واتصال
-  fullName     String?
-  nationalId   String?   @unique
-  sex          UserSex?
-  birthday     DateTime?
-  placeOfBirth String?
-  nationality  String?
-  address      String?
-  phone        String?   @unique
-  email        String?   @unique
-  img          String?
+  id String @id @default(uuid())
 
-  // حقول اختيارية/توافقية مع أجزاء أخرى من النظام
-  username  String? @unique
-  name      String?
-  surname   String?
-  bloodType String?
+  // البيانات الأساسية (مطلوبة)
+  fullName   String // الاسم الكامل (مطلوب)
+  nationalId String   @unique // الرقم الوطني/الجواز (مطلوب)
+  birthday   DateTime // تاريخ الميلاد (YYYY-MM-DD)
 
-  createdAt DateTime  @default(now())
-  subjects  Subject[]
-  lessons   Lesson[]
-  classes   Class[]
-}
+  // البيانات الشخصية
+  nationality   String? // الجنسية (اختيار جنسية)
+  maritalStatus MaritalStatus? // الحالة الاجتماعية (اختيار حالة اجتماعية)
+  address       String? // عنوان السكن
+  phone1        String // هاتف أول (مطلوب)
+  phone2        String? // هاتف ثاني
 
-model Parent {
-  id        String    @id
-  username  String    @unique
-  name      String
-  surname   String
-  email     String?   @unique
-  phone     String    @unique
-  address   String
-  createdAt DateTime  @default(now())
-  students  Student[]
-}
+  // جهة الاتصال للطوارئ
+  emergencyContactName     String? // اسم جهة اتصال الطوارئ
+  emergencyContactRelation String? // صلة قرابة جهة الطوارئ
 
-model Grade {
-  id    Int @id @default(autoincrement())
-  level Int @unique
+  // الحالة الوظيفية
+  employmentStatus EmploymentStatus? // الحالة (تعيين/عقد/ندب)
+  appointmentDate  DateTime? // تاريخ التعيين (YYYY-MM-DD)
+  serviceStartDate DateTime? // تاريخ مباشرة العمل (YYYY-MM-DD)
+  contractEndDate  DateTime? // تاريخ نهاية العقد (في حالة كانت الحالة عقد)
 
-  students Student[]
-  classess Class[]
-}
+  // المؤهلات العلمية
+  academicQualification  String? // المؤهل العلمي
+  educationalInstitution String? // المؤسسة التعليمية
+  majorSpecialization    String? // التخصص الرئيسي
+  minorSpecialization    String? // التخصص الفرعي
+  graduationYear         String? // سنة التخرج
 
-model Class {
-  id       Int    @id @default(autoincrement())
-  name     String @unique
-  capacity Int
+  // حقول إضافية
 
-  supervisorId  String?
-  supervisor    Teacher?       @relation(fields: [supervisorId], references: [id])
-  lessons       Lesson[]
-  students      Student[]
-  gradeId       Int
-  grade         Grade          @relation(fields: [gradeId], references: [id])
-  events        Event[]
-  announcements Announcement[]
+  createdAt DateTime @default(now())
+
+  // العلاقات
+  teacherSubjects TeacherSubject[]
 }
 
 model Subject {
-  id       Int            @id @default(autoincrement())
-  name     String         @unique
-  teachers Teacher[]
-  lessons  Lesson[]
-  grades   SubjectGrade[]
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  academicYear    String? // السنة الدراسية (مثل 2024-2025) - اختياري
+  teacherSubjects TeacherSubject[]
+  grades          SubjectGrade[]
 }
 
-model Lesson {
+// Junction table for many-to-many relationship between Teacher and Subject
+model TeacherSubject {
   id        Int      @id @default(autoincrement())
-  name      String
-  day       Day
-  startTime DateTime
-  endTime   DateTime
+  teacherId String
+  subjectId Int
+  createdAt DateTime @default(now())
 
-  subjectId   Int
-  subject     Subject      @relation(fields: [subjectId], references: [id])
-  classId     Int
-  class       Class        @relation(fields: [classId], references: [id])
-  teacherId   String
-  teacher     Teacher      @relation(fields: [teacherId], references: [id])
-  exams       Exam[]
-  assignments Assignment[]
-  attendances Attendance[]
-}
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
 
-model Exam {
-  id        Int      @id @default(autoincrement())
-  title     String
-  startTime DateTime
-  endTime   DateTime
-
-  lessonId Int
-  lesson   Lesson   @relation(fields: [lessonId], references: [id])
-  results  Result[]
-}
-
-model Assignment {
-  id        Int      @id @default(autoincrement())
-  title     String
-  startDate DateTime
-  dueDate   DateTime
-
-  lessonId Int
-  lesson   Lesson   @relation(fields: [lessonId], references: [id])
-  results  Result[]
-}
-
-model Result {
-  id    Int @id @default(autoincrement())
-  score Int
-
-  examId       Int?
-  exam         Exam?       @relation(fields: [examId], references: [id])
-  assignmentId Int?
-  assignment   Assignment? @relation(fields: [assignmentId], references: [id])
-  studentId    String
-  student      Student     @relation(fields: [studentId], references: [id])
+  @@unique([teacherId, subjectId])
 }
 
 model Attendance {
@@ -200,7 +134,6 @@ model Attendance {
   studentId String
   student   Student @relation(fields: [studentId], references: [id])
   lessonId  Int
-  lesson    Lesson  @relation(fields: [lessonId], references: [id])
 }
 
 model Event {
@@ -209,9 +142,6 @@ model Event {
   description String
   startTime   DateTime
   endTime     DateTime
-
-  classId Int?
-  class   Class? @relation(fields: [classId], references: [id])
 }
 
 model Announcement {
@@ -219,9 +149,6 @@ model Announcement {
   title       String
   description String
   date        DateTime
-
-  classId Int?
-  class   Class? @relation(fields: [classId], references: [id])
 }
 
 // درجات المواد حسب الطالب والمادة والسنة والفترة
@@ -266,11 +193,6 @@ enum Day {
   FRIDAY
 }
 
-enum UserSex {
-  MALE
-  FEMALE
-}
-
 enum StudentStatus {
   ACTIVE // مستمر
   DROPPED // منقطع
@@ -288,4 +210,24 @@ enum StudyMode {
 enum EnrollmentStatus {
   NEW // مستجد
   REPEATER // معيد
+}
+
+enum StudyLevel {
+  FIRST_YEAR // السنة الأولى
+  SECOND_YEAR // السنة الثانية
+  THIRD_YEAR // السنة الثالثة
+  GRADUATION // سنة التخرج
+}
+
+enum EmploymentStatus {
+  APPOINTMENT // تعيين
+  CONTRACT // عقد
+  SECONDMENT // ندب
+}
+
+enum MaritalStatus {
+  SINGLE // أعزب/عزباء
+  MARRIED // متزوج/ة
+  DIVORCED // مطلق/ة
+  WIDOWED // أرمل/ة
 }

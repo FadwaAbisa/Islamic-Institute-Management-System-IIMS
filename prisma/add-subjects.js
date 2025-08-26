@@ -1,72 +1,54 @@
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+// المواد الأساسية (بدون تكرار)
+const subjects = [
+    "القرآن الكريم و أحكام التجويد",
+    "علم الحديث",
+    "الفقه",
+    "التفسير",
+    "العقيدة",
+    "الدراسات الأدبية",
+    "الدراسات اللغوية",
+    "السيرة",
+    "اللغة الإنجليزية",
+    "الحاسوب",
+    "منهج الدعوة",
+    "أصول الفقه"
+];
+
 async function addSubjects() {
     try {
-        console.log("📚 إضافة المواد الأساسية إلى قاعدة البيانات...");
-
-        // المواد الأساسية
-        const subjects = [
-            "القرآن الكريم و احكام التجويد",
-            "علم الحديث ",
-            "الفقه ",
-            "التفسير ",
-            "العقيدة ",
-            "الدراسات الادبية  ",
-            "الدراسات اللغوية  ",
-            "السيرة ",
-            "اللغة الانجليزية ",
-            "الحاسوب   ",
-            "منهج الدعوة ",
-            "أصول الفقة "
-        ];
-
-        let addedCount = 0;
-        let updatedCount = 0;
+        console.log("📚 إضافة المواد الأساسية...");
 
         for (const subjectName of subjects) {
-            try {
-                // التحقق من وجود المادة
-                const existingSubject = await prisma.subject.findUnique({
-                    where: { name: subjectName }
+            // التحقق من وجود المادة
+            const existingSubject = await prisma.subject.findUnique({
+                where: { name: subjectName }
+            });
+
+            if (!existingSubject) {
+                // إضافة مادة جديدة (بدون تحديد السنة الدراسية)
+                await prisma.subject.create({
+                    data: {
+                        name: subjectName,
+                        // لا نحتاج studyLevel هنا - سيتم تحديده عند ربط المادة بالطالب
+                        academicYear: '2024-2025'
+                    }
                 });
-
-                if (existingSubject) {
-                    console.log(`🔄 المادة موجودة: ${subjectName}`);
-                    updatedCount++;
-                } else {
-                    // إضافة مادة جديدة
-                    const newSubject = await prisma.subject.create({
-                        data: { name: subjectName }
-                    });
-                    console.log(`✅ تم إضافة المادة: ${subjectName} (ID: ${newSubject.id})`);
-                    addedCount++;
-                }
-
-            } catch (error) {
-                console.error(`❌ خطأ في إضافة المادة ${subjectName}:`, error);
-                continue;
+                console.log(`✅ تم إضافة: ${subjectName}`);
+            } else {
+                console.log(`🔄 موجودة: ${subjectName}`);
             }
         }
 
-        console.log(`\n🎉 تم إكمال العملية:`);
-        console.log(`   • مواد جديدة: ${addedCount}`);
-        console.log(`   • مواد موجودة: ${updatedCount}`);
-        console.log(`   • إجمالي: ${addedCount + updatedCount}`);
-
+        console.log("🎉 تم إكمال العملية!");
     } catch (error) {
-        console.error("❌ خطأ عام:", error);
+        console.error("❌ خطأ:", error);
+    } finally {
+        await prisma.$disconnect();
     }
 }
 
-// تشغيل السكريبت
-addSubjects()
-    .catch((e) => {
-        console.error("❌ خطأ عام:", e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-        console.log("🔌 تم قطع الاتصال مع قاعدة البيانات");
-    });
+addSubjects();

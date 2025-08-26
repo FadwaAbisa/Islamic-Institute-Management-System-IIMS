@@ -29,7 +29,7 @@ export interface FilterOptions {
   academicYear: string
   educationLevel: string
   studySystem: string
-  subject: string
+  subject: string | { id: number; name: string }
   evaluationPeriod: string
 }
 

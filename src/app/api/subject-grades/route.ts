@@ -25,12 +25,15 @@ function mapArabicStudyModeToEnum(value: string | null): "REGULAR" | "DISTANCE" 
       return "REGULAR"
     case "انتساب":
       return "DISTANCE"
+    case "REGULAR":
+    case "DISTANCE":
+      return value
     default:
       return undefined
   }
 }
 
-function mapArabicLevelToValue(value: string | null): string | undefined {
+function mapArabicLevelToValue(value: string | null): "FIRST_YEAR" | "SECOND_YEAR" | "THIRD_YEAR" | "GRADUATION" | undefined {
   if (!value) return undefined
   console.log("🔍 Mapping level:", value)
 
@@ -39,22 +42,22 @@ function mapArabicLevelToValue(value: string | null): string | undefined {
     case "السنة الأولى":
     case "1":
     case "FIRST":
-      return "1"
+      return "FIRST_YEAR"
     case "السنة الثانية":
     case "2":
     case "SECOND":
-      return "2"
+      return "SECOND_YEAR"
     case "السنة الثالثة":
     case "3":
     case "THIRD":
-      return "3"
+      return "THIRD_YEAR"
     case "التخرج":
     case "4":
     case "GRADUATE":
-      return "4"
+      return "GRADUATION"
     default:
       console.log("🔍 Unknown level value:", value)
-      return value // إرجاع القيمة كما هي للتحقق
+      return undefined
   }
 }
 
@@ -364,10 +367,11 @@ export async function PATCH(request: NextRequest) {
     }
 
     const isThird = periodEnum === "THIRD"
-    const m1 = typeof month1 === "number" ? month1 : null
-    const m2 = typeof month2 === "number" ? month2 : null
-    const m3 = typeof month3 === "number" ? month3 : null
-    const fe = typeof finalExam === "number" ? finalExam : null
+    // تحويل القيم 0 أو undefined إلى null (قيم فارغة)
+    const m1 = typeof month1 === "number" && month1 > 0 ? month1 : null
+    const m2 = typeof month2 === "number" && month2 > 0 ? month2 : null
+    const m3 = typeof month3 === "number" && month3 > 0 ? month3 : null
+    const fe = typeof finalExam === "number" && finalExam > 0 ? finalExam : null
 
     // حساب المجاميع حسب القواعد
     let workTotal = 0
@@ -428,13 +432,22 @@ export async function PATCH(request: NextRequest) {
     } else {
       // في الفترات الأخرى: نحسب متوسط الأشهر الثلاثة
       const vals = [m1, m2, m3].filter((v) => v !== null) as number[]
-      workTotal = vals.length ? Math.round(((vals.reduce((a, b) => a + b, 0) / vals.length) + Number.EPSILON) * 100) / 100 : 0
+      if (vals.length > 0) {
+        const total = vals.reduce((a, b) => a + b, 0) / vals.length
+        workTotal = total > 0 ? Math.round((total + Number.EPSILON) * 100) / 100 : 0
+      } else {
+        workTotal = 0
+      }
     }
     let periodTotal = 0
     if (fe !== null) {
-      periodTotal = isThird
-        ? Math.round(((workTotal + fe) + Number.EPSILON) * 100) / 100
-        : Math.round(((workTotal * 0.4 + fe * 0.6) + Number.EPSILON) * 100) / 100
+      if (isThird) {
+        const total = workTotal + fe
+        periodTotal = total > 0 ? Math.round((total + Number.EPSILON) * 100) / 100 : 0
+      } else {
+        const total = workTotal * 0.4 + fe * 0.6
+        periodTotal = total > 0 ? Math.round((total + Number.EPSILON) * 100) / 100 : 0
+      }
     }
 
     console.log("🔍 Saving grades:", {

@@ -22,7 +22,7 @@ export function FilterSection({ filters, setFilters, onApply }: FilterSectionPro
   // جلب المواد ديناميكياً
   const [subjects, setSubjects] = useState<{ id: number; name: string }[]>([])
   // جلب الأعوام الدراسية ديناميكياً
-  const [academicYears, setAcademicYears] = useState<string[]>([])
+  const [academicYears, setAcademicYears] = useState<{ id: string; name: string }[]>([])
 
   useEffect(() => {
     const loadSubjects = async () => {
@@ -64,8 +64,8 @@ export function FilterSection({ filters, setFilters, onApply }: FilterSectionPro
             </SelectTrigger>
             <SelectContent className="bg-white" dir="rtl">
               {academicYears.map((year) => (
-                <SelectItem key={year} value={year} className="text-lamaBlack hover:bg-lamaSkyLight text-right">
-                  {year}
+                <SelectItem key={year.id} value={year.name} className="text-lamaBlack hover:bg-lamaSkyLight text-right">
+                  {year.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -110,7 +110,7 @@ export function FilterSection({ filters, setFilters, onApply }: FilterSectionPro
           <Label htmlFor="subject" className="text-lamaBlack font-medium">
             المادة
           </Label>
-          <Select value={filters.subject} onValueChange={(value) => updateFilter("subject", value)}>
+          <Select value={typeof filters.subject === "string" ? filters.subject : (filters.subject?.name || "")} onValueChange={(value) => updateFilter("subject", value)}>
             <SelectTrigger className="bg-white text-lamaBlack border-lamaSky" dir="rtl">
               <SelectValue placeholder="اختر المادة" className="text-lamaBlackLight" />
             </SelectTrigger>

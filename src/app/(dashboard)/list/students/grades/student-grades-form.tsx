@@ -43,7 +43,9 @@ export default function StudentGradesForm() {
           <div className="mb-4 flex items-center justify-between">
             <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-md border border-lamaSky text-lamaBlack">
               <span className="text-sm text-lamaBlackLight">المقرر المختار:</span>
-              <span className="font-semibold">{filters.subject}</span>
+              <span className="font-semibold">
+                {typeof filters.subject === 'object' ? filters.subject.name : filters.subject}
+              </span>
             </div>
 
             {/* زر التصدير */}
@@ -58,7 +60,7 @@ export default function StudentGradesForm() {
           getGradeColor={getGradeColor}
           getGradeBgColor={getGradeBgColor}
           isThirdPeriod={isThirdPeriod}
-          subjectName={filters.subject || ""}
+          subjectName={typeof filters.subject === 'object' ? filters.subject.name : (filters.subject || "")}
         />
 
         {/* قسم الإحصائيات */}

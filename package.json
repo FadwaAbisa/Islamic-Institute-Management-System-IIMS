@@ -11,7 +11,9 @@
     "import-students": "node prisma/import-students.js",
     "save-grades": "node prisma/save-grades.js",
     "check-subjects": "node prisma/check-subjects.js",
-    "add-subjects": "node prisma/add-subjects.js"
+    "add-subjects": "node prisma/add-subjects.js",
+    "seed": "tsx prisma/seed.ts",
+    "reset-subjects": "node scripts/reset-subjects.js"
   },
   "dependencies": {
     "@radix-ui/react-toast": "^1.1.6",

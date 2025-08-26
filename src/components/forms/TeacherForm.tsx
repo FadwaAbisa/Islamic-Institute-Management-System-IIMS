@@ -1,230 +1,9 @@
-// الكود الاصلي الي بالكلازديناري
 
-// "use client";
-
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import { useForm } from "react-hook-form";
-// import InputField from "../InputField";
-// import Image from "next/image";
-// import { Dispatch, SetStateAction, useEffect, useState } from "react";
-// import { teacherSchema, TeacherSchema } from "@/lib/formValidationSchemas";
-// import { useFormState } from "react-dom";
-// import { createTeacher, updateTeacher } from "@/lib/actions";
-// import { useRouter } from "next/navigation";
-// import { toast } from "react-toastify";
-// import { CldUploadWidget } from "next-cloudinary";
-
-// const TeacherForm = ({
-//   type,
-//   data,
-//   setOpen,
-//   relatedData,
-// }: {
-//   type: "create" | "update";
-//   data?: any;
-//   setOpen: Dispatch<SetStateAction<boolean>>;
-//   relatedData?: any;
-// }) => {
-//   const {
-//     register,
-//     handleSubmit,
-//     formState: { errors },
-//   } = useForm<TeacherSchema>({
-//     resolver: zodResolver(teacherSchema),
-//   });
-
-//   const [img, setImg] = useState<any>();
-
-//   const [state, formAction] = useFormState(
-//     type === "create" ? createTeacher : updateTeacher,
-//     {
-//       success: false,
-//       error: false,
-//     }
-//   );
-
-//   const onSubmit = handleSubmit((data) => {
-//     console.log(data);
-//     formAction({ ...data, img: img?.secure_url });
-//   });
-
-//   const router = useRouter();
-
-//   useEffect(() => {
-//     if (state.success) {
-//       toast(`Teacher has been ${type === "create" ? "created" : "updated"}!`);
-//       setOpen(false);
-//       router.refresh();
-//     }
-//   }, [state, router, type, setOpen]);
-
-//   const { subjects } = relatedData;
-
-//   return (
-//     <form className="flex flex-col gap-8" onSubmit={onSubmit}>
-//       <h1 className="text-xl font-semibold">
-//         {type === "create" ? "Create a new teacher" : "Update the teacher"}
-//       </h1>
-//       <span className="text-xs text-gray-400 font-medium">
-//         Authentication Information
-//       </span>
-//       <div className="flex justify-between flex-wrap gap-4">
-//         <InputField
-//           label="Username"
-//           name="username"
-//           defaultValue={data?.username}
-//           register={register}
-//           error={errors?.username}
-//         />
-//         <InputField
-//           label="Email"
-//           name="email"
-//           defaultValue={data?.email}
-//           register={register}
-//           error={errors?.email}
-//         />
-//         <InputField
-//           label="Password"
-//           name="password"
-//           type="password"
-//           defaultValue={data?.password}
-//           register={register}
-//           error={errors?.password}
-//         />
-//       </div>
-//       <span className="text-xs text-gray-400 font-medium">
-//         Personal Information
-//       </span>
-//       <div className="flex justify-between flex-wrap gap-4">
-//         <InputField
-//           label="First Name"
-//           name="name"
-//           defaultValue={data?.name}
-//           register={register}
-//           error={errors.name}
-//         />
-//         <InputField
-//           label="Last Name"
-//           name="surname"
-//           defaultValue={data?.surname}
-//           register={register}
-//           error={errors.surname}
-//         />
-//         <InputField
-//           label="Phone"
-//           name="phone"
-//           defaultValue={data?.phone}
-//           register={register}
-//           error={errors.phone}
-//         />
-//         <InputField
-//           label="Address"
-//           name="address"
-//           defaultValue={data?.address}
-//           register={register}
-//           error={errors.address}
-//         />
-//         <InputField
-//           label="Blood Type"
-//           name="bloodType"
-//           defaultValue={data?.bloodType}
-//           register={register}
-//           error={errors.bloodType}
-//         />
-//         <InputField
-//           label="Birthday"
-//           name="birthday"
-//           defaultValue={data?.birthday.toISOString().split("T")[0]}
-//           register={register}
-//           error={errors.birthday}
-//           type="date"
-//         />
-//         {data && (
-//           <InputField
-//             label="Id"
-//             name="id"
-//             defaultValue={data?.id}
-//             register={register}
-//             error={errors?.id}
-//             hidden
-//           />
-//         )}
-//         <div className="flex flex-col gap-2 w-full md:w-1/4">
-//           <label className="text-xs text-gray-500">Sex</label>
-//           <select
-//             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-//             {...register("sex")}
-//             defaultValue={data?.sex}
-//           >
-//             <option value="MALE">Male</option>
-//             <option value="FEMALE">Female</option>
-//           </select>
-//           {errors.sex?.message && (
-//             <p className="text-xs text-red-400">
-//               {errors.sex.message.toString()}
-//             </p>
-//           )}
-//         </div>
-//         <div className="flex flex-col gap-2 w-full md:w-1/4">
-//           <label className="text-xs text-gray-500">Subjects</label>
-//           <select
-//             multiple
-//             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-//             {...register("subjects")}
-//             defaultValue={data?.subjects}
-//           >
-//             {subjects.map((subject: { id: number; name: string }) => (
-//               <option value={subject.id} key={subject.id}>
-//                 {subject.name}
-//               </option>
-//             ))}
-//           </select>
-//           {errors.subjects?.message && (
-//             <p className="text-xs text-red-400">
-//               {errors.subjects.message.toString()}
-//             </p>
-//           )}
-//         </div>
-//         <CldUploadWidget
-//           uploadPreset="school"
-//           onSuccess={(result, { widget }) => {
-//             setImg(result.info);
-//             widget.close();
-//           }}
-//         >
-//           {({ open }) => {
-//             return (
-//               <div
-//                 className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer"
-//                 onClick={() => open()}
-//               >
-//                 <Image src="/upload.png" alt="" width={28} height={28} />
-//                 <span>Upload a photo</span>
-//               </div>
-//             );
-//           }}
-//         </CldUploadWidget>
-//       </div>
-//       {state.error && (
-//         <span className="text-red-500">Something went wrong!</span>
-//       )}
-//       <button className="bg-blue-400 text-white p-2 rounded-md">
-//         {type === "create" ? "Create" : "Update"}
-//       </button>
-//     </form>
-//   );
-// };
-
-// export default TeacherForm;
-
-
-// الكود بعد التعديل بالابلودكر
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import InputField from "../InputField";
-import Image from "next/image";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { teacherSchema, TeacherSchema } from "@/lib/formValidationSchemas";
 import { useFormState } from "react-dom";
@@ -232,6 +11,7 @@ import { createTeacher, updateTeacher } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { Widget } from "@uploadcare/react-widget";
+import Image from "next/image";
 
 const TeacherForm = ({
   type,
@@ -267,170 +47,262 @@ const TeacherForm = ({
 
   useEffect(() => {
     if (state.success) {
-      toast(`Teacher has been ${type === "create" ? "created" : "updated"}!`);
+      toast(`تم ${type === "create" ? "إنشاء" : "تحديث"} المعلمة بنجاح!`);
       setOpen(false);
       router.refresh();
     }
   }, [state, router, type, setOpen]);
 
-  const { subjects } = relatedData;
-
   return (
     <form className="flex flex-col gap-8" onSubmit={onSubmit}>
-      <h1 className="text-xl font-semibold">
-        {type === "create" ? "Create a new teacher" : "Update the teacher"}
+      <h1 className="text-xl font-semibold text-right">
+        {type === "create" ? "إضافة معلمة جديدة" : "تحديث بيانات المعلمة"}
       </h1>
 
-      <span className="text-xs text-gray-400 font-medium">
-        Authentication Information
-      </span>
+      {/* البيانات الأساسية */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-medium text-right border-b pb-2">البيانات الأساسية</h2>
 
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="Username"
-          name="username"
-          defaultValue={data?.username}
-          register={register}
-          error={errors?.username}
-        />
-        <InputField
-          label="Email"
-          name="email"
-          defaultValue={data?.email}
-          register={register}
-          error={errors?.email}
-        />
-        <InputField
-          label="Password"
-          name="password"
-          type="password"
-          defaultValue={data?.password}
-          register={register}
-          error={errors?.password}
-        />
-      </div>
-
-      <span className="text-xs text-gray-400 font-medium">
-        Personal Information
-      </span>
-
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="First Name"
-          name="name"
-          defaultValue={data?.name}
-          register={register}
-          error={errors.name}
-        />
-        <InputField
-          label="Last Name"
-          name="surname"
-          defaultValue={data?.surname}
-          register={register}
-          error={errors.surname}
-        />
-        <InputField
-          label="Phone"
-          name="phone"
-          defaultValue={data?.phone}
-          register={register}
-          error={errors.phone}
-        />
-        <InputField
-          label="Address"
-          name="address"
-          defaultValue={data?.address}
-          register={register}
-          error={errors.address}
-        />
-        <InputField
-          label="Blood Type"
-          name="bloodType"
-          defaultValue={data?.bloodType}
-          register={register}
-          error={errors.bloodType}
-        />
-        <InputField
-          label="Birthday"
-          name="birthday"
-          defaultValue={data?.birthday?.toISOString().split("T")[0]}
-          register={register}
-          error={errors.birthday}
-          type="date"
-        />
-        {data && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
-            label="Id"
-            name="id"
-            defaultValue={data?.id}
+            label="الاسم الكامل *"
+            name="fullName"
+            defaultValue={data?.fullName}
             register={register}
-            error={errors?.id}
-            hidden
+            error={errors?.fullName}
           />
-        )}
 
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Sex</label>
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("sex")}
-            defaultValue={data?.sex}
-          >
-            <option value="MALE">Male</option>
-            <option value="FEMALE">Female</option>
-          </select>
-          {errors.sex?.message && (
-            <p className="text-xs text-red-400">{errors.sex.message}</p>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Subjects</label>
-          <select
-            multiple
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("subjects")}
-            defaultValue={data?.subjects}
-          >
-            {subjects.map((subject: { id: number; name: string }) => (
-              <option value={subject.id} key={subject.id}>
-                {subject.name}
-              </option>
-            ))}
-          </select>
-          {errors.subjects?.message && (
-            <p className="text-xs text-red-400">{errors.subjects.message}</p>
-          )}
-        </div>
-
-        {/* ✅ Uploadcare Widget */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Upload a photo</label>
-          <Widget
-            publicKey={process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY!}
-            onChange={(fileInfo) => {
-              setImg(fileInfo);
-            }}
+          <InputField
+            label="الرقم الوطني/الجواز *"
+            name="nationalId"
+            defaultValue={data?.nationalId}
+            register={register}
+            error={errors?.nationalId}
           />
-          {img?.cdnUrl && (
-            <Image
-              src={img.cdnUrl}
-              alt="Uploaded"
-              width={60}
-              height={60}
-              className="rounded-md mt-2"
-            />
-          )}
+
+          <InputField
+            label="تاريخ الميلاد *"
+            name="birthday"
+            type="date"
+            defaultValue={data?.birthday?.toISOString().split("T")[0]}
+            register={register}
+            error={errors?.birthday}
+          />
+
+          <InputField
+            label="الجنسية"
+            name="nationality"
+            defaultValue={data?.nationality}
+            register={register}
+            error={errors?.nationality}
+          />
         </div>
       </div>
 
-      {state.error && (
-        <span className="text-red-500">Something went wrong!</span>
-      )}
+      {/* البيانات الشخصية */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-medium text-right border-b pb-2">البيانات الشخصية</h2>
 
-      <button className="bg-blue-400 text-white p-2 rounded-md">
-        {type === "create" ? "Create" : "Update"}
-      </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-right">الحالة الاجتماعية</label>
+            <select
+              {...register("maritalStatus")}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              defaultValue={data?.maritalStatus}
+            >
+              <option value="">اختر الحالة الاجتماعية</option>
+              <option value="SINGLE">أعزب/عزباء</option>
+              <option value="MARRIED">متزوج/ة</option>
+              <option value="DIVORCED">مطلق/ة</option>
+              <option value="WIDOWED">أرمل/ة</option>
+            </select>
+          </div>
+
+          <InputField
+            label="عنوان السكن"
+            name="address"
+            defaultValue={data?.address}
+            register={register}
+            error={errors?.address}
+          />
+
+          <InputField
+            label="هاتف أول *"
+            name="phone1"
+            defaultValue={data?.phone1}
+            register={register}
+            error={errors?.phone1}
+          />
+
+          <InputField
+            label="هاتف ثاني"
+            name="phone2"
+            defaultValue={data?.phone2}
+            register={register}
+            error={errors?.phone2}
+          />
+        </div>
+      </div>
+
+      {/* جهة الاتصال للطوارئ */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-medium text-right border-b pb-2">جهة الاتصال للطوارئ</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            label="اسم جهة الاتصال"
+            name="emergencyContactName"
+            defaultValue={data?.emergencyContactName}
+            register={register}
+            error={errors?.emergencyContactName}
+          />
+
+          <InputField
+            label="صلة القرابة"
+            name="emergencyContactRelation"
+            defaultValue={data?.emergencyContactRelation}
+            register={register}
+            error={errors?.emergencyContactRelation}
+          />
+        </div>
+      </div>
+
+      {/* الحالة الوظيفية */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-medium text-right border-b pb-2">الحالة الوظيفية</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-right">الحالة</label>
+            <select
+              {...register("employmentStatus")}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              defaultValue={data?.employmentStatus}
+            >
+              <option value="">اختر الحالة</option>
+              <option value="APPOINTMENT">تعيين</option>
+              <option value="CONTRACT">عقد</option>
+              <option value="SECONDMENT">ندب</option>
+            </select>
+          </div>
+
+          <InputField
+            label="تاريخ التعيين"
+            name="appointmentDate"
+            type="date"
+            defaultValue={data?.appointmentDate?.toISOString().split("T")[0]}
+            register={register}
+            error={errors?.appointmentDate}
+          />
+
+          <InputField
+            label="تاريخ مباشرة العمل"
+            name="serviceStartDate"
+            type="date"
+            defaultValue={data?.serviceStartDate?.toISOString().split("T")[0]}
+            register={register}
+            error={errors?.serviceStartDate}
+          />
+
+          <InputField
+            label="تاريخ نهاية العقد"
+            name="contractEndDate"
+            type="date"
+            defaultValue={data?.contractEndDate?.toISOString().split("T")[0]}
+            register={register}
+            error={errors?.contractEndDate}
+          />
+        </div>
+      </div>
+
+      {/* المؤهلات العلمية */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-medium text-right border-b pb-2">المؤهلات العلمية</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            label="المؤهل العلمي"
+            name="academicQualification"
+            defaultValue={data?.academicQualification}
+            register={register}
+            error={errors?.academicQualification}
+          />
+
+          <InputField
+            label="المؤسسة التعليمية"
+            name="educationalInstitution"
+            defaultValue={data?.educationalInstitution}
+            register={register}
+            error={errors?.educationalInstitution}
+          />
+
+          <InputField
+            label="التخصص الرئيسي"
+            name="majorSpecialization"
+            defaultValue={data?.majorSpecialization}
+            register={register}
+            error={errors?.majorSpecialization}
+          />
+
+          <InputField
+            label="التخصص الفرعي"
+            name="minorSpecialization"
+            defaultValue={data?.minorSpecialization}
+            register={register}
+            error={errors?.minorSpecialization}
+          />
+
+          <InputField
+            label="سنة التخرج"
+            name="graduationYear"
+            defaultValue={data?.graduationYear}
+            register={register}
+            error={errors?.graduationYear}
+          />
+        </div>
+      </div>
+
+      {/* رفع الصورة */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-medium text-right border-b pb-2">الصورة الشخصية</h2>
+
+        <div className="flex items-center gap-4">
+          {img?.cdnUrl && (
+            <div className="relative w-20 h-20">
+              <Image
+                src={img.cdnUrl}
+                alt="صورة المعلمة"
+                fill
+                className="rounded-lg object-cover"
+              />
+            </div>
+          )}
+
+          <Widget
+            publicKey="your-uploadcare-public-key"
+            onFileSelect={(fileInfo) => setImg(fileInfo)}
+          />
+        </div>
+      </div>
+
+      {/* أزرار الإرسال */}
+      <div className="flex justify-end gap-4 pt-4 border-t">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="px-6 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+        >
+          إلغاء
+        </button>
+
+        <button
+          type="submit"
+          className="px-6 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          {type === "create" ? "إضافة المعلمة" : "تحديث البيانات"}
+        </button>
+      </div>
     </form>
   );
 };

@@ -7,7 +7,7 @@ import { toast } from "@/hooks/use-toast"
 
 interface ExportGradesButtonProps {
     filters: {
-        subject: string
+        subject: string | { id: number; name: string }
         academicYear: string
         evaluationPeriod: string
         educationLevel: string
@@ -18,8 +18,18 @@ interface ExportGradesButtonProps {
 export function ExportGradesButton({ filters }: ExportGradesButtonProps) {
     const [isExporting, setIsExporting] = useState(false)
 
+    // استخراج اسم المادة سواء كان نصاً أو كائناً
+    const getSubjectName = () => {
+        if (typeof filters.subject === 'object' && filters.subject !== null) {
+            return filters.subject.name
+        }
+        return filters.subject
+    }
+
     const handleExport = async () => {
-        if (!filters.subject || !filters.academicYear || !filters.evaluationPeriod) {
+        const subjectName = getSubjectName()
+
+        if (!subjectName || !filters.academicYear || !filters.evaluationPeriod) {
             toast({
                 title: "خطأ",
                 description: "يرجى اختيار المادة والعام الدراسي وفترة التقييم أولاً",
@@ -37,7 +47,7 @@ export function ExportGradesButton({ filters }: ExportGradesButtonProps) {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    subject: filters.subject,
+                    subject: subjectName,
                     academicYear: filters.academicYear,
                     period: filters.evaluationPeriod,
                     educationLevel: filters.educationLevel,
@@ -55,7 +65,7 @@ export function ExportGradesButton({ filters }: ExportGradesButtonProps) {
             const csvContent = convertToCSV(data.data)
 
             // تحميل الملف
-            downloadCSV(csvContent, `درجات_${filters.subject}_${filters.academicYear}_${filters.evaluationPeriod}.csv`)
+            downloadCSV(csvContent, `درجات_${subjectName}_${filters.academicYear}_${filters.evaluationPeriod}.csv`)
 
             toast({
                 title: "تم التصدير بنجاح",
@@ -74,46 +84,41 @@ export function ExportGradesButton({ filters }: ExportGradesButtonProps) {
         }
     }
 
-    const convertToCSV = (data: any[]): string => {
-        if (data.length === 0) return ""
+    const convertToCSV = (data: any[]) => {
+        if (!data || data.length === 0) return ""
 
         const headers = Object.keys(data[0])
-        const csvRows = [
-            headers.join(","), // رأس الجدول
-            ...data.map(row =>
-                headers.map(header => {
-                    const value = row[header]
-                    // إذا كان القيمة تحتوي على فاصلة، نضعها بين علامتي اقتباس
-                    if (typeof value === "string" && value.includes(",")) {
-                        return `"${value}"`
-                    }
-                    return value
-                }).join(",")
-            )
-        ]
+        const csvRows = [headers.join(",")]
+
+        for (const row of data) {
+            const values = headers.map(header => {
+                const value = row[header]
+                return `"${value || ""}"`
+            })
+            csvRows.push(values.join(","))
+        }
 
         return csvRows.join("\n")
     }
 
-    const downloadCSV = (content: string, filename: string) => {
-        const blob = new Blob([content], { type: "text/csv;charset=utf-8;" })
+    const downloadCSV = (csvContent: string, filename: string) => {
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
         const link = document.createElement("a")
-
-        if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob)
-            link.setAttribute("href", url)
-            link.setAttribute("download", filename)
-            link.style.visibility = "hidden"
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-        }
+        const url = URL.createObjectURL(blob)
+        link.setAttribute("href", url)
+        link.setAttribute("download", filename)
+        link.style.visibility = "hidden"
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
     }
+
+    const subjectName = getSubjectName()
 
     return (
         <Button
             onClick={handleExport}
-            disabled={isExporting || !filters.subject || !filters.academicYear || !filters.evaluationPeriod}
+            disabled={isExporting || !subjectName || !filters.academicYear || !filters.evaluationPeriod}
             className="bg-green-600 hover:bg-green-700 text-white"
         >
             {isExporting ? (

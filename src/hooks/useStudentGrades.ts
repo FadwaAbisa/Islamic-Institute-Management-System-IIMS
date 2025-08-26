@@ -62,9 +62,20 @@ export function useStudentGrades() {
 
   const fetchSubjectGrades = useCallback(async () => {
     console.log("🔍 fetchSubjectGrades called with filters:", filters)
+
+    // استخراج اسم المادة سواء كان نصاً أو كائناً
+    const getSubjectName = () => {
+      if (typeof filters.subject === 'object' && filters.subject !== null) {
+        return filters.subject.name
+      }
+      return filters.subject
+    }
+
+    const subjectName = getSubjectName()
+
     try {
       const params = new URLSearchParams({
-        subject: String(filters.subject),
+        subject: subjectName,
         period: String(filters.evaluationPeriod),
         academicYear: String(filters.academicYear),
         educationLevel: String(filters.educationLevel || ""),
@@ -121,12 +132,14 @@ export function useStudentGrades() {
         // في الفترة الثالثة: month1 و month2 هما مجموع الفترتين السابقتين
         const firstPeriodTotal = first !== null ? first : 0
         const secondPeriodTotal = second !== null ? second : 0
-        return Math.round((firstPeriodTotal + secondPeriodTotal) * 100) / 100
+        const total = firstPeriodTotal + secondPeriodTotal
+        return total > 0 ? Math.round(total * 100) / 100 : 0
       } else {
         // في الفترات الأخرى: نحسب متوسط الأشهر الثلاثة
         const grades = [first, second, third].filter((grade) => grade !== null) as number[]
         if (grades.length === 0) return 0
-        return Math.round((grades.reduce((sum, grade) => sum + grade, 0) / grades.length) * 100) / 100
+        const total = grades.reduce((sum, grade) => sum + grade, 0) / grades.length
+        return total > 0 ? Math.round(total * 100) / 100 : 0
       }
     },
     [isThirdPeriod],
@@ -137,10 +150,12 @@ export function useStudentGrades() {
       if (finalExam === null) return 0
       if (isThirdPeriod) {
         // في الفترة الثالثة: مجموع الفترتين السابقتين + امتحان الفترة الثالثة
-        return Math.round((workTotal + finalExam) * 100) / 100
+        const total = workTotal + finalExam
+        return total > 0 ? Math.round(total * 100) / 100 : 0
       } else {
         // في الفترات الأخرى: الحساب المعتاد (40% أعمال + 60% امتحان)
-        return Math.round((workTotal * 0.4 + finalExam * 0.6) * 100) / 100
+        const total = workTotal * 0.4 + finalExam * 0.6
+        return total > 0 ? Math.round(total * 100) / 100 : 0
       }
     },
     [isThirdPeriod],
@@ -159,10 +174,20 @@ export function useStudentGrades() {
       return
     }
 
+    // استخراج اسم المادة سواء كان نصاً أو كائناً
+    const getSubjectName = () => {
+      if (typeof filters.subject === 'object' && filters.subject !== null) {
+        return filters.subject.name
+      }
+      return filters.subject
+    }
+
+    const subjectName = getSubjectName()
+
     console.log("💾 Persisting student grades:", {
       studentId: row.studentId,
       studentName: row.studentName,
-      subject: filters.subject,
+      subject: subjectName,
       academicYear: filters.academicYear,
       period: filters.evaluationPeriod,
       month1: row.firstMonthGrade,
@@ -176,14 +201,14 @@ export function useStudentGrades() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          subject: filters.subject,
+          subject: subjectName,
           academicYear: filters.academicYear,
           period: filters.evaluationPeriod,
           studentDbId: row._dbStudentId || row.studentId,
-          month1: row.firstMonthGrade,
-          month2: row.secondMonthGrade,
-          month3: isThirdPeriod ? null : row.thirdMonthGrade, // في الفترة الثالثة: month3 = null
-          finalExam: row.finalExamGrade,
+          month1: row.firstMonthGrade || null,
+          month2: row.secondMonthGrade || null,
+          month3: isThirdPeriod ? null : (row.thirdMonthGrade || null),
+          finalExam: row.finalExamGrade || null,
         }),
       })
 
@@ -194,7 +219,7 @@ export function useStudentGrades() {
         setSavePopup({
           show: true,
           message: data.message || "تم حفظ الدرجات بنجاح",
-          subjectName: data.subjectName || filters.subject
+          subjectName: data.subjectName || subjectName
         })
 
         // إخفاء popup بعد 3 ثواني
@@ -212,7 +237,7 @@ export function useStudentGrades() {
       setSavePopup({
         show: true,
         message: "حدث خطأ في حفظ الدرجات",
-        subjectName: filters.subject
+        subjectName: subjectName
       })
 
       setTimeout(() => {

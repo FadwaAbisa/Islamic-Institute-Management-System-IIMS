@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { PrismaClient, StudentStatus, StudyMode, EnrollmentStatus, UserSex } from "@prisma/client";
+import { PrismaClient, StudentStatus, StudyMode, EnrollmentStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -42,7 +42,7 @@ async function main() {
                     // البيانات الأساسية (مطلوبة)
                     fullName: row.fullName.toString().trim(),
                     nationalId: row.nationalId.toString().trim(),
-                    sex: row.sex ? convertUserSex(row.sex.toString()) : UserSex.MALE, // إضافة حقل sex
+
                     birthday: new Date(row.birthday),
                     placeOfBirth: row.placeOfBirth?.toString().trim() || "غير محدد",
                     nationality: row.nationality?.toString().trim() || "عراقي",
@@ -106,17 +106,6 @@ async function main() {
     }
 }
 
-// دوال مساعدة للتحويل
-function convertUserSex(sex: string): UserSex {
-    const sexMap: { [key: string]: UserSex } = {
-        "ذكر": UserSex.MALE,
-        "أنثى": UserSex.FEMALE,
-        "MALE": UserSex.MALE,
-        "FEMALE": UserSex.FEMALE,
-    };
-
-    return sexMap[sex.trim()] || UserSex.MALE;
-}
 
 function convertStudentStatus(status: string): StudentStatus {
     const statusMap: { [key: string]: StudentStatus } = {

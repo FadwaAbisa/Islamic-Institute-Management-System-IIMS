@@ -91,8 +91,19 @@ export function GradesTable({
   }
 
   const handleGradeChange = (studentId: string, field: keyof Student, value: string) => {
-    const numValue = value === "" ? null : Math.min(100, Math.max(0, Number.parseFloat(value) || 0))
-    updateStudentGrade(studentId, field, numValue)
+    // إذا كانت القيمة فارغة أو "-" أو "0"، اجعلها null
+    if (value === "" || value === "-" || value === "0") {
+      updateStudentGrade(studentId, field, null)
+    } else {
+      const numValue = Number.parseFloat(value)
+      // تحقق من أن القيمة صحيحة وفي النطاق المطلوب
+      if (!isNaN(numValue) && numValue > 0 && numValue <= 100) {
+        updateStudentGrade(studentId, field, numValue)
+      } else {
+        // إذا كانت القيمة غير صحيحة، اجعلها null
+        updateStudentGrade(studentId, field, null)
+      }
+    }
   }
 
   const handleSaveGrades = async () => {
@@ -105,10 +116,10 @@ export function GradesTable({
         subjectName: subjectName, // يمكن تغييرها حسب المادة المختارة
         academicYear: student.academicYear || "2024-2025",
         period: "FIRST", // يمكن تغييرها حسب الفترة المختارة
-        month1: student.firstMonthGrade || 0,
-        month2: student.secondMonthGrade || 0,
-        month3: student.thirdMonthGrade || 0,
-        finalExam: student.finalExamGrade || 0,
+        month1: student.firstMonthGrade || null,
+        month2: student.secondMonthGrade || null,
+        month3: student.thirdMonthGrade || null,
+        finalExam: student.finalExamGrade || null,
         workTotal: student.workTotal || 0,
         periodTotal: student.periodTotal || 0
       })).filter(grade => grade.studentId); // التأكد من وجود studentId
@@ -720,12 +731,12 @@ export function GradesTable({
                     {isThirdPeriod ? (
                       // في الفترة الثالثة: عرض مجموع الفترتين السابقتين
                       <span className={`font-semibold ${getGradeColor(student.workTotal)}`}>
-                        {student.workTotal.toFixed(2)}
+                        {student.workTotal > 0 ? student.workTotal.toFixed(2) : "-"}
                       </span>
                     ) : (
                       // في الفترات الأخرى: عرض مجموع الأعمال
                       <span className={`font-semibold ${getGradeColor(student.workTotal)} ${!subjectName ? "text-gray-400" : ""}`}>
-                        {subjectName ? student.workTotal.toFixed(2) : "--"}
+                        {subjectName ? (student.workTotal > 0 ? student.workTotal.toFixed(2) : "-") : "--"}
                       </span>
                     )}
                   </td>
@@ -759,7 +770,7 @@ export function GradesTable({
                 {visibleColumns.periodTotal && (
                   <td className="px-4 py-3 text-center border-b">
                     <span className={`font-bold text-lg ${getGradeColor(student.periodTotal)} ${!subjectName ? "text-gray-400" : ""}`}>
-                      {subjectName ? student.periodTotal.toFixed(2) : "--"}
+                      {subjectName ? (student.periodTotal > 0 ? student.periodTotal.toFixed(2) : "-") : "--"}
                     </span>
                   </td>
                 )}
