@@ -45,7 +45,7 @@ export default clerkMiddleware(async (auth, req) => {
 
       // الحصول على الدور من Clerk API
       let userRole: string | undefined;
-      
+
       try {
         const user = await clerkClient.users.getUser(userId);
         userRole = user.publicMetadata.role as string;
@@ -53,7 +53,7 @@ export default clerkMiddleware(async (auth, req) => {
       } catch (apiError) {
         console.log('Could not get user from Clerk API:', apiError);
         // Fallback to session claims
-        userRole = (sessionClaims?.metadata as { role?: string })?.role;
+        userRole = (sessionClaims?.publicMetadata as { role?: string })?.role;
       }
 
       // إضافة debug logging

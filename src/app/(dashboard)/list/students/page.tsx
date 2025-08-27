@@ -1,74 +1,82 @@
+"use client";
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Users, Search, Plus, Eye, Edit, Trash2 } from "lucide-react"
-import prisma from "@/lib/prisma"
+import { Users, Plus, Eye, Edit, Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 import TableSearch from "@/components/TableSearch"
 import StudentsFilters from "@/components/StudentsFilters"
 import Pagination from "@/components/Pagination"
-import { ITEM_PER_PAGE } from "@/lib/settings"
 
-export default async function StudentsPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | undefined }
-}) {
-  const { page, ...queryParams } = searchParams
-  const p = page ? parseInt(page) : 1
+interface Student {
+  id: string;
+  fullName: string;
+  nationalId: string;
+  studyLevel: string | null;
+  specialization: string | null;
+  studentStatus: string | null;
+  studentPhone: string | null;
+}
 
-  const where: any = {}
-  if (queryParams.search) {
-    where.OR = [
-      { fullName: { contains: queryParams.search, mode: "insensitive" } },
-      { nationalId: { contains: queryParams.search, mode: "insensitive" } },
-    ]
-  }
-  if (queryParams.academicYear && queryParams.academicYear !== "الكل") {
-    where.academicYear = queryParams.academicYear
-  }
-  if (queryParams.stage && queryParams.stage !== "الكل") {
-    where.studyLevel = queryParams.stage
-  }
-  if (queryParams.gender && queryParams.gender !== "الكل") {
-    where.sex = queryParams.gender === "ذكر" ? "MALE" : "FEMALE"
-  }
-  if (queryParams.status && queryParams.status !== "الكل") {
-    where.studentStatus = queryParams.status
-  }
+export default function StudentsPage() {
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({
+    academicYear: "الكل",
+    stage: "الكل",
+    gender: "الكل",
+    status: "الكل"
+  });
 
-  const [students, total] = await Promise.all([
-    prisma.student.findMany({
-      where,
-      take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (p - 1),
-      orderBy: { fullName: "asc" },
-      select: {
-        id: true,
-        fullName: true,
-        nationalId: true,
-        studyLevel: true,
-        specialization: true,
-        studentStatus: true,
-        studentPhone: true,
-      },
-    }),
-    prisma.student.count({ where }),
-  ])
+  // التحقق من تسجيل الدخول
+  useEffect(() => {
+    if (isLoaded && !user) {
+      router.push('/sign-in');
+      return;
+    }
+  }, [isLoaded, user, router]);
 
-  const years = (
-    await prisma.student.findMany({ distinct: ["academicYear"], select: { academicYear: true } })
-  )
-    .map((s) => s.academicYear || "")
-    .filter(Boolean)
+  // جلب الطلاب
+  const fetchStudents = async () => {
+    if (!user) return;
 
-  const stages = (
-    await prisma.student.findMany({ distinct: ["studyLevel"], select: { studyLevel: true } })
-  )
-    .map((s) => s.studyLevel || "")
-    .filter(Boolean)
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/students');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'فشل في جلب الطلاب');
+      }
+
+      const data = await response.json();
+      setStudents(data);
+      setTotal(data.length); // مؤقتاً
+    } catch (err) {
+      console.error('خطأ في جلب الطلاب:', err);
+      setError(err instanceof Error ? err.message : 'خطأ غير معروف');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchStudents();
+    }
+  }, [user, page, search, filters]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -118,61 +126,81 @@ export default async function StudentsPage({
             {/* Search & Filters */}
             <div className="mb-6 flex flex-col gap-4">
               <TableSearch />
-              <StudentsFilters years={years} stages={stages} />
+              <StudentsFilters years={[]} stages={[]} />
             </div>
 
+            {/* Loading State */}
+            {loading && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lamaSky mx-auto"></div>
+                <p className="mt-4 text-gray-600">جاري تحميل الطلاب...</p>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="text-center py-8">
+                <div className="text-red-600 text-lg mb-4">❌ {error}</div>
+                <Button onClick={fetchStudents} className="bg-lamaSky hover:bg-lamaSky/90">
+                  إعادة المحاولة
+                </Button>
+              </div>
+            )}
+
             {/* Students Table */}
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">الاسم الكامل</TableHead>
-                    <TableHead className="text-right">رقم الهوية</TableHead>
-                    <TableHead className="text-right">المستوى</TableHead>
-                    <TableHead className="text-right">الشعبة</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right">رقم الهاتف</TableHead>
-                    <TableHead className="text-right">الإجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {students.map((student) => (
-                    <TableRow key={student.id}>
-                      <TableCell className="font-medium">{student.fullName}</TableCell>
-                      <TableCell>{student.nationalId}</TableCell>
-                      <TableCell>{student.studyLevel || "غير محدد"}</TableCell>
-                      <TableCell>{student.specialization || "غير محدد"}</TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(student.studentStatus || "مستمر")}>
-                          {student.studentStatus || "مستمر"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{student.studentPhone || ""}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 hover:text-red-700 bg-transparent"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            {!loading && !error && (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">الاسم الكامل</TableHead>
+                      <TableHead className="text-right">رقم الهوية</TableHead>
+                      <TableHead className="text-right">المستوى</TableHead>
+                      <TableHead className="text-right">الشعبة</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                      <TableHead className="text-right">رقم الهاتف</TableHead>
+                      <TableHead className="text-right">الإجراءات</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {students.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-medium">{student.fullName}</TableCell>
+                        <TableCell>{student.nationalId}</TableCell>
+                        <TableCell>{student.studyLevel || "غير محدد"}</TableCell>
+                        <TableCell>{student.specialization || "غير محدد"}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(student.studentStatus || "مستمر")}>
+                            {student.studentStatus || "مستمر"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{student.studentPhone || ""}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 hover:text-red-700 bg-transparent"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
-        <Pagination page={p} count={total} />
+        <Pagination page={page} count={total} />
       </div>
     </div>
   )

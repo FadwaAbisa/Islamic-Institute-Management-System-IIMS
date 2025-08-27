@@ -6,22 +6,43 @@ import { auth } from "@clerk/nextjs/server";
 
 export async function GET(request: NextRequest) {
   try {
-    // حماية المسار
-    const guardResult = await protectApiRoute(request, {
-      allowedRoles: ['admin', 'staff', 'teacher']
-    });
+    // التحقق من تسجيل الدخول
+    const { userId, sessionClaims } = await auth();
 
-    if (guardResult) {
-      return guardResult;
+    if (!userId) {
+      return NextResponse.json(
+        { error: "يجب تسجيل الدخول للوصول لبيانات الطلاب" },
+        { status: 401 }
+      );
     }
 
-    // الحصول على معلومات المستخدم
-    const { userId, sessionClaims } = await auth();
-    const userRole = (sessionClaims?.metadata as { role?: string })?.role;
+    // الحصول على الدور من Clerk API مباشرة
+    let userRole: string | undefined;
+    try {
+      const { clerkClient } = await import('@clerk/nextjs/server');
+      const user = await clerkClient.users.getUser(userId);
+      userRole = (user.publicMetadata as { role?: string })?.role;
+      console.log('=== DEBUG STUDENTS GET API ===');
+      console.log('User ID:', userId);
+      console.log('Role from Clerk API:', userRole);
+    } catch (apiError) {
+      console.log('Could not get user from Clerk API:', apiError);
+      // Fallback to session claims
+      userRole = (sessionClaims?.publicMetadata as { role?: string })?.role;
+      console.log('Role from session claims:', userRole);
+    }
+
+    // التحقق من الدور
+    if (!userRole) {
+      return NextResponse.json(
+        { error: "لم يتم تحديد دور المستخدم" },
+        { status: 403 }
+      );
+    }
 
     // التحقق من الصلاحيات
-    if (!hasPermission(userRole as any, 'manage_students') && 
-        !hasPermission(userRole as any, 'view_students')) {
+    if (!hasPermission(userRole as any, 'manage_students') &&
+      !hasPermission(userRole as any, 'view_students')) {
       return NextResponse.json(
         { error: "لا تملك صلاحية للوصول لبيانات الطلاب" },
         { status: 403 }
@@ -39,41 +60,82 @@ export async function GET(request: NextRequest) {
         // الموظف الإداري يرى جميع الطلاب
         break;
       case "teacher":
-        // المعلم يرى الطلاب في فصوله فقط
-        if (userId) {
-          const teacherClasses = await prisma.lesson.findMany({
-            where: { teacherId: userId },
-            select: { classId: true }
-          });
-          const classIds = teacherClasses.map(l => l.classId);
-          if (classIds.length > 0) {
-            whereCondition.classId = { in: classIds };
-          }
-        }
+        // المعلم يرى جميع الطلاب مؤقتاً (لعدم وجود نموذج Class)
         break;
       default:
-      return NextResponse.json(
+        return NextResponse.json(
           { error: "دور المستخدم غير محدد" },
           { status: 400 }
         );
     }
 
-    // جلب الطلاب
-    const students = await prisma.student.findMany({
-      where: whereCondition,
-      include: {
-        grade: true,
-        class: true,
-        parent: true,
-        _count: {
-          select: {
-            attendances: true
+    // الحصول على query parameters
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search');
+    const academicYear = searchParams.get('academicYear');
+    const studyLevel = searchParams.get('studyLevel');
+    const studentStatus = searchParams.get('studentStatus');
+    const enrollmentStatus = searchParams.get('enrollmentStatus');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const sortBy = searchParams.get('sortBy');
+    const sortOrder = searchParams.get('sortOrder') || 'asc';
+
+    // بناء شروط البحث
+    if (search) {
+      whereCondition.OR = [
+        { fullName: { contains: search, mode: 'insensitive' } },
+        { nationalId: { contains: search, mode: 'insensitive' } },
+        { guardianName: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (academicYear) {
+      whereCondition.academicYear = academicYear;
+    }
+
+    if (studyLevel) {
+      whereCondition.studyLevel = studyLevel;
+    }
+
+    if (studentStatus) {
+      whereCondition.studentStatus = studentStatus;
+    }
+
+    if (enrollmentStatus) {
+      whereCondition.enrollmentStatus = enrollmentStatus;
+    }
+
+    // حساب offset للصفحات
+    const offset = (page - 1) * limit;
+
+    // جلب الطلاب مع الفلاتر والصفحات
+    const [students, totalCount] = await Promise.all([
+      prisma.student.findMany({
+        where: whereCondition,
+        include: {
+          _count: {
+            select: {
+              attendances: true
+            }
           }
-        }
-      },
-      orderBy: {
-        fullName: 'asc'
-      }
+        },
+        orderBy: sortBy ? { [sortBy]: sortOrder } : { fullName: 'asc' },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.student.count({ where: whereCondition })
+    ]);
+
+    // حساب إجمالي الصفحات
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return NextResponse.json({
+      students,
+      currentPage: page,
+      totalPages,
+      totalItems: totalCount,
+      itemsPerPage: limit
     });
 
     return NextResponse.json(students);
@@ -89,18 +151,47 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // حماية المسار - فقط المدير والموظف الإداري
-    const guardResult = await protectApiRoute(request, {
-      allowedRoles: ['admin', 'staff']
-    });
+    // التحقق من تسجيل الدخول
+    const { userId, sessionClaims } = await auth();
 
-    if (guardResult) {
-      return guardResult;
+    if (!userId) {
+      return NextResponse.json(
+        { error: "يجب تسجيل الدخول لإضافة طالب جديد" },
+        { status: 401 }
+      );
     }
 
-    // التحقق من الصلاحية
-    const { userId, sessionClaims } = await auth();
-    const userRole = (sessionClaims?.metadata as { role?: string })?.role;
+    // الحصول على الدور من Clerk API مباشرة
+    let userRole: string | undefined;
+    try {
+      const { clerkClient } = await import('@clerk/nextjs/server');
+      const user = await clerkClient.users.getUser(userId);
+      userRole = (user.publicMetadata as { role?: string })?.role;
+      console.log('=== DEBUG STUDENTS API ===');
+      console.log('User ID:', userId);
+      console.log('Role from Clerk API:', userRole);
+    } catch (apiError) {
+      console.log('Could not get user from Clerk API:', apiError);
+      // Fallback to session claims
+      userRole = (sessionClaims?.publicMetadata as { role?: string })?.role;
+      console.log('Role from session claims:', userRole);
+    }
+
+    // التحقق من الدور
+    if (!userRole) {
+      return NextResponse.json(
+        { error: "لم يتم تحديد دور المستخدم" },
+        { status: 403 }
+      );
+    }
+
+    // التحقق من الأدوار المسموحة
+    if (!['admin', 'staff'].includes(userRole)) {
+      return NextResponse.json(
+        { error: "لا تملك صلاحية لإضافة طلاب جدد" },
+        { status: 403 }
+      );
+    }
 
     if (!hasPermission(userRole as any, 'manage_students')) {
       return NextResponse.json(
@@ -111,10 +202,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // التحقق من البيانات المطلوبة
-    if (!body.fullName || !body.nationalId || !body.classId || !body.gradeId) {
+    // التحقق من البيانات المطلوبة الأساسية
+    if (!body.fullName || !body.nationalId) {
       return NextResponse.json(
-        { error: "جميع الحقول مطلوبة" },
+        { error: "الاسم الرباعي والرقم الوطني مطلوبان" },
         { status: 400 }
       );
     }
@@ -125,75 +216,55 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingStudent) {
-    return NextResponse.json(
+      return NextResponse.json(
         { error: "يوجد طالب بنفس الرقم الوطني" },
         { status: 409 }
       );
     }
 
-    // التحقق من سعة الفصل
-    const classInfo = await prisma.class.findUnique({
-      where: { id: body.classId },
-      include: { _count: { select: { students: true } } }
-    });
-
-    if (!classInfo) {
-      return NextResponse.json(
-        { error: "الفصل غير موجود" },
-        { status: 404 }
-      );
-    }
-
-    if (classInfo._count.students >= classInfo.capacity) {
-      return NextResponse.json(
-        { error: "الفصل ممتلئ" },
-        { status: 400 }
-      );
-    }
-
-    // إنشاء الطالب
+    // إنشاء الطالب مع البيانات المتوفرة في السكيما
     const newStudent = await prisma.student.create({
       data: {
         fullName: body.fullName,
         nationalId: body.nationalId,
-        sex: body.sex,
-        birthday: new Date(body.birthday),
-        placeOfBirth: body.placeOfBirth,
-        nationality: body.nationality,
-        address: body.address,
-        studentPhone: body.studentPhone,
-        academicYear: body.academicYear,
-        studyLevel: body.studyLevel,
-        specialization: body.specialization,
-        studyMode: body.studyMode,
-        enrollmentStatus: body.enrollmentStatus,
-        studentStatus: body.studentStatus,
-        guardianName: body.guardianName,
-        relationship: body.relationship,
-        guardianPhone: body.guardianPhone,
-        previousSchool: body.previousSchool,
-        previousLevel: body.previousLevel,
-        healthCondition: body.healthCondition,
-        chronicDiseases: body.chronicDiseases,
-        allergies: body.allergies,
-        specialNeeds: body.specialNeeds,
-        emergencyContactName: body.emergencyContactName,
-        emergencyContactPhone: body.emergencyContactPhone,
-        gradeId: body.gradeId,
-        classId: body.classId,
-        parentId: body.parentId
-      },
-      include: {
-        grade: true,
-        class: true,
-        parent: true
+        birthday: body.birthDate ? new Date(body.birthDate) : new Date(),
+        placeOfBirth: body.birthPlace || '',
+        address: body.address || '',
+        nationality: body.nationality || '',
+        studentPhone: body.studentPhone || '',
+        academicYear: body.academicYear || '',
+        studyLevel: body.studyLevel || null,
+        specialization: body.specialization || '',
+        studyMode: body.studyMode || null,
+        enrollmentStatus: body.enrollmentStatus || null,
+        studentStatus: body.studentStatus || null,
+        guardianName: body.guardianName || '',
+        relationship: body.relationship || '',
+        guardianPhone: body.guardianPhone || '',
+        previousSchool: body.previousSchool || '',
+        previousLevel: body.previousLevel || '',
+        healthCondition: body.healthCondition || '',
+        chronicDiseases: body.chronicDiseases || '',
+        allergies: body.allergies || '',
+        specialNeeds: body.specialNeeds || '',
+        emergencyContactName: body.emergencyContactName || '',
+        emergencyContactPhone: body.emergencyContactPhone || '',
+        emergencyContactAddress: body.emergencyContactAddress || '',
+        notes: body.notes || '',
+        // حقول المستندات (تخزين كمسارات أو URLs)
+        studentPhoto: null,
+        nationalIdCopy: null,
+        birthCertificate: null,
+        educationForm: null,
+        equivalencyDocument: null,
+        otherDocuments: undefined
       }
     });
 
     return NextResponse.json(
-      { 
+      {
         message: "تم إضافة الطالب بنجاح",
-        student: newStudent 
+        student: newStudent
       },
       { status: 201 }
     );

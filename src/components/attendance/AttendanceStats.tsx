@@ -34,7 +34,7 @@ const AttendanceStats = async () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const todayStats = await prisma.attendance.groupBy({
-        by: ["present"],
+        by: ["status"],
         where: {
             ...whereCondition,
             date: {
@@ -54,7 +54,7 @@ const AttendanceStats = async () => {
     startOfWeek.setDate(today.getDate() - daysSinceMonday);
 
     const weekStats = await prisma.attendance.groupBy({
-        by: ["present"],
+        by: ["status"],
         where: {
             ...whereCondition,
             date: {
@@ -70,7 +70,7 @@ const AttendanceStats = async () => {
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
     const monthStats = await prisma.attendance.groupBy({
-        by: ["present"],
+        by: ["status"],
         where: {
             ...whereCondition,
             date: {
@@ -84,8 +84,8 @@ const AttendanceStats = async () => {
 
     // حساب النسب
     const calculateStats = (stats: any[]) => {
-        const present = stats.find((s) => s.present === true)?._count.id || 0;
-        const absent = stats.find((s) => s.present === false)?._count.id || 0;
+        const present = stats.find((s) => s.status === 'present')?._count.id || 0;
+        const absent = stats.find((s) => s.status === 'absent')?._count.id || 0;
         const total = present + absent;
         const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : "0";
         return { present, absent, total, percentage };

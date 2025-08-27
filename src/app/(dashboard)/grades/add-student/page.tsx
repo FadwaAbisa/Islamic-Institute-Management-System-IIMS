@@ -172,9 +172,8 @@ export default function AddStudentPage() {
       {[1, 2, 3, 4].map((step) => (
         <div key={step} className="flex items-center">
           <div
-            className={`relative w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold shadow-xl transition-all duration-500 transform ${
-              step <= currentStep ? "bg-gradient-to-br from-lamaSky to-lamaYellow scale-110" : "bg-gray-300 scale-100"
-            }`}
+            className={`relative w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold shadow-xl transition-all duration-500 transform ${step <= currentStep ? "bg-gradient-to-br from-lamaSky to-lamaYellow scale-110" : "bg-gray-300 scale-100"
+              }`}
           >
             {step <= currentStep && (
               <div className="absolute inset-0 bg-gradient-to-br from-lamaSky to-lamaYellow rounded-2xl animate-pulse opacity-30"></div>
@@ -183,9 +182,8 @@ export default function AddStudentPage() {
           </div>
           {step < 4 && (
             <div
-              className={`w-24 h-2 mx-2 rounded-full transition-all duration-500 ${
-                step < currentStep ? "bg-gradient-to-r from-lamaSky to-lamaYellow" : "bg-gray-300"
-              }`}
+              className={`w-24 h-2 mx-2 rounded-full transition-all duration-500 ${step < currentStep ? "bg-gradient-to-r from-lamaSky to-lamaYellow" : "bg-gray-300"
+                }`}
             />
           )}
         </div>

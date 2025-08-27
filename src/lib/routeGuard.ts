@@ -18,9 +18,9 @@ export interface RouteGuardOptions {
 export async function protectRoute(
   request: NextRequest,
   options: RouteGuardOptions = {}
-): Promise<{ 
-  isAuthorized: boolean; 
-  userRole?: UserRole; 
+): Promise<{
+  isAuthorized: boolean;
+  userRole?: UserRole;
   userId?: string;
   redirectUrl?: string;
   error?: string;
@@ -30,7 +30,7 @@ export async function protectRoute(
   try {
     // التحقق من تسجيل الدخول
     const { userId, sessionClaims } = await auth();
-    
+
     if (requireAuth && !userId) {
       return {
         isAuthorized: false,
@@ -44,12 +44,11 @@ export async function protectRoute(
     }
 
     // الحصول على دور المستخدم
-    const userRole = (sessionClaims?.metadata as { role?: UserRole })?.role as UserRole;
-    
+    const userRole = (sessionClaims?.publicMetadata as { role?: UserRole })?.role as UserRole;
+
     if (!userRole) {
       return {
         isAuthorized: false,
-        redirectUrl: '/?error=no_role',
         error: 'لم يتم تحديد دور المستخدم'
       };
     }
@@ -60,7 +59,6 @@ export async function protectRoute(
       return {
         isAuthorized: false,
         userRole,
-        redirectUrl: `/${userRole}?error=insufficient_permissions`,
         error: `لا تملك صلاحيات كافية. دورك: ${rolePermissions?.roleNameArabic || 'غير محدد'}`
       };
     }
@@ -72,7 +70,6 @@ export async function protectRoute(
       return {
         isAuthorized: false,
         userRole,
-        redirectUrl: `/${userRole}?error=route_access_denied`,
         error: `لا يمكنك الوصول لهذا المسار. دورك: ${rolePermissions?.roleNameArabic || 'غير محدد'}`
       };
     }
@@ -87,7 +84,6 @@ export async function protectRoute(
     console.error('خطأ في حماية المسار:', error);
     return {
       isAuthorized: false,
-      redirectUrl: '/?error=system_error',
       error: 'خطأ في النظام'
     };
   }
@@ -107,11 +103,11 @@ export function createRedirectResponse(url: string, status: number = 302): NextR
  */
 export function createErrorResponse(message: string, status: number = 403): NextResponse {
   return NextResponse.json(
-    { 
+    {
       error: message,
       timestamp: new Date().toISOString(),
-      status 
-    }, 
+      status
+    },
     { status }
   );
 }
@@ -125,15 +121,13 @@ export async function protectApiRoute(
   options: RouteGuardOptions = {}
 ): Promise<NextResponse | null> {
   const guardResult = await protectRoute(request, options);
-  
+
   if (!guardResult.isAuthorized) {
-    if (guardResult.redirectUrl) {
-      return createRedirectResponse(guardResult.redirectUrl);
-    } else {
-      return createErrorResponse(guardResult.error || 'غير مصرح', 403);
-    }
+    // API routes لا يمكن أن تعيد توجيه المستخدم
+    // إرجاع error response بدلاً من redirect
+    return createErrorResponse(guardResult.error || 'غير مصرح', 403);
   }
-  
+
   return null; // يعني أن المستخدم مصرح له
 }
 
@@ -146,11 +140,11 @@ export async function protectPageRoute(
   options: RouteGuardOptions = {}
 ): Promise<NextResponse | null> {
   const guardResult = await protectRoute(request, options);
-  
+
   if (!guardResult.isAuthorized && guardResult.redirectUrl) {
     return createRedirectResponse(guardResult.redirectUrl);
   }
-  
+
   return null; // يعني أن المستخدم مصرح له
 }
 
@@ -164,7 +158,7 @@ export function checkComponentPermission(
   fallback: boolean = false
 ): boolean {
   if (!userRole) return fallback;
-  
+
   // استيراد ديناميكي لتجنب مشاكل SSR
   try {
     const { hasPermission } = require('./permissions');
@@ -180,7 +174,7 @@ export function checkComponentPermission(
  */
 export function getUserAllowedRoutes(userRole: UserRole | undefined): string[] {
   if (!userRole) return [];
-  
+
   try {
     const { getUserRolePermissions } = require('./permissions');
     const rolePermissions = getUserRolePermissions(userRole);
@@ -196,7 +190,7 @@ export function getUserAllowedRoutes(userRole: UserRole | undefined): string[] {
  */
 export function getUserRestrictedRoutes(userRole: UserRole | undefined): string[] {
   if (!userRole) return [];
-  
+
   try {
     const { getUserRolePermissions } = require('./permissions');
     const rolePermissions = getUserRolePermissions(userRole);

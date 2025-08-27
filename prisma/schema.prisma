@@ -13,127 +13,111 @@ model Admin {
 }
 
 model Student {
-  id String @id @default(uuid())
-
-  // البيانات الشخصية والاتصال
-  fullName   String // الاسم الرباعي
-  nationalId String @unique // رقم الهوية/الرقم الوطني
-
-  guardianName String? // اسم ولي الأمر
-  studentPhone String? // رقم هاتف الطالب
-  birthday     DateTime // تاريخ الميلاد
-  placeOfBirth String // مكان الميلاد
-  address      String // العنوان
-  nationality  String // الجنسية
-
-  // بيانات التسجيل الأكاديمي
-  academicYear     String? // العام الدراسي (2024-2025 مثلاً)
-  studyLevel       StudyLevel? // المرحلة الدراسية
-  specialization   String? // الشعبة التخصصية
-  studyMode        StudyMode? // النظام الدراسي (نظامي/انتساب)
-  enrollmentStatus EnrollmentStatus? // صفة القيد (مستجد/معيد)
-  studentStatus    StudentStatus? // حالة الطالب (مستمر/منقطع...)
-
-  // البيانات الإضافية
-
-  relationship            String? // صلة القرابة
-  guardianPhone           String? // هاتف ولي الأمر
-  previousSchool          String? // المدرسة السابقة
-  previousLevel           String? // المستوى الأكاديمي السابق
-  healthCondition         String? // الحالة الصحية
-  chronicDiseases         String? // الأمراض المزمنة
-  allergies               String? // الحساسيات
-  specialNeeds            String? // الاحتياجات الخاصة
-  emergencyContactName    String? // اسم جهة الاتصال للطوارئ
-  emergencyContactPhone   String? // هاتف جهة الاتصال الطوارئ
-  emergencyContactAddress String? // عنوان جهة الاتصال الطوارئ
-  notes                   String? // ملاحظات
-
-  // بيانات المستندات (مسارات الملفات)
-  studentPhoto        String? // مسار صورة الطالب
-  nationalIdCopy      String? // مسار صورة الهوية
-  birthCertificate    String? // مسار شهادة الميلاد
-  educationForm       String? // مسار استمارة التعليم
-  equivalencyDocument String? // مسار وثيقة المعادلة
-  otherDocuments      Json? // مصفوفة مسارات المستندات الأخرى
-
-  createdAt DateTime @default(now())
-
-  // العلاقات (اختيارية الآن)
-
-  attendances   Attendance[]
-  subjectGrades SubjectGrade[]
+  id                      String            @id @default(uuid())
+  fullName                String
+  nationalId              String            @unique
+  guardianName            String?
+  studentPhone            String?
+  birthday                DateTime
+  placeOfBirth            String
+  address                 String
+  nationality             String
+  academicYear            String?
+  studyLevel              StudyLevel?
+  specialization          String?
+  studyMode               StudyMode?
+  enrollmentStatus        EnrollmentStatus?
+  studentStatus           StudentStatus?
+  relationship            String?
+  guardianPhone           String?
+  previousSchool          String?
+  previousLevel           String?
+  healthCondition         String?
+  chronicDiseases         String?
+  allergies               String?
+  specialNeeds            String?
+  emergencyContactName    String?
+  emergencyContactPhone   String?
+  emergencyContactAddress String?
+  notes                   String?
+  studentPhoto            String?
+  nationalIdCopy          String?
+  birthCertificate        String?
+  educationForm           String?
+  equivalencyDocument     String?
+  otherDocuments          Json?
+  createdAt               DateTime          @default(now())
+  attendances             Attendance[]
+  subjectGrades           SubjectGrade[]
 }
 
 model Teacher {
-  id String @id @default(uuid())
-
-  // البيانات الأساسية (مطلوبة)
-  fullName   String // الاسم الكامل (مطلوب)
-  nationalId String   @unique // الرقم الوطني/الجواز (مطلوب)
-  birthday   DateTime // تاريخ الميلاد (YYYY-MM-DD)
-
-  // البيانات الشخصية
-  nationality   String? // الجنسية (اختيار جنسية)
-  maritalStatus MaritalStatus? // الحالة الاجتماعية (اختيار حالة اجتماعية)
-  address       String? // عنوان السكن
-  phone1        String // هاتف أول (مطلوب)
-  phone2        String? // هاتف ثاني
-
-  // جهة الاتصال للطوارئ
-  emergencyContactName     String? // اسم جهة اتصال الطوارئ
-  emergencyContactRelation String? // صلة قرابة جهة الطوارئ
-
-  // الحالة الوظيفية
-  employmentStatus EmploymentStatus? // الحالة (تعيين/عقد/ندب)
-  appointmentDate  DateTime? // تاريخ التعيين (YYYY-MM-DD)
-  serviceStartDate DateTime? // تاريخ مباشرة العمل (YYYY-MM-DD)
-  contractEndDate  DateTime? // تاريخ نهاية العقد (في حالة كانت الحالة عقد)
-
-  // المؤهلات العلمية
-  academicQualification  String? // المؤهل العلمي
-  educationalInstitution String? // المؤسسة التعليمية
-  majorSpecialization    String? // التخصص الرئيسي
-  minorSpecialization    String? // التخصص الفرعي
-  graduationYear         String? // سنة التخرج
-
-  // حقول إضافية
-
-  createdAt DateTime @default(now())
-
-  // العلاقات
-  teacherSubjects TeacherSubject[]
+  id                       String            @id @default(uuid())
+  fullName                 String
+  nationalId               String            @unique
+  birthday                 DateTime
+  nationality              String?
+  address                  String?
+  createdAt                DateTime          @default(now())
+  academicQualification    String?
+  appointmentDate          DateTime?
+  contractEndDate          DateTime?
+  educationalInstitution   String?
+  emergencyContactName     String?
+  emergencyContactRelation String?
+  employmentStatus         EmploymentStatus?
+  graduationYear           String?
+  majorSpecialization      String?
+  maritalStatus            MaritalStatus?
+  minorSpecialization      String?
+  phone1                   String
+  phone2                   String?
+  serviceStartDate         DateTime?
+  TeacherSubject           TeacherSubject[]
 }
 
 model Subject {
-  id              Int              @id @default(autoincrement())
-  name            String           @unique
-  academicYear    String? // السنة الدراسية (مثل 2024-2025) - اختياري
-  teacherSubjects TeacherSubject[]
-  grades          SubjectGrade[]
-}
-
-// Junction table for many-to-many relationship between Teacher and Subject
-model TeacherSubject {
-  id        Int      @id @default(autoincrement())
-  teacherId String
-  subjectId Int
-  createdAt DateTime @default(now())
-
-  teacher Teacher @relation(fields: [teacherId], references: [id])
-  subject Subject @relation(fields: [subjectId], references: [id])
-
-  @@unique([teacherId, subjectId])
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  academicYear   String?
+  subjectGrades  SubjectGrade[]
+  TeacherSubject TeacherSubject[]
 }
 
 model Attendance {
-  id      Int      @id @default(autoincrement())
-  date    DateTime
-  present Boolean
-
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  present   Boolean
   studentId String
-  student   Student @relation(fields: [studentId], references: [id])
   lessonId  Int
+  student   Student  @relation(fields: [studentId], references: [id])
+}
+
+model SubjectGrade {
+  id           Int              @id @default(autoincrement())
+  academicYear String
+  period       EvaluationPeriod
+  month1       Int?
+  month2       Int?
+  month3       Int?
+  workTotal    Float            @default(0)
+  finalExam    Int?
+  periodTotal  Float            @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  studentId    String
+  subjectId    Int
+  student      Student          @relation(fields: [studentId], references: [id])
+  subject      Subject          @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId, academicYear, period])
+}
+
+model Announcement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  date        DateTime
 }
 
 model Event {
@@ -144,45 +128,54 @@ model Event {
   endTime     DateTime
 }
 
-model Announcement {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  date        DateTime
-}
-
-// درجات المواد حسب الطالب والمادة والسنة والفترة
-model SubjectGrade {
-  id           Int              @id @default(autoincrement())
-  academicYear String
-  period       EvaluationPeriod
-
-  // درجات الأشهر
-  month1 Int?
-  month2 Int?
-  month3 Int?
-
-  // مجاميع وأعمال
-  workTotal   Float @default(0)
-  finalExam   Int?
-  periodTotal Float @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // العلاقات
-  studentId String
-  student   Student @relation(fields: [studentId], references: [id])
+model TeacherSubject {
+  id        Int      @id @default(autoincrement())
+  teacherId String
   subjectId Int
-  subject   Subject @relation(fields: [subjectId], references: [id])
+  createdAt DateTime @default(now())
+  Subject   Subject  @relation(fields: [subjectId], references: [id])
+  Teacher   Teacher  @relation(fields: [teacherId], references: [id])
 
-  @@unique([studentId, subjectId, academicYear, period])
+  @@unique([teacherId, subjectId])
 }
 
-enum EvaluationPeriod {
-  FIRST
-  SECOND
-  THIRD
+enum StudyLevel {
+  FIRST_YEAR
+  SECOND_YEAR
+  THIRD_YEAR
+  GRADUATION
+}
+
+enum StudyMode {
+  REGULAR
+  DISTANCE
+}
+
+enum EnrollmentStatus {
+  NEW
+  REPEATER
+}
+
+enum StudentStatus {
+  ACTIVE
+  DROPPED
+  SUSPENDED
+  EXPELLED
+  PAUSED
+  GRADUATED
+}
+
+enum EmploymentStatus {
+  APPOINTMENT
+  CONTRACT
+  SECONDMENT
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
 }
 
 enum Day {
@@ -193,41 +186,8 @@ enum Day {
   FRIDAY
 }
 
-enum StudentStatus {
-  ACTIVE // مستمر
-  DROPPED // منقطع
-  SUSPENDED // موقوف
-  EXPELLED // مطرود
-  PAUSED // إيقاف قيد
-  GRADUATED // متخرج
-}
-
-enum StudyMode {
-  REGULAR // نظامي
-  DISTANCE // انتساب
-}
-
-enum EnrollmentStatus {
-  NEW // مستجد
-  REPEATER // معيد
-}
-
-enum StudyLevel {
-  FIRST_YEAR // السنة الأولى
-  SECOND_YEAR // السنة الثانية
-  THIRD_YEAR // السنة الثالثة
-  GRADUATION // سنة التخرج
-}
-
-enum EmploymentStatus {
-  APPOINTMENT // تعيين
-  CONTRACT // عقد
-  SECONDMENT // ندب
-}
-
-enum MaritalStatus {
-  SINGLE // أعزب/عزباء
-  MARRIED // متزوج/ة
-  DIVORCED // مطلق/ة
-  WIDOWED // أرمل/ة
+enum EvaluationPeriod {
+  FIRST
+  SECOND
+  THIRD
 }

@@ -19,7 +19,7 @@ const AttendanceChartContainer = async () => {
     },
     select: {
       date: true,
-      present: true,
+      status: true,
     },
   });
 
@@ -27,36 +27,36 @@ const AttendanceChartContainer = async () => {
 
   const daysOfWeek = ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
 
-// استخدم نفس الأسماء العربية هنا
-const attendanceMap: { [key: string]: { present: number; absent: number } } = {
-  "الإثنين": { present: 0, absent: 0 },
-  "الثلاثاء": { present: 0, absent: 0 },
-  "الأربعاء": { present: 0, absent: 0 },
-  "الخميس": { present: 0, absent: 0 },
-  "الجمعة": { present: 0, absent: 0 },
-};
+  // استخدم نفس الأسماء العربية هنا
+  const attendanceMap: { [key: string]: { present: number; absent: number } } = {
+    "الإثنين": { present: 0, absent: 0 },
+    "الثلاثاء": { present: 0, absent: 0 },
+    "الأربعاء": { present: 0, absent: 0 },
+    "الخميس": { present: 0, absent: 0 },
+    "الجمعة": { present: 0, absent: 0 },
+  };
 
-resData.forEach((item) => {
-  const itemDate = new Date(item.date);
-  const dayOfWeek = itemDate.getDay(); // 1 for Monday, 2 for Tuesday...
+  resData.forEach((item) => {
+    const itemDate = new Date(item.date);
+    const dayOfWeek = itemDate.getDay(); // 1 for Monday, 2 for Tuesday...
 
-  if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-    // dayName سيكون "الإثنين"، "الثلاثاء"، إلخ.
-    const dayName = daysOfWeek[dayOfWeek - 1];
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      // dayName سيكون "الإثنين"، "الثلاثاء"، إلخ.
+      const dayName = daysOfWeek[dayOfWeek - 1];
 
-    // الآن سيجد المفتاح الصحيح
-    if (item.present) {
-      attendanceMap[dayName].present += 1;
-    } else {
-      attendanceMap[dayName].absent += 1;
+      // الآن سيجد المفتاح الصحيح
+      if (item.status === 'present') {
+        attendanceMap[dayName].present += 1;
+      } else {
+        attendanceMap[dayName].absent += 1;
+      }
     }
-  }
-});
-const data = daysOfWeek.map((day) => ({
-  name: day,
-  present: attendanceMap[day]?.present ?? 0,
-  absent: attendanceMap[day]?.absent ?? 0,
-}));
+  });
+  const data = daysOfWeek.map((day) => ({
+    name: day,
+    present: attendanceMap[day]?.present ?? 0,
+    absent: attendanceMap[day]?.absent ?? 0,
+  }));
 
 
   return (
@@ -65,7 +65,7 @@ const data = daysOfWeek.map((day) => ({
         <h1 className="text-lg font-semibold">الحضور والغياب</h1>
         <Image src="/moreDark.png" alt="" width={20} height={20} />
       </div>
-      <AttendanceChart data={data}/>
+      <AttendanceChart data={data} />
     </div>
   );
 };
