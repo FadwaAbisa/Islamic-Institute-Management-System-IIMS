@@ -12,8 +12,37 @@ model Admin {
   username String @unique
 }
 
+model Announcement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  endDate     DateTime
+  image       String?
+  startDate   DateTime
+  status      String   @default("نشط")
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  present   Boolean
+  studentId String
+  lessonId  Int
+  Student   Student  @relation(fields: [studentId], references: [id])
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  startTime   DateTime
+  endTime     DateTime
+}
+
 model Student {
-  id                      String            @id @default(uuid())
+  id                      String            @id
   fullName                String
   nationalId              String            @unique
   guardianName            String?
@@ -47,18 +76,46 @@ model Student {
   equivalencyDocument     String?
   otherDocuments          Json?
   createdAt               DateTime          @default(now())
-  attendances             Attendance[]
-  subjectGrades           SubjectGrade[]
+  Attendance              Attendance[]
+  SubjectGrade            SubjectGrade[]
+}
+
+model Subject {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  academicYear   String?
+  SubjectGrade   SubjectGrade[]
+  TeacherSubject TeacherSubject[]
+}
+
+model SubjectGrade {
+  id           Int              @id @default(autoincrement())
+  academicYear String
+  period       EvaluationPeriod
+  month1       Int?
+  month2       Int?
+  month3       Int?
+  workTotal    Float            @default(0)
+  finalExam    Int?
+  periodTotal  Float            @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime
+  studentId    String
+  subjectId    Int
+  Student      Student          @relation(fields: [studentId], references: [id])
+  Subject      Subject          @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId, academicYear, period])
 }
 
 model Teacher {
-  id                       String            @id @default(uuid())
+  id                       String              @id
   fullName                 String
-  nationalId               String            @unique
+  nationalId               String              @unique
   birthday                 DateTime
   nationality              String?
   address                  String?
-  createdAt                DateTime          @default(now())
+  createdAt                DateTime            @default(now())
   academicQualification    String?
   appointmentDate          DateTime?
   contractEndDate          DateTime?
@@ -73,59 +130,18 @@ model Teacher {
   phone1                   String
   phone2                   String?
   serviceStartDate         DateTime?
+  TeacherStudyLevel        TeacherStudyLevel[]
   TeacherSubject           TeacherSubject[]
 }
 
-model Subject {
-  id             Int              @id @default(autoincrement())
-  name           String           @unique
-  academicYear   String?
-  subjectGrades  SubjectGrade[]
-  TeacherSubject TeacherSubject[]
-}
+model TeacherStudyLevel {
+  id         Int        @id @default(autoincrement())
+  teacherId  String
+  studyLevel StudyLevel
+  createdAt  DateTime   @default(now())
+  Teacher    Teacher    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
-model Attendance {
-  id        Int      @id @default(autoincrement())
-  date      DateTime
-  present   Boolean
-  studentId String
-  lessonId  Int
-  student   Student  @relation(fields: [studentId], references: [id])
-}
-
-model SubjectGrade {
-  id           Int              @id @default(autoincrement())
-  academicYear String
-  period       EvaluationPeriod
-  month1       Int?
-  month2       Int?
-  month3       Int?
-  workTotal    Float            @default(0)
-  finalExam    Int?
-  periodTotal  Float            @default(0)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  studentId    String
-  subjectId    Int
-  student      Student          @relation(fields: [studentId], references: [id])
-  subject      Subject          @relation(fields: [subjectId], references: [id])
-
-  @@unique([studentId, subjectId, academicYear, period])
-}
-
-model Announcement {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  date        DateTime
-}
-
-model Event {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  startTime   DateTime
-  endTime     DateTime
+  @@unique([teacherId, studyLevel])
 }
 
 model TeacherSubject {
@@ -139,21 +155,36 @@ model TeacherSubject {
   @@unique([teacherId, subjectId])
 }
 
-enum StudyLevel {
-  FIRST_YEAR
-  SECOND_YEAR
-  THIRD_YEAR
-  GRADUATION
+enum Day {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
 }
 
-enum StudyMode {
-  REGULAR
-  DISTANCE
+enum EmploymentStatus {
+  APPOINTMENT
+  CONTRACT
+  SECONDMENT
 }
 
 enum EnrollmentStatus {
   NEW
   REPEATER
+}
+
+enum EvaluationPeriod {
+  FIRST
+  SECOND
+  THIRD
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
 }
 
 enum StudentStatus {
@@ -165,29 +196,14 @@ enum StudentStatus {
   GRADUATED
 }
 
-enum EmploymentStatus {
-  APPOINTMENT
-  CONTRACT
-  SECONDMENT
+enum StudyLevel {
+  FIRST_YEAR
+  SECOND_YEAR
+  THIRD_YEAR
+  GRADUATION
 }
 
-enum MaritalStatus {
-  SINGLE
-  MARRIED
-  DIVORCED
-  WIDOWED
-}
-
-enum Day {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-}
-
-enum EvaluationPeriod {
-  FIRST
-  SECOND
-  THIRD
+enum StudyMode {
+  REGULAR
+  DISTANCE
 }
