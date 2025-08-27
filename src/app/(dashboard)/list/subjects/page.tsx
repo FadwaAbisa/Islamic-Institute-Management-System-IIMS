@@ -24,8 +24,8 @@ const SubjectListPage = async ({
       accessor: "name",
     },
     {
-      header: "Teachers",
-      accessor: "teachers",
+      header: "Academic Year",
+      accessor: "academicYear",
       className: "hidden md:table-cell",
     },
     {
@@ -41,7 +41,7 @@ const SubjectListPage = async ({
     >
       <td className="flex items-center gap-4 p-4">{item.name}</td>
       <td className="hidden md:table-cell">
-        {item.teachers.map((teacher) => teacher.name).join(",")}
+        {item.academicYear || "غير محدد"}
       </td>
       <td>
         <div className="flex items-center gap-2">
@@ -81,9 +81,7 @@ const SubjectListPage = async ({
   const [data, count] = await prisma.$transaction([
     prisma.subject.findMany({
       where: query,
-      include: {
-        teachers: true,
-      },
+      include: {},
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (p - 1),
     }),

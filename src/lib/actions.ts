@@ -21,9 +21,7 @@ export const createSubject = async (
     await prisma.subject.create({
       data: {
         name: data.name,
-        teachers: {
-          connect: data.teachers.map((teacherId) => ({ id: teacherId })),
-        },
+        academicYear: data.academicYear || null,
       },
     });
 
@@ -46,9 +44,7 @@ export const updateSubject = async (
       },
       data: {
         name: data.name,
-        teachers: {
-          set: data.teachers.map((teacherId) => ({ id: teacherId })),
-        },
+        academicYear: data.academicYear || null,
       },
     });
 
@@ -80,62 +76,7 @@ export const deleteSubject = async (
   }
 };
 
-export const createClass = async (
-  currentState: CurrentState,
-  data: ClassSchema
-) => {
-  try {
-    await prisma.class.create({
-      data,
-    });
-
-    // revalidatePath("/list/class");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const updateClass = async (
-  currentState: CurrentState,
-  data: ClassSchema
-) => {
-  try {
-    await prisma.class.update({
-      where: {
-        id: data.id,
-      },
-      data,
-    });
-
-    // revalidatePath("/list/class");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const deleteClass = async (
-  currentState: CurrentState,
-  data: FormData
-) => {
-  const id = data.get("id") as string;
-  try {
-    await prisma.class.delete({
-      where: {
-        id: parseInt(id),
-      },
-    });
-
-    // revalidatePath("/list/class");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
+// Class functions removed - not in current schema
 
 export const createTeacher = async (
   currentState: CurrentState,
@@ -143,31 +84,35 @@ export const createTeacher = async (
 ) => {
   try {
     const user = await clerkClient.users.createUser({
-      username: data.username,
-      password: data.password,
-      firstName: data.name,
-      lastName: data.surname,
+      username: data.fullName.toLowerCase().replace(/\s+/g, ''),
+      password: "12345678", // Default password
+      firstName: data.fullName.split(' ')[0] || data.fullName,
+      lastName: data.fullName.split(' ').slice(1).join(' ') || data.fullName,
       publicMetadata:{role:"teacher"}
     });
 
     await prisma.teacher.create({
       data: {
         id: user.id,
-        username: data.username,
-        name: data.name,
-        surname: data.surname,
-        email: data.email || null,
-        phone: data.phone || null,
-        address: data.address,
-        img: data.img || null,
-        bloodType: data.bloodType,
-        sex: data.sex,
+        fullName: data.fullName,
+        nationalId: data.nationalId,
         birthday: data.birthday,
-        subjects: {
-          connect: data.subjects?.map((subjectId: string) => ({
-            id: parseInt(subjectId),
-          })),
-        },
+        nationality: data.nationality || null,
+        maritalStatus: data.maritalStatus || null,
+        address: data.address || null,
+        phone1: data.phone1,
+        phone2: data.phone2 || null,
+        emergencyContactName: data.emergencyContactName || null,
+        emergencyContactRelation: data.emergencyContactRelation || null,
+        employmentStatus: data.employmentStatus || null,
+        appointmentDate: data.appointmentDate || null,
+        serviceStartDate: data.serviceStartDate || null,
+        contractEndDate: data.contractEndDate || null,
+        academicQualification: data.academicQualification || null,
+        educationalInstitution: data.educationalInstitution || null,
+        majorSpecialization: data.majorSpecialization || null,
+        minorSpecialization: data.minorSpecialization || null,
+        graduationYear: data.graduationYear || null,
       },
     });
 
@@ -188,10 +133,8 @@ export const updateTeacher = async (
   }
   try {
     const user = await clerkClient.users.updateUser(data.id, {
-      username: data.username,
-      ...(data.password !== "" && { password: data.password }),
-      firstName: data.name,
-      lastName: data.surname,
+      firstName: data.fullName.split(' ')[0] || data.fullName,
+      lastName: data.fullName.split(' ').slice(1).join(' ') || data.fullName,
     });
 
     await prisma.teacher.update({
@@ -199,22 +142,25 @@ export const updateTeacher = async (
         id: data.id,
       },
       data: {
-        ...(data.password !== "" && { password: data.password }),
-        username: data.username,
-        name: data.name,
-        surname: data.surname,
-        email: data.email || null,
-        phone: data.phone || null,
-        address: data.address,
-        img: data.img || null,
-        bloodType: data.bloodType,
-        sex: data.sex,
+        fullName: data.fullName,
+        nationalId: data.nationalId,
         birthday: data.birthday,
-        subjects: {
-          set: data.subjects?.map((subjectId: string) => ({
-            id: parseInt(subjectId),
-          })),
-        },
+        nationality: data.nationality || null,
+        maritalStatus: data.maritalStatus || null,
+        address: data.address || null,
+        phone1: data.phone1,
+        phone2: data.phone2 || null,
+        emergencyContactName: data.emergencyContactName || null,
+        emergencyContactRelation: data.emergencyContactRelation || null,
+        employmentStatus: data.employmentStatus || null,
+        appointmentDate: data.appointmentDate || null,
+        serviceStartDate: data.serviceStartDate || null,
+        contractEndDate: data.contractEndDate || null,
+        academicQualification: data.academicQualification || null,
+        educationalInstitution: data.educationalInstitution || null,
+        majorSpecialization: data.majorSpecialization || null,
+        minorSpecialization: data.minorSpecialization || null,
+        graduationYear: data.graduationYear || null,
       },
     });
     // revalidatePath("/list/teachers");
@@ -253,39 +199,49 @@ export const createStudent = async (
 ) => {
   console.log(data);
   try {
-    const classItem = await prisma.class.findUnique({
-      where: { id: data.classId },
-      include: { _count: { select: { students: true } } },
-    });
-
-    if (classItem && classItem.capacity === classItem._count.students) {
-      return { success: false, error: true };
-    }
-
     const user = await clerkClient.users.createUser({
-      username: data.username,
-      password: data.password,
-      firstName: data.name,
-      lastName: data.surname,
+      username: data.fullName.toLowerCase().replace(/\s+/g, ''),
+      password: "12345678", // Default password
+      firstName: data.fullName.split(' ')[0] || data.fullName,
+      lastName: data.fullName.split(' ').slice(1).join(' ') || data.fullName,
       publicMetadata:{role:"student"}
     });
 
     await prisma.student.create({
       data: {
         id: user.id,
-        username: data.username,
-        name: data.name,
-        surname: data.surname,
-        email: data.email || null,
-        phone: data.phone || null,
-        address: data.address,
-        img: data.img || null,
-        bloodType: data.bloodType,
-        sex: data.sex,
+        fullName: data.fullName,
+        nationalId: data.nationalId,
+        guardianName: data.guardianName || null,
+        studentPhone: data.studentPhone || null,
         birthday: data.birthday,
-        gradeId: data.gradeId,
-        classId: data.classId,
-        parentId: data.parentId,
+        placeOfBirth: data.placeOfBirth,
+        address: data.address,
+        nationality: data.nationality,
+        academicYear: data.academicYear || null,
+        studyLevel: data.studyLevel || null,
+        specialization: data.specialization || null,
+        studyMode: data.studyMode || null,
+        enrollmentStatus: data.enrollmentStatus || null,
+        studentStatus: data.studentStatus || null,
+        relationship: data.relationship || null,
+        guardianPhone: data.guardianPhone || null,
+        previousSchool: data.previousSchool || null,
+        previousLevel: data.previousLevel || null,
+        healthCondition: data.healthCondition || null,
+        chronicDiseases: data.chronicDiseases || null,
+        allergies: data.allergies || null,
+        specialNeeds: data.specialNeeds || null,
+        emergencyContactName: data.emergencyContactName || null,
+        emergencyContactPhone: data.emergencyContactPhone || null,
+        emergencyContactAddress: data.emergencyContactAddress || null,
+        notes: data.notes || null,
+        studentPhoto: data.studentPhoto || null,
+        nationalIdCopy: data.nationalIdCopy || null,
+        birthCertificate: data.birthCertificate || null,
+        educationForm: data.educationForm || null,
+        equivalencyDocument: data.equivalencyDocument || null,
+        otherDocuments: data.otherDocuments || null,
       },
     });
 
@@ -306,10 +262,8 @@ export const updateStudent = async (
   }
   try {
     const user = await clerkClient.users.updateUser(data.id, {
-      username: data.username,
-      ...(data.password !== "" && { password: data.password }),
-      firstName: data.name,
-      lastName: data.surname,
+      firstName: data.fullName.split(' ')[0] || data.fullName,
+      lastName: data.fullName.split(' ').slice(1).join(' ') || data.fullName,
     });
 
     await prisma.student.update({
@@ -317,20 +271,38 @@ export const updateStudent = async (
         id: data.id,
       },
       data: {
-        ...(data.password !== "" && { password: data.password }),
-        username: data.username,
-        name: data.name,
-        surname: data.surname,
-        email: data.email || null,
-        phone: data.phone || null,
-        address: data.address,
-        img: data.img || null,
-        bloodType: data.bloodType,
-        sex: data.sex,
+        fullName: data.fullName,
+        nationalId: data.nationalId,
+        guardianName: data.guardianName || null,
+        studentPhone: data.studentPhone || null,
         birthday: data.birthday,
-        gradeId: data.gradeId,
-        classId: data.classId,
-        parentId: data.parentId,
+        placeOfBirth: data.placeOfBirth,
+        address: data.address,
+        nationality: data.nationality,
+        academicYear: data.academicYear || null,
+        studyLevel: data.studyLevel || null,
+        specialization: data.specialization || null,
+        studyMode: data.studyMode || null,
+        enrollmentStatus: data.enrollmentStatus || null,
+        studentStatus: data.studentStatus || null,
+        relationship: data.relationship || null,
+        guardianPhone: data.guardianPhone || null,
+        previousSchool: data.previousSchool || null,
+        previousLevel: data.previousLevel || null,
+        healthCondition: data.healthCondition || null,
+        chronicDiseases: data.chronicDiseases || null,
+        allergies: data.allergies || null,
+        specialNeeds: data.specialNeeds || null,
+        emergencyContactName: data.emergencyContactName || null,
+        emergencyContactPhone: data.emergencyContactPhone || null,
+        emergencyContactAddress: data.emergencyContactAddress || null,
+        notes: data.notes || null,
+        studentPhoto: data.studentPhoto || null,
+        nationalIdCopy: data.nationalIdCopy || null,
+        birthCertificate: data.birthCertificate || null,
+        educationForm: data.educationForm || null,
+        equivalencyDocument: data.equivalencyDocument || null,
+        otherDocuments: data.otherDocuments || null,
       },
     });
     // revalidatePath("/list/students");
@@ -363,106 +335,4 @@ export const deleteStudent = async (
   }
 };
 
-export const createExam = async (
-  currentState: CurrentState,
-  data: ExamSchema
-) => {
-  // const { userId, sessionClaims } = auth();
-  // const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-  try {
-    // if (role === "teacher") {
-    //   const teacherLesson = await prisma.lesson.findFirst({
-    //     where: {
-    //       teacherId: userId!,
-    //       id: data.lessonId,
-    //     },
-    //   });
-
-    //   if (!teacherLesson) {
-    //     return { success: false, error: true };
-    //   }
-    // }
-
-    await prisma.exam.create({
-      data: {
-        title: data.title,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        lessonId: data.lessonId,
-      },
-    });
-
-    // revalidatePath("/list/subjects");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const updateExam = async (
-  currentState: CurrentState,
-  data: ExamSchema
-) => {
-  // const { userId, sessionClaims } = auth();
-  // const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-  try {
-    // if (role === "teacher") {
-    //   const teacherLesson = await prisma.lesson.findFirst({
-    //     where: {
-    //       teacherId: userId!,
-    //       id: data.lessonId,
-    //     },
-    //   });
-
-    //   if (!teacherLesson) {
-    //     return { success: false, error: true };
-    //   }
-    // }
-
-    await prisma.exam.update({
-      where: {
-        id: data.id,
-      },
-      data: {
-        title: data.title,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        lessonId: data.lessonId,
-      },
-    });
-
-    // revalidatePath("/list/subjects");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const deleteExam = async (
-  currentState: CurrentState,
-  data: FormData
-) => {
-  const id = data.get("id") as string;
-
-  // const { userId, sessionClaims } = auth();
-  // const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-  try {
-    await prisma.exam.delete({
-      where: {
-        id: parseInt(id),
-        // ...(role === "teacher" ? { lesson: { teacherId: userId! } } : {}),
-      },
-    });
-
-    // revalidatePath("/list/subjects");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
+// Exam functions removed - not in current schema

@@ -103,6 +103,7 @@ model Teacher {
 
   // العلاقات
   teacherSubjects TeacherSubject[]
+  teacherStudyLevels TeacherStudyLevel[]
 }
 
 model Subject {
@@ -230,4 +231,16 @@ enum MaritalStatus {
   MARRIED // متزوج/ة
   DIVORCED // مطلق/ة
   WIDOWED // أرمل/ة
+}
+
+// Junction table for many-to-many relationship between Teacher and StudyLevel
+model TeacherStudyLevel {
+  id        Int      @id @default(autoincrement())
+  teacherId String
+  studyLevel StudyLevel
+  createdAt DateTime @default(now())
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, studyLevel])
 }

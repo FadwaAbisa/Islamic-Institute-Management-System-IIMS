@@ -1,14 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
-import { randomUUID } from "crypto"
-
-function mapSex(value: string): "MALE" | "FEMALE" | null {
-  if (!value) return null
-  if (value === "MALE" || value === "FEMALE") return value
-  if (value === "ذكر") return "MALE"
-  if (value === "أنثى") return "FEMALE"
-  return null
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,78 +7,122 @@ export async function POST(request: NextRequest) {
     const {
       fullName,
       nationalId,
-      sex,
       birthday,
-      placeOfBirth,
       nationality,
+      maritalStatus,
       address,
-      phone,
-      email,
+      phone1,
+      phone2,
+      emergencyContactName,
+      emergencyContactRelation,
+      employmentStatus,
+      appointmentDate,
+      serviceStartDate,
+      contractEndDate,
+      academicQualification,
+      educationalInstitution,
+      majorSpecialization,
+      minorSpecialization,
+      graduationYear,
+      subjects,
+      studyLevels,
     } = body || {}
 
-    const mappedSex = mapSex(sex)
-    if (!fullName || !nationalId || !mappedSex || !birthday || !placeOfBirth || !nationality || !address) {
+    // التحقق من الحقول المطلوبة
+    if (!fullName || !nationalId || !birthday || !phone1) {
       return NextResponse.json({ error: "الحقول الأساسية مطلوبة" }, { status: 400 })
     }
 
-    // تجهيز قيم متوافقة مع أعمدة سابقة محتملة
-    const derivedUsername = String(nationalId)
-    const first = String(fullName).trim().split(/\s+/)[0] || String(fullName).trim()
-    const rest = String(fullName).trim().split(/\s+/).slice(1).join(" ") || first
-    const legacyName = first
-    const legacySurname = rest
-    const legacyBloodType = "A+"
+    // إنشاء المعلم مع البيانات الأساسية
+    const teacher = await prisma.teacher.create({
+      data: {
+        fullName,
+        nationalId,
+        birthday: new Date(birthday),
+        nationality: nationality || null,
+        maritalStatus: maritalStatus || null,
+        address: address || null,
+        phone1,
+        phone2: phone2 || null,
+        emergencyContactName: emergencyContactName || null,
+        emergencyContactRelation: emergencyContactRelation || null,
+        employmentStatus: employmentStatus || null,
+        appointmentDate: appointmentDate ? new Date(appointmentDate) : null,
+        serviceStartDate: serviceStartDate ? new Date(serviceStartDate) : null,
+        contractEndDate: contractEndDate ? new Date(contractEndDate) : null,
+        academicQualification: academicQualification || null,
+        educationalInstitution: educationalInstitution || null,
+        majorSpecialization: majorSpecialization || null,
+        minorSpecialization: minorSpecialization || null,
+        graduationYear: graduationYear || null,
+      },
+    })
 
-    // استخدام استعلام خام لضمان العمل حتى لو لم يتم تحديث عميل Prisma المحلي
-    const newId = randomUUID()
-    const rows = await prisma.$queryRawUnsafe<{
-      id: string
-      fullName: string
-      nationalId: string
-    }[]>(
-      `INSERT INTO "Teacher" (
-          "id",
-          "username",
-          "name",
-          "surname",
-          "email",
-          "phone",
-          "address",
-          "img",
-          "bloodType",
-          "sex",
-          "birthday",
-          "fullName",
-          "nationalId",
-          "placeOfBirth",
-          "nationality"
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NULL, $8, $9::"UserSex", $10::timestamp, $11, $12, $13, $14)
-        RETURNING id, "fullName", "nationalId"`,
-      newId,
-      derivedUsername,
-      legacyName,
-      legacySurname,
-      email || null,
-      phone || null,
-      address,
-      legacyBloodType,
-      mappedSex,
-      new Date(birthday),
-      fullName,
-      nationalId,
-      placeOfBirth,
-      nationality,
-    )
-    const created = rows?.[0]
-    return NextResponse.json({ teacher: created }, { status: 201 })
-  } catch (error) {
-    console.error("Error creating teacher:", error)
-    const message = (error as any)?.message || "خطأ داخلي"
-    if (message.includes("unique") || message.includes("duplicate key")) {
-      return NextResponse.json({ error: "الرقم الوطني أو الهاتف أو البريد مستخدم مسبقاً" }, { status: 409 })
+    // إضافة المواد الدراسية
+    if (subjects && subjects.length > 0) {
+      const teacherSubjects = subjects.map((subjectId: number) => ({
+        teacherId: teacher.id,
+        subjectId: subjectId,
+      }))
+
+      await prisma.teacherSubject.createMany({
+        data: teacherSubjects,
+        skipDuplicates: true,
+      })
     }
-    return NextResponse.json({ error: message }, { status: 500 })
+
+    // إضافة المراحل الدراسية
+    if (studyLevels && studyLevels.length > 0) {
+      const teacherStudyLevels = studyLevels.map((studyLevel: string) => ({
+        teacherId: teacher.id,
+        studyLevel: studyLevel as any, // تحويل إلى enum
+      }))
+
+      await prisma.teacherStudyLevel.createMany({
+        data: teacherStudyLevels,
+        skipDuplicates: true,
+      })
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "تم إضافة المعلم بنجاح",
+      teacherId: teacher.id 
+    })
+  } catch (error: any) {
+    console.error("خطأ في إضافة المعلم:", error)
+    
+    if (error.code === 'P2002') {
+      return NextResponse.json({ error: "رقم الهوية موجود مسبقاً" }, { status: 400 })
+    }
+    
+    return NextResponse.json({ 
+      error: "فشل في إضافة المعلم" 
+    }, { status: 500 })
+  }
+}
+
+export async function GET() {
+  try {
+    const teachers = await prisma.teacher.findMany({
+      include: {
+        teacherSubjects: {
+          include: {
+            subject: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+
+    return NextResponse.json({ teachers })
+  } catch (error) {
+    console.error("خطأ في جلب المعلمين:", error)
+    return NextResponse.json({ 
+      error: "فشل في جلب المعلمين" 
+    }, { status: 500 })
   }
 }
 

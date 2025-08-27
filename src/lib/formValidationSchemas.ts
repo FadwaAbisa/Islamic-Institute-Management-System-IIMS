@@ -3,7 +3,7 @@ import { z } from "zod";
 export const subjectSchema = z.object({
   id: z.coerce.number().optional(),
   name: z.string().min(1, { message: "Subject name is required!" }),
-  teachers: z.array(z.string()), //teacher ids
+  academicYear: z.string().optional(),
 });
 
 export type SubjectSchema = z.infer<typeof subjectSchema>;
@@ -58,31 +58,46 @@ export type TeacherSchema = z.infer<typeof teacherSchema>;
 
 export const studentSchema = z.object({
   id: z.string().optional(),
-  username: z
-    .string()
-    .min(3, { message: "Username must be at least 3 characters long!" })
-    .max(20, { message: "Username must be at most 20 characters long!" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters long!" })
-    .optional()
-    .or(z.literal("")),
-  name: z.string().min(1, { message: "First name is required!" }),
-  surname: z.string().min(1, { message: "Last name is required!" }),
-  email: z
-    .string()
-    .email({ message: "Invalid email address!" })
-    .optional()
-    .or(z.literal("")),
-  phone: z.string().optional(),
-  address: z.string(),
-  img: z.string().optional(),
-  bloodType: z.string().min(1, { message: "Blood Type is required!" }),
-  birthday: z.coerce.date({ message: "Birthday is required!" }),
-  sex: z.enum(["MALE", "FEMALE"], { message: "Sex is required!" }),
-  gradeId: z.coerce.number().min(1, { message: "Grade is required!" }),
-  classId: z.coerce.number().min(1, { message: "Class is required!" }),
-  parentId: z.string().min(1, { message: "Parent Id is required!" }),
+  
+  // البيانات الشخصية والاتصال
+  fullName: z.string().min(1, { message: "الاسم الرباعي مطلوب!" }),
+  nationalId: z.string().min(1, { message: "رقم الهوية مطلوب!" }),
+  guardianName: z.string().optional(),
+  studentPhone: z.string().optional(),
+  birthday: z.coerce.date({ message: "تاريخ الميلاد مطلوب!" }),
+  placeOfBirth: z.string().min(1, { message: "مكان الميلاد مطلوب!" }),
+  address: z.string().min(1, { message: "العنوان مطلوب!" }),
+  nationality: z.string().min(1, { message: "الجنسية مطلوبة!" }),
+  
+  // بيانات التسجيل الأكاديمي
+  academicYear: z.string().optional(),
+  studyLevel: z.enum(["FIRST_YEAR", "SECOND_YEAR", "THIRD_YEAR", "GRADUATION"]).optional(),
+  specialization: z.string().optional(),
+  studyMode: z.enum(["REGULAR", "DISTANCE"]).optional(),
+  enrollmentStatus: z.enum(["NEW", "REPEATER"]).optional(),
+  studentStatus: z.enum(["ACTIVE", "DROPPED", "SUSPENDED", "EXPELLED", "PAUSED", "GRADUATED"]).optional(),
+  
+  // البيانات الإضافية
+  relationship: z.string().optional(),
+  guardianPhone: z.string().optional(),
+  previousSchool: z.string().optional(),
+  previousLevel: z.string().optional(),
+  healthCondition: z.string().optional(),
+  chronicDiseases: z.string().optional(),
+  allergies: z.string().optional(),
+  specialNeeds: z.string().optional(),
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+  emergencyContactAddress: z.string().optional(),
+  notes: z.string().optional(),
+  
+  // بيانات المستندات
+  studentPhoto: z.string().optional(),
+  nationalIdCopy: z.string().optional(),
+  birthCertificate: z.string().optional(),
+  educationForm: z.string().optional(),
+  equivalencyDocument: z.string().optional(),
+  otherDocuments: z.any().optional(),
 });
 
 export type StudentSchema = z.infer<typeof studentSchema>;

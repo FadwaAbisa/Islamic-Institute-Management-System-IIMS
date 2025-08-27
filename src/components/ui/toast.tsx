@@ -3,7 +3,7 @@
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
-import { X } from "lucide-react"
+import { X, CheckCircle, AlertCircle, Info, XCircle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -31,7 +31,10 @@ const toastVariants = cva(
       variant: {
         default: "border bg-background text-foreground",
         destructive:
-          "destructive group border-destructive bg-destructive text-destructive-foreground",
+          "destructive border-destructive bg-destructive text-destructive-foreground",
+        success: "border-emerald-200 bg-emerald-50 text-emerald-800",
+        warning: "border-amber-200 bg-amber-50 text-amber-800",
+        info: "border-blue-200 bg-blue-50 text-blue-800",
       },
     },
     defaultVariants: {

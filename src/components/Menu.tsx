@@ -37,7 +37,7 @@ const menuItems = [
           {
             icon: Users,
             label: "قائمة المعلمين",
-            href: "/list/teachers",
+            href: "/list/teachers/view_teachers",
             description: "عرض جميع المعلمين"
           },
           {
