@@ -163,8 +163,10 @@ export function AttendanceManagement() {
         try {
             const response = await fetch('/api/subjects')
             if (response.ok) {
-                const subjects = await response.json()
-                setAllSubjects(subjects || [])
+                const data = await response.json()
+                // API يرجع البيانات في تنسيق { subjects: [...] }
+                const subjects = data.subjects || data || []
+                setAllSubjects(subjects)
             }
         } catch (error) {
             console.error('خطأ في جلب المواد:', error)
@@ -473,7 +475,7 @@ export function AttendanceManagement() {
                                     <div>
                                         <div className="text-2xl font-bold">سجل الحضور</div>
                                         <div className="text-sm text-gray-600 font-normal mt-1">
-                                            {mockClasses.find(c => c.id === selectedClass)?.name} - {allSubjects.find(s => s.id === selectedSubject)?.name} - {selectedDate.toLocaleDateString('ar-SA')}
+                                            {mockClasses.find(c => c.id === selectedClass)?.name} - {(allSubjects || []).find(s => s.id === selectedSubject)?.name || 'غير محدد'} - {selectedDate.toLocaleDateString('ar-SA')}
                                         </div>
                                     </div>
                                 </div>
