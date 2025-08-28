@@ -9,6 +9,8 @@
     "lint": "next lint",
     "check-excel": "node prisma/check-excel-data.js",
     "import-students": "node prisma/import-students.js",
+    "import-staff": "node import-staff.js",
+    "check-staff-excel": "node check-staff-excel.js",
     "save-grades": "node prisma/save-grades.js",
     "check-subjects": "node prisma/check-subjects.js",
     "add-subjects": "node prisma/add-subjects.js",
