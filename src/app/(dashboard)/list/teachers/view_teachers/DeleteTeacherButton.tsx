@@ -2,8 +2,8 @@
 
 import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Trash2, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
-import DeleteSuccessMessage from "@/components/ui/delete-success-message"
+import { Trash2, CheckCircle, XCircle } from "lucide-react"
+
 
 interface DeleteTeacherButtonProps {
   teacherId: string
@@ -15,15 +15,12 @@ export default function DeleteTeacherButton({ teacherId, teacherName = "المع
   const [showConfirm, setShowConfirm] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [deletedTeacher, setDeletedTeacher] = useState<{ id: string, name: string } | null>(null)
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" | "warning" } | null>(null)
+
 
   const handleDelete = async () => {
     if (!showConfirm) {
       setShowConfirm(true)
-      setToast({
-        type: 'warning',
-        message: `هل أنت متأكد من حذف ${teacherName}؟ هذا الإجراء لا يمكن التراجع عنه.`
-      })
+      // عرض رسالة تأكيد
       return
     }
 
@@ -39,22 +36,16 @@ export default function DeleteTeacherButton({ teacherId, teacherName = "المع
         setDeletedTeacher({ id: teacherId, name: teacherName })
         setShowSuccess(true)
 
-        // إعادة تحميل الصفحة بعد 8 ثوانٍ
+        // إعادة تحميل الصفحة بعد 3 ثوانٍ
         setTimeout(() => {
           window.location.reload()
-        }, 8000)
+        }, 3000)
       } else {
         const errorData = await res.json().catch(() => ({}))
-        setToast({
-          type: 'error',
-          message: errorData.message || 'حدث خطأ أثناء حذف المعلم. يرجى المحاولة مرة أخرى.'
-        })
+        console.error('خطأ في حذف المعلم:', errorData.message || 'حدث خطأ أثناء حذف المعلم')
       }
     } catch (error) {
-      setToast({
-        type: 'error',
-        message: 'حدث خطأ في الاتصال بالخادم. تحقق من اتصال الإنترنت وحاول مرة أخرى.'
-      })
+      console.error('خطأ في الاتصال بالخادم:', error)
     } finally {
       setIsDeleting(false)
     }
@@ -62,37 +53,26 @@ export default function DeleteTeacherButton({ teacherId, teacherName = "المع
 
   const handleCancel = () => {
     setShowConfirm(false)
-    setToast({
-      type: 'info',
-      message: 'تم إلغاء عملية الحذف بنجاح.'
-    })
+    // تم إلغاء عملية الحذف
   }
 
-  const handleUndo = async () => {
-    if (!deletedTeacher) return
 
-    try {
-      // هنا يمكن إضافة منطق استعادة المعلم المحذوف
-      // إذا كان لديك API لاستعادة البيانات المحذوفة
-      setToast({
-        type: 'info',
-        message: 'سيتم إضافة منطق استعادة المعلم قريباً.'
-      })
-    } catch (error) {
-      setToast({
-        type: 'error',
-        message: 'حدث خطأ أثناء محاولة استعادة المعلم.'
-      })
-    }
-  }
 
   if (showSuccess && deletedTeacher) {
     return (
-      <DeleteSuccessMessage
-        teacherName={deletedTeacher.name}
-        onClose={() => setShowSuccess(false)}
-        onUndo={handleUndo}
-      />
+      <div className="flex items-center gap-2">
+        <span className="text-green-600 text-sm font-medium">
+          تم حذف {deletedTeacher.name} بنجاح
+        </span>
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+          onClick={() => window.location.reload()}
+        >
+          تحديث الصفحة
+        </Button>
+      </div>
     )
   }
 
