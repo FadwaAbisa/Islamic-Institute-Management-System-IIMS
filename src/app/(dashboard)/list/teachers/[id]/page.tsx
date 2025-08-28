@@ -14,12 +14,12 @@ export default async function TeacherDetailPage({
   const teacher = await prisma.teacher.findUnique({
     where: { id: params.id },
     include: {
-      teacherSubjects: {
+      TeacherSubject: {
         include: {
-          subject: true,
+          Subject: true,
         },
       },
-      teacherStudyLevels: true,
+      TeacherStudyLevel: true,
     },
   })
 
@@ -320,11 +320,11 @@ export default async function TeacherDetailPage({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {teacher.teacherSubjects.length > 0 ? (
+                {teacher.TeacherSubject.length > 0 ? (
                   <div className="space-y-2">
-                    {teacher.teacherSubjects.map((ts) => (
+                    {teacher.TeacherSubject.map((ts) => (
                       <Badge key={ts.id} variant="outline" className="w-full justify-center">
-                        {ts.subject.name}
+                        {ts.Subject.name}
                       </Badge>
                     ))}
                   </div>
@@ -343,9 +343,9 @@ export default async function TeacherDetailPage({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {teacher.teacherStudyLevels.length > 0 ? (
+                {teacher.TeacherStudyLevel.length > 0 ? (
                   <div className="space-y-2">
-                    {teacher.teacherStudyLevels.map((tsl) => (
+                    {teacher.TeacherStudyLevel.map((tsl) => (
                       <Badge key={tsl.id} variant="outline" className="w-full justify-center bg-blue-50 text-blue-700">
                         {tsl.studyLevel}
                       </Badge>
@@ -365,11 +365,11 @@ export default async function TeacherDetailPage({
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">عدد المواد:</span>
-                  <Badge variant="secondary">{teacher.teacherSubjects.length}</Badge>
+                  <Badge variant="secondary">{teacher.TeacherSubject.length}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">عدد المراحل:</span>
-                  <Badge variant="secondary">{teacher.teacherStudyLevels.length}</Badge>
+                  <Badge variant="secondary">{teacher.TeacherStudyLevel.length}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">تاريخ الإضافة:</span>

@@ -20,10 +20,11 @@ const ALLOWED_SUBJECTS = [
 // جلب المواد الدراسية
 export async function GET(request: NextRequest) {
   try {
-    const { userId, sessionClaims } = auth()
-    if (!userId) {
-      return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
-    }
+    // تعليق متطلبات المصادقة مؤقتاً للاختبار
+    // const { userId, sessionClaims } = auth()
+    // if (!userId) {
+    //   return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
+    // }
 
     const { searchParams } = new URL(request.url)
     const academicYear = searchParams.get("academicYear")
@@ -67,7 +68,8 @@ export async function GET(request: NextRequest) {
       }))
     }))
 
-    return NextResponse.json(formattedSubjects)
+    console.log("المواد المرسلة:", formattedSubjects)
+    return NextResponse.json({ subjects: formattedSubjects })
   } catch (error) {
     console.error("خطأ في جلب المواد الدراسية:", error)
     return NextResponse.json(

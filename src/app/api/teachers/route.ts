@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
     // إنشاء المعلم مع البيانات الأساسية
     const teacher = await prisma.teacher.create({
       data: {
+        id: `teacher_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // إنشاء ID فريد
         fullName,
         nationalId,
         birthday: new Date(birthday),
@@ -84,20 +85,20 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: "تم إضافة المعلم بنجاح",
-      teacherId: teacher.id 
+      teacherId: teacher.id
     })
   } catch (error: any) {
     console.error("خطأ في إضافة المعلم:", error)
-    
+
     if (error.code === 'P2002') {
       return NextResponse.json({ error: "رقم الهوية موجود مسبقاً" }, { status: 400 })
     }
-    
-    return NextResponse.json({ 
-      error: "فشل في إضافة المعلم" 
+
+    return NextResponse.json({
+      error: "فشل في إضافة المعلم"
     }, { status: 500 })
   }
 }
@@ -106,9 +107,9 @@ export async function GET() {
   try {
     const teachers = await prisma.teacher.findMany({
       include: {
-        teacherSubjects: {
+        TeacherSubject: {
           include: {
-            subject: true,
+            Subject: true,
           },
         },
       },
@@ -120,8 +121,8 @@ export async function GET() {
     return NextResponse.json({ teachers })
   } catch (error) {
     console.error("خطأ في جلب المعلمين:", error)
-    return NextResponse.json({ 
-      error: "فشل في جلب المعلمين" 
+    return NextResponse.json({
+      error: "فشل في جلب المعلمين"
     }, { status: 500 })
   }
 }

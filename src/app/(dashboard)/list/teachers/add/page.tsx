@@ -66,13 +66,19 @@ export default function AddTeacherPage() {
     // جلب المواد الدراسية
     fetch("/api/subjects")
       .then((res) => res.json())
-      .then((data) => setSubjects(data.subjects || []))
+      .then((data) => {
+        const subjectsData = data.subjects || data || []
+        setSubjects(subjectsData)
+      })
       .catch((err) => console.error("خطأ في جلب المواد:", err))
 
     // جلب المراحل الدراسية
     fetch("/api/study-levels")
       .then((res) => res.json())
-      .then((data) => setStudyLevels(data.studyLevels || []))
+      .then((data) => {
+        const levelsData = data.studyLevels || data || []
+        setStudyLevels(levelsData)
+      })
       .catch((err) => console.error("خطأ في جلب المراحل:", err))
   }, [])
 
@@ -170,7 +176,7 @@ export default function AddTeacherPage() {
       }
 
       setSuccess("تم إضافة المعلم بنجاح")
-      
+
       // إعادة تعيين النموذج
       setBasicData({
         fullName: "",
@@ -212,19 +218,17 @@ export default function AddTeacherPage() {
       {[1, 2, 3].map((step) => (
         <div key={step} className="flex items-center">
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
-              currentStep >= step
-                ? "bg-lamaYellow text-white"
-                : "bg-gray-200 text-gray-500"
-            }`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${currentStep >= step
+              ? "bg-lamaYellow text-white"
+              : "bg-gray-200 text-gray-500"
+              }`}
           >
             {currentStep > step ? <CheckCircle className="w-5 h-5" /> : step}
           </div>
           {step < 3 && (
             <div
-              className={`w-16 h-1 mx-2 ${
-                currentStep > step ? "bg-lamaYellow" : "bg-gray-200"
-              }`}
+              className={`w-16 h-1 mx-2 ${currentStep > step ? "bg-lamaYellow" : "bg-gray-200"
+                }`}
             />
           )}
         </div>
@@ -237,7 +241,7 @@ export default function AddTeacherPage() {
       <h3 className="text-xl font-semibold text-lamaYellow mb-6 text-center">
         البيانات الأساسية والبيانات الشخصية
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">الاسم الكامل *</Label>
@@ -248,7 +252,7 @@ export default function AddTeacherPage() {
             className="border-lamaYellow/20 focus:border-lamaYellow"
           />
         </div>
-        
+
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">رقم الهوية / الرقم الوطني *</Label>
           <Input
@@ -270,7 +274,7 @@ export default function AddTeacherPage() {
             className="border-lamaYellow/20 focus:border-lamaYellow"
           />
         </div>
-        
+
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">الجنسية</Label>
           <Input
@@ -297,7 +301,7 @@ export default function AddTeacherPage() {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">عنوان السكن</Label>
           <Input
@@ -319,7 +323,7 @@ export default function AddTeacherPage() {
             className="border-lamaYellow/20 focus:border-lamaYellow"
           />
         </div>
-        
+
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">هاتف ثاني</Label>
           <Input
@@ -341,7 +345,7 @@ export default function AddTeacherPage() {
             className="border-lamaYellow/20 focus:border-lamaYellow"
           />
         </div>
-        
+
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">صلة قرابة جهة الاتصال</Label>
           <Input
@@ -360,7 +364,7 @@ export default function AddTeacherPage() {
       <h3 className="text-xl font-semibold text-lamaYellow mb-6 text-center">
         البيانات الوظيفية والمؤهلات العلمية
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">الحالة الوظيفية</Label>
@@ -375,7 +379,7 @@ export default function AddTeacherPage() {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">تاريخ التعيين</Label>
           <Input
@@ -397,7 +401,7 @@ export default function AddTeacherPage() {
             className="border-lamaYellow/20 focus:border-lamaYellow"
           />
         </div>
-        
+
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">تاريخ نهاية العقد</Label>
           <Input
@@ -419,7 +423,7 @@ export default function AddTeacherPage() {
             className="border-lamaYellow/20 focus:border-lamaYellow"
           />
         </div>
-        
+
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">المؤسسة التعليمية</Label>
           <Input
@@ -441,7 +445,7 @@ export default function AddTeacherPage() {
             className="border-lamaYellow/20 focus:border-lamaYellow"
           />
         </div>
-        
+
         <div className="space-y-3">
           <Label className="text-lamaYellow font-semibold">التخصص الفرعي</Label>
           <Input
@@ -470,28 +474,38 @@ export default function AddTeacherPage() {
       <h3 className="text-xl font-semibold text-lamaYellow mb-6 text-center">
         اختيار المواد والمراحل الدراسية
       </h3>
-      
+
       <div className="space-y-6">
         <div>
           <h4 className="text-lg font-medium text-lamaYellow mb-4">المواد الدراسية</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {subjects.map((subject) => (
-              <div key={subject.id} className="flex items-center space-x-3 space-x-reverse">
-                <Checkbox
-                  id={`subject-${subject.id}`}
-                  checked={teachingData.selectedSubjects.includes(subject.id)}
-                  onCheckedChange={() => handleSubjectToggle(subject.id)}
-                  className="border-lamaYellow text-lamaYellow"
-                />
-                <Label htmlFor={`subject-${subject.id}`} className="text-sm font-medium cursor-pointer">
-                  {subject.name}
-                  {subject.academicYear && (
-                    <span className="text-xs text-gray-500 block">({subject.academicYear})</span>
-                  )}
-                </Label>
-              </div>
-            ))}
-          </div>
+
+
+
+          {subjects.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>جاري تحميل المواد الدراسية...</p>
+              <p className="text-sm mt-2">عدد المواد: {subjects.length}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {subjects.map((subject) => (
+                <div key={subject.id} className="flex items-center space-x-3 space-x-reverse">
+                  <Checkbox
+                    id={`subject-${subject.id}`}
+                    checked={teachingData.selectedSubjects.includes(subject.id)}
+                    onCheckedChange={() => handleSubjectToggle(subject.id)}
+                    className="border-lamaYellow text-lamaYellow"
+                  />
+                  <Label htmlFor={`subject-${subject.id}`} className="text-sm font-medium cursor-pointer">
+                    {subject.name}
+                    {subject.academicYear && (
+                      <span className="text-xs text-gray-500 block">({subject.academicYear})</span>
+                    )}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
@@ -527,16 +541,16 @@ export default function AddTeacherPage() {
             <CardTitle className="text-2xl font-bold text-lamaYellow mb-2">إضافة معلم جديد</CardTitle>
             <p className="text-gray-600">نظام متعدد الخطوات لإضافة معلم جديد</p>
           </CardHeader>
-          
+
           <CardContent className="p-10">
             {renderStepIndicator()}
-            
+
             {error && (
               <div className="text-red-600 text-sm p-3 bg-red-50 rounded-lg border border-red-200 mb-6">
                 {error}
               </div>
             )}
-            
+
             {success && (
               <div className="text-green-700 text-sm p-3 bg-green-50 rounded-lg border border-green-200 mb-6">
                 {success}

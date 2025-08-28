@@ -43,12 +43,12 @@ export default async function ViewTeachersPage({
       skip: ITEM_PER_PAGE * (p - 1),
       orderBy: { fullName: "asc" },
       include: {
-        teacherSubjects: {
+        TeacherSubject: {
           include: {
-            subject: true,
+            Subject: true,
           },
         },
-        teacherStudyLevels: true,
+        TeacherStudyLevel: true,
       },
     }),
     prisma.teacher.count({ where }),
@@ -128,7 +128,7 @@ export default async function ViewTeachersPage({
                   <p className="text-slate-600 text-sm mt-1">عرض وإدارة جميع المعلمين المسجلين</p>
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button className="bg-gradient-to-r from-lamaSky to-lamaYellow hover:from-lamaYellow hover:to-lamaSky text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 border-0">
                   <Download className="w-4 h-4 ml-2" />
@@ -164,11 +164,11 @@ export default async function ViewTeachersPage({
                   <Filter className="w-5 h-5 text-lamaYellow" />
                   <h3 className="text-lg font-semibold text-slate-800">تصفية النتائج</h3>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">الحالة الوظيفية</label>
-                    <select 
+                    <select
                       className="w-full border-2 border-lamaPurple rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-lamaSky focus:ring-4 focus:ring-lamaSkyLight transition-all duration-300 bg-white/80"
                       defaultValue="الكل"
                     >
@@ -178,10 +178,10 @@ export default async function ViewTeachersPage({
                       <option value="SECONDMENT">ندب</option>
                     </select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">الحالة الاجتماعية</label>
-                    <select 
+                    <select
                       className="w-full border-2 border-lamaPurple rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-lamaSky focus:ring-4 focus:ring-lamaSkyLight transition-all duration-300 bg-white/80"
                       defaultValue="الكل"
                     >
@@ -195,7 +195,7 @@ export default async function ViewTeachersPage({
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">عدد النتائج</label>
-                    <select 
+                    <select
                       className="w-full border-2 border-lamaPurple rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-lamaSky focus:ring-4 focus:ring-lamaSkyLight transition-all duration-300 bg-white/80"
                       defaultValue="20"
                     >
@@ -208,7 +208,7 @@ export default async function ViewTeachersPage({
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">ترتيب النتائج</label>
-                    <select 
+                    <select
                       className="w-full border-2 border-lamaPurple rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-lamaSky focus:ring-4 focus:ring-lamaSkyLight transition-all duration-300 bg-white/80"
                       defaultValue="name"
                     >
@@ -232,7 +232,7 @@ export default async function ViewTeachersPage({
                   <Users className="w-12 h-12 text-white/80" />
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-2xl text-white">
                 <div className="flex items-center justify-between">
                   <div>
@@ -242,7 +242,7 @@ export default async function ViewTeachersPage({
                   <GraduationCap className="w-12 h-12 text-emerald-200" />
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-lamaYellow to-lamaYellowLight p-6 rounded-2xl text-white">
                 <div className="flex items-center justify-between">
                   <div>
@@ -252,7 +252,7 @@ export default async function ViewTeachersPage({
                   <Users className="w-12 h-12 text-white/80" />
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-lamaSkyLight to-lamaPurple p-6 rounded-2xl text-slate-800">
                 <div className="flex items-center justify-between">
                   <div>
@@ -281,11 +281,10 @@ export default async function ViewTeachersPage({
                   </TableHeader>
                   <TableBody>
                     {teachers.map((teacher, index) => (
-                      <TableRow 
-                        key={teacher.id} 
-                        className={`hover:bg-gradient-to-r hover:from-lamaPurpleLight hover:to-lamaSkyLight transition-all duration-300 ${
-                          index % 2 === 0 ? 'bg-white' : 'bg-lamaPurpleLight/30'
-                        }`}
+                      <TableRow
+                        key={teacher.id}
+                        className={`hover:bg-gradient-to-r hover:from-lamaPurpleLight hover:to-lamaSkyLight transition-all duration-300 ${index % 2 === 0 ? 'bg-white' : 'bg-lamaPurpleLight/30'
+                          }`}
                       >
                         <TableCell className="py-4 px-6">
                           <div className="flex items-center gap-3">
@@ -310,23 +309,23 @@ export default async function ViewTeachersPage({
                         </TableCell>
                         <TableCell className="py-4 px-6">
                           <div className="flex flex-wrap gap-2">
-                            {teacher.teacherSubjects.map((ts) => (
-                              <Badge 
-                                key={ts.id} 
-                                variant="outline" 
+                            {teacher.TeacherSubject.map((ts) => (
+                              <Badge
+                                key={ts.id}
+                                variant="outline"
                                 className="text-xs bg-lamaSkyLight text-lamaYellow border-lamaSky px-2 py-1 rounded-lg"
                               >
-                                {ts.subject.name}
+                                {ts.Subject.name}
                               </Badge>
                             ))}
                           </div>
                         </TableCell>
                         <TableCell className="py-4 px-6">
                           <div className="flex flex-wrap gap-2">
-                            {teacher.teacherStudyLevels.map((tsl) => (
-                              <Badge 
-                                key={tsl.id} 
-                                variant="outline" 
+                            {teacher.TeacherStudyLevel.map((tsl) => (
+                              <Badge
+                                key={tsl.id}
+                                variant="outline"
                                 className="text-xs bg-lamaPurpleLight text-lamaYellow border-lamaPurple px-2 py-1 rounded-lg"
                               >
                                 {tsl.studyLevel}
