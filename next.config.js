@@ -1,53 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // تحديد أن الصفحات في src/app
-    distDir: '.next',
-    // إعدادات إضافية
-    reactStrictMode: true,
+    // تحسين الأداء
     swcMinify: true,
-    
-    // تكوين الصور
+
+    // تحسين التجميع
+    experimental: {
+        optimizeCss: true,
+        optimizePackageImports: ['exceljs', '@prisma/client'],
+    },
+
+    // تحسين الصور
     images: {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'images.unsplash.com',
-                port: '',
-                pathname: '/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'images.pexels.com',
-                port: '',
-                pathname: '/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'picsum.photos',
-                port: '',
-                pathname: '/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'via.placeholder.com',
-                port: '',
-                pathname: '/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'placehold.co',
-                port: '',
-                pathname: '/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'dummyimage.com',
-                port: '',
-                pathname: '/**',
+                hostname: '**',
             },
         ],
-        // السماح بالصور المحلية
-        domains: ['localhost'],
+    },
+
+    // تحسين webpack
+    webpack: (config, { dev, isServer }) => {
+        if (!dev && !isServer) {
+            config.optimization.splitChunks.chunks = 'all';
+        }
+        return config;
     },
 }
 

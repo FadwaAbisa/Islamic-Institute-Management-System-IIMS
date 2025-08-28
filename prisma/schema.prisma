@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Admin {
-  id       String @id
+  id String @id
 
   username String @unique
 }
@@ -43,7 +43,7 @@ model Event {
 }
 
 model Student {
-  id                      String            @id
+  id                      String            @id @default(cuid())
   fullName                String
   nationalId              String            @unique
   guardianName            String?
@@ -136,20 +136,20 @@ model Teacher {
 }
 
 model Staff {
-  id                    String   @id 
-  fullName              String //الاسم الكامل 
-  nationalId            String   @unique//الرقم الوطني/الجواز
-  birthday              DateTime //تاريخ الميلاد
-  maritalStatus         MaritalStatus? // الحالة الاجتماعية 
-  address               String? //العنوان
-  phone1                String //الهاتف الأول
-  appointmentDate       DateTime? //تاريخ التعيين
-  serviceStartDate      DateTime? //تاريخ بدء الخدمة
-  academicQualification String? //المؤهل العلمي
+  id                     String         @id
+  fullName               String //الاسم الكامل 
+  nationalId             String         @unique //الرقم الوطني/الجواز
+  birthday               DateTime //تاريخ الميلاد
+  maritalStatus          MaritalStatus? // الحالة الاجتماعية 
+  address                String? //العنوان
+  phone1                 String //الهاتف الأول
+  appointmentDate        DateTime? //تاريخ التعيين
+  serviceStartDate       DateTime? //تاريخ بدء الخدمة
+  academicQualification  String? //المؤهل العلمي
   educationalInstitution String? //المؤسسة التعليمية
-  majorSpecialization   String? //التخصص الرئيسي
-  graduationYear        String? //سنة التخرج
-  createdAt             DateTime @default(now()) //تاريخ الإنشاء
+  majorSpecialization    String? //التخصص الرئيسي
+  graduationYear         String? //سنة التخرج
+  createdAt              DateTime       @default(now()) //تاريخ الإنشاء
 }
 
 model TeacherStudyLevel {

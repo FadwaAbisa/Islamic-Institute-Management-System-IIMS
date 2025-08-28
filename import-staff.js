@@ -1,19 +1,31 @@
-const XLSX = require("xlsx");
-const { PrismaClient } = require("@prisma/client");
+const ExcelJS = require("exceljs");
+const { PrismaClient, StaffRole, StaffStatus } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-async function main() {
+async function importStaff() {
     try {
-        console.log("🚀 بدء عملية استيراد بيانات الموظفين الإداريين...");
+        console.log("👥 بدء استيراد الموظفين...");
 
-        // 1. افتح الملف
-        const workbook = XLSX.readFile("data/staff_db.xlsx");
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile("data/staff_db.xlsx");
 
-        // 2. حوّل البيانات إلى JSON
-        const data = XLSX.utils.sheet_to_json(sheet);
+        const worksheet = workbook.getWorksheet(1);
+        if (!worksheet) {
+            throw new Error("لم يتم العثور على ورقة عمل في الملف");
+        }
+
+        const data = [];
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) return; // تخطي الصف الأول (العناوين)
+
+            const rowData = {};
+            row.eachCell((cell, colNumber) => {
+                const header = worksheet.getRow(1).getCell(colNumber).value?.toString() || '';
+                rowData[header] = cell.value?.toString() || '';
+            });
+            data.push(rowData);
+        });
 
         console.log(`📊 تم العثور على ${data.length} موظف في الملف`);
 
@@ -169,7 +181,7 @@ function convertMaritalStatus(status) {
 }
 
 // تشغيل السكريبت
-main()
+importStaff()
     .catch((e) => {
         console.error("❌ خطأ عام في التطبيق:", e);
         process.exit(1);

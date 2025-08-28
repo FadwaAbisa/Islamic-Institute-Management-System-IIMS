@@ -1,17 +1,31 @@
-const XLSX = require('xlsx');
-const { PrismaClient } = require('@prisma/client');
+const ExcelJS = require("exceljs");
+const { PrismaClient, StudentStatus, StudyMode, EnrollmentStatus } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
 async function importStudents() {
     try {
-        console.log('بدء استيراد الطلاب...');
+        console.log('📚 بدء استيراد الطلاب...');
 
-        // قراءة ملف الإكسل
-        const workbook = XLSX.readFile('./data/students_db.xlsx');
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const data = XLSX.utils.sheet_to_json(worksheet);
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile("data/students_db.xlsx");
+
+        const worksheet = workbook.getWorksheet(1);
+        if (!worksheet) {
+            throw new Error("لم يتم العثور على ورقة عمل في الملف");
+        }
+
+        const data = [];
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) return; // تخطي الصف الأول (العناوين)
+
+            const rowData = {};
+            row.eachCell((cell, colNumber) => {
+                const header = worksheet.getRow(1).getCell(colNumber).value?.toString() || '';
+                rowData[header] = cell.value?.toString() || '';
+            });
+            data.push(rowData);
+        });
 
         console.log(`تم العثور على ${data.length} طالب في ملف الإكسل`);
 

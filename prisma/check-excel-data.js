@@ -1,106 +1,95 @@
-const XLSX = require("xlsx");
+const ExcelJS = require("exceljs");
 
 async function checkExcelData() {
     try {
-        console.log("🔍 فحص البيانات الفعلية في ملف الإكسل...");
+        console.log("🔍 فحص بيانات ملف Excel...");
 
-        // قراءة ملف الإكسل
-        const workbook = XLSX.readFile("data/students_db.xlsx");
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile("data/students_db.xlsx");
 
-        // تحويل البيانات إلى JSON
-        const data = XLSX.utils.sheet_to_json(sheet);
+        const worksheet = workbook.getWorksheet(1);
+        if (!worksheet) {
+            throw new Error("لم يتم العثور على ورقة عمل في الملف");
+        }
 
-        console.log(`📊 إجمالي عدد الصفوف: ${data.length}`);
+        const data = [];
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) return; // تخطي الصف الأول (العناوين)
+
+            const rowData = {};
+            row.eachCell((cell, colNumber) => {
+                const header = worksheet.getRow(1).getCell(colNumber).value?.toString() || '';
+                rowData[header] = cell.value?.toString() || '';
+            });
+            data.push(rowData);
+        });
+
+        console.log(`📊 عدد الصفوف: ${data.length}`);
 
         if (data.length > 0) {
-            console.log("\n📋 عناوين الأعمدة:");
-            const headers = Object.keys(data[0]);
-            headers.forEach((header, index) => {
-                console.log(`${index + 1}. ${header}`);
-            });
+            const headers = worksheet.getRow(1).values?.slice(1) || [];
+            console.log(`📋 أسماء الأعمدة:`, headers);
 
-            console.log("\n📊 عينة من البيانات (أول 3 صفوف):");
-            for (let i = 0; i < Math.min(3, data.length); i++) {
-                const row = data[i];
-                console.log(`\n--- الصف ${i + 1} ---`);
-
-                // عرض جميع البيانات
-                console.log(`fullName: ${row.fullName}`);
-                console.log(`nationalId: ${row.nationalId}`);
-                console.log(`guardianName: ${row.guardianName}`);
-                console.log(`studentPhone: ${row.studentPhone}`);
-                console.log(`birthday: ${row.birthday}`);
-                console.log(`placeOfBirth: ${row.placeOfBirth}`);
-                console.log(`address: ${row.address}`);
-                console.log(`nationality: ${row.nationality}`);
-                console.log(`studyLevel: ${row.studyLevel}`);
-                console.log(`EnrollmentStatus: ${row.EnrollmentStatus}`);
-                console.log(`StudyMode: ${row.StudyMode}`);
-                console.log(`specialization: ${row.specialization}`);
-                console.log(`studentStatus: ${row.studentStatus}`);
-                console.log(`academicYear: ${row.academicYear}`);
-            }
-
-            // إحصائيات التصنيفات
-            console.log("\n📈 إحصائيات التصنيفات:");
-
-            // تصنيف حسب studentStatus
-            const statusCounts = {};
-            data.forEach(row => {
-                const status = row.studentStatus || 'غير محدد';
-                statusCounts[status] = (statusCounts[status] || 0) + 1;
-            });
-            console.log("\nحسب studentStatus:");
-            Object.entries(statusCounts).forEach(([status, count]) => {
-                console.log(`  ${status}: ${count}`);
-            });
-
-            // تصنيف حسب StudyMode
-            const modeCounts = {};
-            data.forEach(row => {
-                const mode = row.StudyMode || 'غير محدد';
-                modeCounts[mode] = (modeCounts[mode] || 0) + 1;
-            });
-            console.log("\nحسب StudyMode:");
-            Object.entries(modeCounts).forEach(([mode, count]) => {
-                console.log(`  ${mode}: ${count}`);
-            });
-
-            // تصنيف حسب EnrollmentStatus
-            const enrollmentCounts = {};
-            data.forEach(row => {
-                const enrollment = row.EnrollmentStatus || 'غير محدد';
-                enrollmentCounts[enrollment] = (enrollmentCounts[enrollment] || 0) + 1;
-            });
-            console.log("\nحسب EnrollmentStatus:");
-            Object.entries(enrollmentCounts).forEach(([enrollment, count]) => {
-                console.log(`  ${enrollment}: ${count}`);
-            });
-
-            // تصنيف حسب studyLevel
-            const levelCounts = {};
-            data.forEach(row => {
-                const level = row.studyLevel || 'غير محدد';
-                levelCounts[level] = (levelCounts[level] || 0) + 1;
-            });
-            console.log("\nحسب studyLevel:");
-            Object.entries(levelCounts).forEach(([level, count]) => {
-                console.log(`  ${level}: ${count}`);
-            });
-
-            // تصنيف حسب specialization
-            const specCounts = {};
-            data.forEach(row => {
-                const spec = row.specialization || 'غير محدد';
-                specCounts[spec] = (specCounts[spec] || 0) + 1;
-            });
-            console.log("\nحسب specialization:");
-            Object.entries(specCounts).forEach(([spec, count]) => {
-                console.log(`  ${spec}: ${count}`);
-            });
+            console.log(`📄 أول صف من البيانات:`, data[0]);
         }
+
+        // إحصائيات التصنيفات
+        console.log("\n📈 إحصائيات التصنيفات:");
+
+        // تصنيف حسب studentStatus
+        const statusCounts = {};
+        data.forEach(row => {
+            const status = row.studentStatus || 'غير محدد';
+            statusCounts[status] = (statusCounts[status] || 0) + 1;
+        });
+        console.log("\nحسب studentStatus:");
+        Object.entries(statusCounts).forEach(([status, count]) => {
+            console.log(`  ${status}: ${count}`);
+        });
+
+        // تصنيف حسب StudyMode
+        const modeCounts = {};
+        data.forEach(row => {
+            const mode = row.StudyMode || 'غير محدد';
+            modeCounts[mode] = (modeCounts[mode] || 0) + 1;
+        });
+        console.log("\nحسب StudyMode:");
+        Object.entries(modeCounts).forEach(([mode, count]) => {
+            console.log(`  ${mode}: ${count}`);
+        });
+
+        // تصنيف حسب EnrollmentStatus
+        const enrollmentCounts = {};
+        data.forEach(row => {
+            const enrollment = row.EnrollmentStatus || 'غير محدد';
+            enrollmentCounts[enrollment] = (enrollmentCounts[enrollment] || 0) + 1;
+        });
+        console.log("\nحسب EnrollmentStatus:");
+        Object.entries(enrollmentCounts).forEach(([enrollment, count]) => {
+            console.log(`  ${enrollment}: ${count}`);
+        });
+
+        // تصنيف حسب studyLevel
+        const levelCounts = {};
+        data.forEach(row => {
+            const level = row.studyLevel || 'غير محدد';
+            levelCounts[level] = (levelCounts[level] || 0) + 1;
+        });
+        console.log("\nحسب studyLevel:");
+        Object.entries(levelCounts).forEach(([level, count]) => {
+            console.log(`  ${level}: ${count}`);
+        });
+
+        // تصنيف حسب specialization
+        const specCounts = {};
+        data.forEach(row => {
+            const spec = row.specialization || 'غير محدد';
+            specCounts[spec] = (specCounts[spec] || 0) + 1;
+        });
+        console.log("\nحسب specialization:");
+        Object.entries(specCounts).forEach(([spec, count]) => {
+            console.log(`  ${spec}: ${count}`);
+        });
 
     } catch (error) {
         console.error("❌ خطأ في قراءة ملف الإكسل:", error);

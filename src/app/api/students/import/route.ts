@@ -1,6 +1,6 @@
 // src/app/api/students/import/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import prisma from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
@@ -9,16 +9,29 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
 
     if (!file) {
-      return NextResponse.json({ error: 'لم يتم العثور على ملف' }, { status: 400 });
+      return NextResponse.json({ error: 'لم يتم تحديد ملف' }, { status: 400 });
     }
 
-    // قراءة ملف Excel
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(bytes);
+
+    const worksheet = workbook.getWorksheet(1);
+    if (!worksheet) {
+      return NextResponse.json({ error: 'لم يتم العثور على ورقة عمل في الملف' }, { status: 400 });
+    }
+
+    const data: any[] = [];
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // تخطي الصف الأول (العناوين)
+
+      const rowData: any = {};
+      row.eachCell((cell, colNumber) => {
+        const header = worksheet.getRow(1).getCell(colNumber).value?.toString() || '';
+        rowData[header] = cell.value?.toString() || '';
+      });
+      data.push(rowData);
+    });
 
     const results = [];
     const errors = [];
@@ -140,7 +153,6 @@ async function createStudent(data: any) {
       data: {
         fullName: data.fullName,
         nationalId: data.nationalId,
-        sex: data.sex,
         birthday: data.birthday,
         placeOfBirth: data.placeOfBirth,
         nationality: data.nationality,
