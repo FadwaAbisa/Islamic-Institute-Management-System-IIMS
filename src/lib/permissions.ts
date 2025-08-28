@@ -55,10 +55,10 @@ export const ALL_PERMISSIONS: Permission[] = [
   },
   {
     id: 'manage_parents',
-    name: 'Manage Parents',
-    description: 'Full parent management capabilities',
-    arabicName: 'إدارة أولياء الأمور',
-    arabicDescription: 'إمكانيات إدارة أولياء الأمور الكاملة'
+    name: 'Manage Administrative Staff',
+    description: 'Full administrative staff management capabilities',
+    arabicName: 'إدارة الموظفين الإداريين',
+    arabicDescription: 'إمكانيات إدارة الموظفين الإداريين الكاملة'
   },
   {
     id: 'manage_staff',
@@ -232,6 +232,7 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
       '/list/teachers',
       '/list/students', 
       '/list/parents',
+      '/list/staff',
       '/list/subjects',
       '/list/classes',
       '/list/lessons',
@@ -262,6 +263,7 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
     allowedRoutes: [
       '/staff',
       '/list/students',
+      '/list/staff',
       '/list/attendance',
       '/grades',
       '/list/assignments',
@@ -391,16 +393,39 @@ export const hasPermission = (userRole: UserRole, permissionId: string): boolean
 };
 
 export const canAccessRoute = (userRole: UserRole, route: string): boolean => {
+  console.log('=== canAccessRoute DEBUG ===');
+  console.log('userRole:', userRole);
+  console.log('route:', route);
+  
+  // إزالة query parameters من المسار للتحقق
+  const cleanRoute = route.split('?')[0];
+  console.log('cleanRoute:', cleanRoute);
+  
   const rolePermissions = ROLE_PERMISSIONS.find(rp => rp.role === userRole);
-  if (!rolePermissions) return false;
+  console.log('rolePermissions:', rolePermissions);
+  
+  if (!rolePermissions) {
+    console.log('No role permissions found for role:', userRole);
+    return false;
+  }
   
   // التحقق من المسارات المقيدة
-  if (rolePermissions.restrictedRoutes.some(restricted => route.startsWith(restricted))) {
+  const isRestricted = rolePermissions.restrictedRoutes.some(restricted => cleanRoute.startsWith(restricted));
+  console.log('isRestricted:', isRestricted);
+  console.log('restrictedRoutes:', rolePermissions.restrictedRoutes);
+  
+  if (isRestricted) {
+    console.log('Route is restricted');
     return false;
   }
   
   // التحقق من المسارات المسموحة
-  return rolePermissions.allowedRoutes.some(allowed => route.startsWith(allowed));
+  const isAllowed = rolePermissions.allowedRoutes.some(allowed => cleanRoute.startsWith(allowed));
+  console.log('isAllowed:', isAllowed);
+  console.log('allowedRoutes:', rolePermissions.allowedRoutes);
+  
+  console.log('Final result:', isAllowed);
+  return isAllowed;
 };
 
 export const getUserRolePermissions = (userRole: UserRole): RolePermissions | undefined => {

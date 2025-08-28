@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import Image from "next/image";
 
 interface UserCardProps {
-  type: "admin" | "teacher" | "student" | "parent";
+  type: "admin" | "teacher" | "student" | "staff";
 }
 
 const UserCard = async ({ type }: UserCardProps) => {
@@ -11,7 +11,7 @@ const UserCard = async ({ type }: UserCardProps) => {
     admin: prisma.admin,
     teacher: prisma.teacher,
     student: prisma.student,
-    parent: prisma.parent,
+    staff: prisma.admin, // استخدام admin للموظفين الإداريين
   };
 
   // الحصول على البيانات مع معالجة الأخطاء
@@ -27,23 +27,23 @@ const UserCard = async ({ type }: UserCardProps) => {
     admin: "المسؤولين",
     teacher: "المعلمين", 
     student: "الطلاب",
-    parent: "أولياء الأمور",
+    staff: "الموظفين الإداريين",
   };
 
-  // ألوان مخصصة للكروت - الأولى مع الثالثة، الثانية مع الرابعة
+  // ألوان مخصصة للكروت - الحفاظ على نفس التصميم الأصلي
   const cardColors: Record<typeof type, string> = {
     admin: "bg-gradient-to-br from-[#D2B48C] to-[#B8956A]",
     teacher: "bg-gradient-to-br from-[#F0E6D6] to-[#E2D5C7] text-[#B8956A]", 
     student: "bg-gradient-to-br from-[#D2B48C] to-[#B8956A]",
-    parent: "bg-gradient-to-br from-[#F0E6D6] to-[#E2D5C7] text-[#B8956A]",
+    staff: "bg-gradient-to-br from-[#F0E6D6] to-[#E2D5C7] text-[#B8956A]",
   };
 
-  // ألوان الأيقونات
+  // ألوان الأيقونات - الحفاظ على نفس التصميم الأصلي
   const iconColors: Record<typeof type, string> = {
     admin: "bg-white/30",
     teacher: "bg-[#B8956A]/20",
     student: "bg-white/30", 
-    parent: "bg-[#B8956A]/20",
+    staff: "bg-[#B8956A]/20",
   };
 
   return (
@@ -51,7 +51,7 @@ const UserCard = async ({ type }: UserCardProps) => {
       className={`
         rounded-2xl p-6 flex-1 min-w-[180px] 
         ${cardColors[type]} 
-        ${type === 'teacher' || type === 'parent' ? 'text-[#B8956A]' : 'text-white'} 
+        ${type === 'teacher' || type === 'staff' ? 'text-[#B8956A]' : 'text-white'} 
         shadow-lg hover:shadow-xl 
         transition-all duration-300 transform hover:-translate-y-1
         relative overflow-hidden
@@ -70,7 +70,7 @@ const UserCard = async ({ type }: UserCardProps) => {
             alt={type}
             width={28}
             height={28}
-            className={`object-contain ${type === 'teacher' || type === 'parent' ? 'opacity-80' : 'filter brightness-0 invert'}`}
+            className={`object-contain ${type === 'teacher' || type === 'staff' ? 'opacity-80' : 'filter brightness-0 invert'}`}
           />
         </div>
         
@@ -80,7 +80,7 @@ const UserCard = async ({ type }: UserCardProps) => {
             alt="المزيد" 
             width={18} 
             height={18} 
-            className={`${type === 'teacher' || type === 'parent' ? 'opacity-60 hover:opacity-80' : 'filter brightness-0 invert opacity-70 hover:opacity-100'}`}
+            className={`${type === 'teacher' || type === 'staff' ? 'opacity-60 hover:opacity-80' : 'filter brightness-0 invert opacity-70 hover:opacity-100'}`}
           />
         </div>
       </div>
@@ -90,11 +90,11 @@ const UserCard = async ({ type }: UserCardProps) => {
         <h1 className="text-3xl font-bold mb-1 tracking-tight">
           {data.toLocaleString('ar-EG')}
         </h1>
-        <div className={`w-12 h-1 ${type === 'teacher' || type === 'parent' ? 'bg-[#B8956A]/30' : 'bg-white/30'} rounded-full`}></div>
+        <div className={`w-12 h-1 ${type === 'teacher' || type === 'staff' ? 'bg-[#B8956A]/30' : 'bg-white/30'} rounded-full`}></div>
       </div>
 
       {/* التسمية */}
-      <h2 className={`text-sm font-medium ${type === 'teacher' || type === 'parent' ? 'text-[#B8956A]/80' : 'text-white/90'} leading-relaxed`}>
+      <h2 className={`text-sm font-medium ${type === 'teacher' || type === 'staff' ? 'text-[#B8956A]/80' : 'text-white/90'} leading-relaxed`}>
         {typeLabels[type]}
       </h2>
     </div>

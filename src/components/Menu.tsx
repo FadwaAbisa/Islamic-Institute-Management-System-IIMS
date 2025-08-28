@@ -20,7 +20,7 @@ const menuItems = [
         color: "bg-blue-50 text-blue-600"
       },
       {
-        icon: "/teacher.png",
+        icon: "/icons/teacher.png",
         label: "المعلمين",
         href: "/list/teachers",
         visible: ["admin"],
@@ -49,7 +49,7 @@ const menuItems = [
         ]
       },
       {
-        icon: "/student.png",
+        icon: "/icons/student.png",
         label: "الطلاب",
         href: "/list/students",
         visible: ["admin", "staff"],
@@ -137,31 +137,25 @@ const menuItems = [
         ]
       },
       {
-        icon: "/parent.png",
-        label: "أولياء الأمور",
-        href: "/list/parents",
+        icon: "/icons/staff.png",
+        label: "الموظفين الإداريين",
+        href: "/list/staff",
         visible: ["admin", "staff"],
-        description: "إدارة أولياء الأمور",
+        description: "إدارة الموظفين الإداريين",
         color: "bg-orange-50 text-orange-600",
         hasDropdown: true,
         subItems: [
           {
             icon: Plus,
-            label: "إضافة ولي أمر",
-            href: "/list/parents/add",
-            description: "تسجيل ولي أمر جديد"
+            label: "إضافة موظف إداري",
+            href: "/list/staff/add",
+            description: "تسجيل موظف إداري جديد"
           },
           {
             icon: Users,
-            label: "قائمة أولياء الأمور",
-            href: "/list/parents",
-            description: "عرض جميع أولياء الأمور"
-          },
-          {
-            icon: MessageSquare,
-            label: "التواصل مع الأهالي",
-            href: "/list/parents/messages",
-            description: "رسائل أولياء الأمور"
+            label: "قائمة الموظفين الإداريين",
+            href: "/list/staff",
+            description: "عرض جميع الموظفين الإداريين"
           }
         ]
       },
@@ -395,7 +389,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo.png"
+              src="/icons/logo.png"
               alt="IIMS Logo"
               width={100}
               height={100}

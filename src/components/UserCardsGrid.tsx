@@ -22,7 +22,7 @@ const UserCardsGrid = async () => {
     { type: "admin", label: "المسؤولين", priority: 1 },
     { type: "teacher", label: "المعلمين", priority: 2 },
     { type: "student", label: "الطلاب", priority: 3 },
-    { type: "parent", label: "أولياء الأمور", priority: 4 },
+    { type: "staff", label: "الموظفين الإداريين", priority: 4 },
   ] as const;
 
   return (

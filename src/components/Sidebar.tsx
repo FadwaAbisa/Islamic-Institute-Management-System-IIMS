@@ -10,6 +10,7 @@ const Sidebar = () => {
   const [isTeachersOpen, setIsTeachersOpen] = useState(false)
   const [isStudentsOpen, setIsStudentsOpen] = useState(false)
   const [isResultsOpen, setIsResultsOpen] = useState(false)
+  const [isStaffOpen, setIsStaffOpen] = useState(false)
   const pathname = usePathname()
 
   const menuItems = [
@@ -20,7 +21,7 @@ const Sidebar = () => {
     },
     {
       title: "المعلمين",
-      icon: "/teacher.png",
+      icon: "/icons/teacher.png",
       hasDropdown: true,
       subItems: [
         {
@@ -39,7 +40,7 @@ const Sidebar = () => {
     },
     {
       title: "الطلاب",
-      icon: "/student.png",
+      icon: "/icons/student.png",
       hasDropdown: true,
       subItems: [
         {
@@ -65,9 +66,23 @@ const Sidebar = () => {
       ],
     },
     {
-      title: "أولياء الأمور",
-      href: "/list/parents",
-      icon: "/parent.png",
+      title: "الموظفين الإداريين",
+      icon: "/icons/staff.png",
+      hasDropdown: true,
+      subItems: [
+        {
+          title: "إضافة موظف إداري",
+          href: "/list/staff/add",
+        },
+        {
+          title: "قائمة الموظفين الإداريين",
+          href: "/list/staff",
+        },
+        {
+          title: "تقارير الموظفين",
+          href: "/list/staff/reports",
+        },
+      ],
     },
     {
       title: "المواد الدراسية",
@@ -125,6 +140,7 @@ const Sidebar = () => {
   const isTeacherPath = pathname.startsWith("/list/teachers")
   const isStudentPath = pathname.startsWith("/list/students")
   const isResultsPath = pathname.startsWith("/grades/results") || pathname.startsWith("/list/results")
+  const isStaffPath = pathname.startsWith("/list/staff")
 
   return (
     <div
@@ -160,10 +176,12 @@ const Sidebar = () => {
                         setIsStudentsOpen(!isStudentsOpen)
                       } else if (item.title === "النتائج") {
                         setIsResultsOpen(!isResultsOpen)
+                      } else if (item.title === "الموظفين الإداريين") {
+                        setIsStaffOpen(!isStaffOpen)
                       }
                     }}
                     className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 group font-cairo ${
-                      (item.title === "المعلمين" && isTeacherPath) || (item.title === "الطلاب" && isStudentPath) || (item.title === "النتائج" && isResultsPath)
+                      (item.title === "المعلمين" && isTeacherPath) || (item.title === "الطلاب" && isStudentPath) || (item.title === "النتائج" && isResultsPath) || (item.title === "الموظفين الإداريين" && isStaffPath)
                         ? "bg-blue-50 text-blue-700 border-r-4 border-blue-500"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
@@ -183,7 +201,8 @@ const Sidebar = () => {
                     <div className="transition-transform duration-200">
                       {(item.title === "المعلمين" && (isTeachersOpen || isTeacherPath)) ||
                        (item.title === "الطلاب" && (isStudentsOpen || isStudentPath)) || 
-                       (item.title === "النتائج" && (isResultsOpen || isResultsPath)) ? (
+                       (item.title === "النتائج" && (isResultsOpen || isResultsPath)) ||
+                       (item.title === "الموظفين الإداريين" && (isStaffOpen || isStaffPath)) ? (
                         <ChevronDown className="w-4 h-4" />
                       ) : (
                         <ChevronLeft className="w-4 h-4" />
@@ -194,7 +213,8 @@ const Sidebar = () => {
                   {/* Dropdown Menu */}
                   {((item.title === "المعلمين" && (isTeachersOpen || isTeacherPath)) ||
                     (item.title === "الطلاب" && (isStudentsOpen || isStudentPath)) || 
-                    (item.title === "النتائج" && (isResultsOpen || isResultsPath))) && (
+                    (item.title === "النتائج" && (isResultsOpen || isResultsPath)) ||
+                    (item.title === "الموظفين الإداريين" && (isStaffOpen || isStaffPath))) && (
                     <div className="mt-2 mr-8 space-y-1 border-r-2 border-gray-100 pr-4">
                       {item.subItems?.map((subItem, subIndex) => (
                         <Link

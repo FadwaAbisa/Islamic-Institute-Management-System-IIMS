@@ -29,10 +29,10 @@ export const routeAccessMap: RouteAccessMap = {
   "/list/students/view_student": ["admin", "staff", "teacher"],
   "/list/students/import": ["admin", "staff"],
   
-  // إدارة أولياء الأمور
-  "/list/parents": ["admin", "staff"],
-  "/list/parents/add": ["admin", "staff"],
-  "/list/parents/messages": ["admin", "staff"],
+  // إدارة الموظفين الإداريين
+  "/list/administrators": ["admin"],
+  "/list/administrators/add": ["admin"],
+  "/list/administrators/messages": ["admin"],
   
   // إدارة المواد الدراسية
   "/list/subjects": ["admin"],

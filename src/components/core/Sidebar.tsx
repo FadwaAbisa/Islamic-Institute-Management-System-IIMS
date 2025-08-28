@@ -20,7 +20,7 @@ const Sidebar = () => {
     },
     {
       title: "المعلمين",
-      icon: "/teacher.png",
+      icon: "/icons/teacher.png",
       hasDropdown: true,
       subItems: [
         {
@@ -39,7 +39,7 @@ const Sidebar = () => {
     },
     {
       title: "الطلاب",
-      icon: "/student.png",
+      icon: "/icons/student.png",
       hasDropdown: true,
       subItems: [
         {
@@ -65,9 +65,9 @@ const Sidebar = () => {
       ],
     },
     {
-      title: "أولياء الأمور",
+      title: "الموظفين الإداريين",
       href: "/list/parents",
-      icon: "/parent.png",
+      icon: "/icons/admin.png",
     },
     {
       title: "المواد الدراسية",

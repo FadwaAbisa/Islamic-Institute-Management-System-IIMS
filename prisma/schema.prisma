@@ -135,20 +135,20 @@ model Teacher {
 }
 
 model Staff {
-  id                    String   @id 
-  fullName              String //الاسم الكامل 
-  nationalId            String   @unique//الرقم الوطني/الجواز
-  birthday              DateTime //تاريخ الميلاد
-  maritalStatus         MaritalStatus? // الحالة الاجتماعية 
-  address               String? //العنوان
-  phone1                String //الهاتف الأول
-  appointmentDate       DateTime? //تاريخ التعيين
-  serviceStartDate      DateTime? //تاريخ بدء الخدمة
-  academicQualification String? //المؤهل العلمي
-  educationalInstitution String? //المؤسسة التعليمية
-  majorSpecialization   String? //التخصص الرئيسي
-  graduationYear        String? //سنة التخرج
-  createdAt             DateTime @default(now()) //تاريخ الإنشاء
+  id                     String         @id
+  fullName               String
+  nationalId             String         @unique
+  birthday               DateTime
+  maritalStatus          MaritalStatus?
+  address                String?
+  phone1                 String
+  appointmentDate        DateTime?
+  serviceStartDate       DateTime?
+  academicQualification  String?
+  educationalInstitution String?
+  majorSpecialization    String?
+  graduationYear         String?
+  createdAt              DateTime       @default(now())
 }
 
 model TeacherStudyLevel {
