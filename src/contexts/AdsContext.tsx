@@ -6,87 +6,141 @@ export interface Advertisement {
     id: number
     title: string
     description: string
-    link?: string
-    image: string
+    image: string | null
     startDate: string
     endDate: string
-    status: "نشط" | "غير نشط"
+    status: string
+    createdAt: string
 }
 
 interface AdsContextType {
     ads: Advertisement[]
-    addAd: (ad: Omit<Advertisement, 'id'>) => void
-    updateAd: (id: number, ad: Partial<Advertisement>) => void
-    deleteAd: (id: number) => void
-    toggleAdStatus: (id: number) => void
+    addAd: (ad: Omit<Advertisement, 'id' | 'createdAt'>) => Promise<void>
+    updateAd: (id: number, ad: Partial<Advertisement>) => Promise<void>
+    deleteAd: (id: number) => Promise<void>
+    toggleAdStatus: (id: number) => Promise<void>
     getActiveAds: () => Advertisement[]
+    loading: boolean
+    error: string | null
 }
 
 const AdsContext = createContext<AdsContextType | undefined>(undefined)
 
 export function AdsProvider({ children }: { children: React.ReactNode }) {
-    const [ads, setAds] = useState<Advertisement[]>([
-        {
-            id: 1,
-            title: "عرض خاص على المنتجات الإلكترونية",
-            description: "خصم يصل إلى 50% على جميع المنتجات الإلكترونية",
-            link: "https://example.com/electronics",
-            image: "/electronics-sale-banner.png",
-            startDate: "2024-01-15",
-            endDate: "2024-02-15",
-            status: "نشط",
-        },
-        {
-            id: 2,
-            title: "مجموعة الأزياء الجديدة",
-            description: "اكتشف أحدث صيحات الموضة لهذا الموسم",
-            image: "/placeholder-mik0e.png",
-            startDate: "2024-01-10",
-            endDate: "2024-03-10",
-            status: "غير نشط",
-        },
-        {
-            id: 3,
-            title: "دورة تحفيظ القرآن الكريم",
-            description: "انضم إلى دورة تحفيظ القرآن الكريم للطلاب والطالبات",
-            image: "/placeholder.jpg",
-            startDate: "2024-01-20",
-            endDate: "2024-06-20",
-            status: "نشط",
-        },
-    ])
+    const [ads, setAds] = useState<Advertisement[]>([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
-    // حفظ البيانات في localStorage
-    useEffect(() => {
-        const savedAds = localStorage.getItem('ads-data')
-        if (savedAds) {
-            setAds(JSON.parse(savedAds))
+    // جلب الإعلانات من قاعدة البيانات
+    const fetchAnnouncements = async () => {
+        try {
+            setLoading(true)
+            const response = await fetch('/api/announcements')
+            if (!response.ok) {
+                throw new Error('فشل في جلب الإعلانات')
+            }
+            const data = await response.json()
+            setAds(data)
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
+        } finally {
+            setLoading(false)
         }
+    }
+
+    useEffect(() => {
+        fetchAnnouncements()
     }, [])
 
-    useEffect(() => {
-        localStorage.setItem('ads-data', JSON.stringify(ads))
-    }, [ads])
+    const addAd = async (newAd: Omit<Advertisement, 'id' | 'createdAt'>) => {
+        try {
+            setLoading(true)
+            const response = await fetch('/api/announcements', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newAd),
+            })
 
-    const addAd = (newAd: Omit<Advertisement, 'id'>) => {
-        const id = Math.max(...ads.map(ad => ad.id), 0) + 1
-        setAds(prev => [...prev, { ...newAd, id }])
+            if (!response.ok) {
+                throw new Error('فشل في إضافة الإعلان')
+            }
+
+            const createdAd = await response.json()
+            setAds(prev => [createdAd, ...prev])
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
+            throw err
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const updateAd = (id: number, updatedAd: Partial<Advertisement>) => {
-        setAds(prev => prev.map(ad =>
-            ad.id === id ? { ...ad, ...updatedAd } : ad
-        ))
+    const updateAd = async (id: number, updatedAd: Partial<Advertisement>) => {
+        try {
+            setLoading(true)
+            const response = await fetch(`/api/announcements/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedAd),
+            })
+
+            if (!response.ok) {
+                throw new Error('فشل في تحديث الإعلان')
+            }
+
+            const updated = await response.json()
+            setAds(prev => prev.map(ad => ad.id === id ? updated : ad))
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
+            throw err
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const deleteAd = (id: number) => {
-        setAds(prev => prev.filter(ad => ad.id !== id))
+    const deleteAd = async (id: number) => {
+        try {
+            setLoading(true)
+            const response = await fetch(`/api/announcements/${id}`, {
+                method: 'DELETE',
+            })
+
+            if (!response.ok) {
+                throw new Error('فشل في حذف الإعلان')
+            }
+
+            setAds(prev => prev.filter(ad => ad.id !== id))
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
+            throw err
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const toggleAdStatus = (id: number) => {
-        setAds(prev => prev.map(ad =>
-            ad.id === id ? { ...ad, status: ad.status === "نشط" ? "غير نشط" : "نشط" } : ad
-        ))
+    const toggleAdStatus = async (id: number) => {
+        try {
+            setLoading(true)
+            const response = await fetch(`/api/announcements/${id}`, {
+                method: 'PATCH',
+            })
+
+            if (!response.ok) {
+                throw new Error('فشل في تبديل حالة الإعلان')
+            }
+
+            const updated = await response.json()
+            setAds(prev => prev.map(ad => ad.id === id ? updated : ad))
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
+            throw err
+        } finally {
+            setLoading(false)
+        }
     }
 
     const getActiveAds = () => {
@@ -100,7 +154,9 @@ export function AdsProvider({ children }: { children: React.ReactNode }) {
             updateAd,
             deleteAd,
             toggleAdStatus,
-            getActiveAds
+            getActiveAds,
+            loading,
+            error
         }}>
             {children}
         </AdsContext.Provider>

@@ -36,10 +36,8 @@ import {
   ChevronLeft,
   ToggleLeft,
   ToggleRight,
-  ExternalLink,
   Calendar,
   ImageIcon,
-  LinkIcon,
   FileText,
   Sparkles,
   TrendingUp,
@@ -50,12 +48,11 @@ import {
 } from "lucide-react"
 
 export function AdsManagement() {
-  const { ads, addAd, updateAd, deleteAd, toggleAdStatus, getActiveAds } = useAds()
+  const { ads, addAd, updateAd, deleteAd, toggleAdStatus, getActiveAds, loading, error } = useAds()
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    link: "",
     image: "",
     startDate: "",
     endDate: "",
@@ -67,65 +64,87 @@ export function AdsManagement() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (editingId) {
-      updateAd(editingId, {
-        ...formData,
-        image: formData.image || "/generic-advertisement-banner.png",
+    try {
+      if (editingId) {
+        await updateAd(editingId, {
+          ...formData,
+          image: formData.image || null,
+        })
+        setEditingId(null)
+        setToast({
+          message: "تم تحديث الإعلان بنجاح ✅",
+          type: "success"
+        })
+      } else {
+        await addAd({
+          ...formData,
+          image: formData.image || null,
+        })
+        setToast({
+          message: "تمت إضافة الإعلان بنجاح ✅",
+          type: "success"
+        })
+      }
+
+      setFormData({
+        title: "",
+        description: "",
+        image: "",
+        startDate: "",
+        endDate: "",
+        status: "نشط",
       })
-      setEditingId(null)
+    } catch (error) {
       setToast({
-        message: "تم تحديث الإعلان بنجاح ✅",
-        type: "success"
-      })
-    } else {
-      addAd({
-        ...formData,
-        image: formData.image || "/generic-advertisement-banner.png",
-      })
-      setToast({
-        message: "تمت إضافة الإعلان بنجاح ✅",
-        type: "success"
+        message: "حدث خطأ أثناء حفظ الإعلان ❌",
+        type: "error"
       })
     }
-
-    setFormData({
-      title: "",
-      description: "",
-      link: "",
-      image: "",
-      startDate: "",
-      endDate: "",
-      status: "نشط",
-    })
   }
 
   const handleEdit = (ad: Advertisement) => {
     setFormData({
       title: ad.title,
       description: ad.description,
-      link: ad.link || "",
-      image: ad.image,
+      image: ad.image || "",
       startDate: ad.startDate,
       endDate: ad.endDate,
-      status: ad.status,
+      status: ad.status as "نشط" | "غير نشط",
     })
     setEditingId(ad.id)
   }
 
-  const handleDelete = (id: number) => {
-    deleteAd(id)
-    toast({
-      title: "تم حذف الإعلان",
-      description: "تم حذف الإعلان من القائمة بنجاح",
-      variant: "destructive",
-    })
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteAd(id)
+      setToast({
+        message: "تم حذف الإعلان بنجاح ✅",
+        type: "success"
+      })
+    } catch (error) {
+      setToast({
+        message: "حدث خطأ أثناء حذف الإعلان ❌",
+        type: "error"
+      })
+    }
   }
 
-  const toggleStatus = (id: number) => {
-    toggleAdStatus(id)
+  const toggleStatus = async (id: number) => {
+    try {
+      await toggleAdStatus(id)
+      setToast({
+        message: "تم تبديل حالة الإعلان بنجاح ✅",
+        type: "success"
+      })
+    } catch (error) {
+      setToast({
+        message: "حدث خطأ أثناء تبديل حالة الإعلان ❌",
+        type: "error"
+      })
+    }
   }
 
   const filteredAds = ads.filter((ad) => {
@@ -191,6 +210,18 @@ export function AdsManagement() {
       </div>
 
       <div className="max-w-7xl mx-auto px-8 py-12">
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <strong>خطأ:</strong> {error}
+          </div>
+        )}
+        
+        {loading && (
+          <div className="mb-6 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg text-center">
+            جاري التحميل...
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-10">
           <div className="xl:col-span-3">
             <Card className="shadow-2xl border-0 bg-white/70 backdrop-blur-xl overflow-hidden">
@@ -250,21 +281,7 @@ export function AdsManagement() {
                         />
                       </div>
 
-                      <div className="space-y-4">
-                        <Label htmlFor="link" className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                          <div className="w-2 h-2 bg-lama-sky rounded-full"></div>
-                          <LinkIcon className="h-5 w-5 text-lama-sky" />
-                          رابط الإعلان (اختياري)
-                        </Label>
-                        <Input
-                          id="link"
-                          type="url"
-                          value={formData.link}
-                          onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                          placeholder="https://example.com"
-                          className="h-14 text-lg border-2 border-lama-sky/30 focus:border-lama-yellow focus:ring-4 focus:ring-lama-yellow/20 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-300"
-                        />
-                      </div>
+
                     </div>
 
                     <div className="space-y-8">
@@ -314,7 +331,7 @@ export function AdsManagement() {
                             <div className="mt-6 relative group">
                               <div className="absolute inset-0 bg-gradient-to-r from-lama-yellow/20 to-lama-sky/20 rounded-2xl blur-xl"></div>
                               <Image
-                                src={formData.image || "/placeholder.svg"}
+                                src={formData.image || "/announcement.png"}
                                 alt="معاينة"
                                 width={400}
                                 height={160}
@@ -398,11 +415,16 @@ export function AdsManagement() {
                   <div className="flex gap-6 pt-8">
                     <Button
                       type="submit"
-                      className="flex-1 h-16 text-xl bg-gradient-to-r from-lama-yellow via-lama-sky to-lama-yellow-light hover:from-lama-yellow/90 hover:via-lama-sky/90 hover:to-lama-yellow-light/90 text-white font-bold rounded-2xl shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-300"
+                      disabled={loading}
+                      className="flex-1 h-16 text-xl bg-gradient-to-r from-lama-yellow via-lama-sky to-lama-yellow-light hover:from-lama-yellow/90 hover:via-lama-sky/90 hover:to-lama-yellow-light/90 text-white font-bold rounded-2xl shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="flex items-center gap-3">
-                        {editingId ? <Edit className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
-                        {editingId ? "تحديث الإعلان" : "حفظ الإعلان"}
+                        {loading ? (
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        ) : (
+                          editingId ? <Edit className="h-6 w-6" /> : <Plus className="h-6 w-6" />
+                        )}
+                        {loading ? "جاري الحفظ..." : (editingId ? "تحديث الإعلان" : "حفظ الإعلان")}
                       </div>
                     </Button>
                     <Button
@@ -413,7 +435,6 @@ export function AdsManagement() {
                         setFormData({
                           title: "",
                           description: "",
-                          link: "",
                           image: "",
                           startDate: "",
                           endDate: "",
@@ -460,7 +481,7 @@ export function AdsManagement() {
                       >
                         <div className="relative overflow-hidden rounded-xl mb-4">
                           <Image
-                            src={ad.image || "/placeholder.svg"}
+                            src={ad.image || "/announcement.png"}
                             alt={ad.title}
                             width={300}
                             height={96}
@@ -534,7 +555,6 @@ export function AdsManagement() {
                     <TableHead className="text-right font-bold text-lama-yellow text-base py-6">
                       تاريخ النهاية
                     </TableHead>
-                    <TableHead className="text-right font-bold text-lama-yellow text-base py-6">الرابط</TableHead>
                     <TableHead className="text-right font-bold text-lama-yellow text-base py-6">العمليات</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -549,7 +569,7 @@ export function AdsManagement() {
                       <TableCell className="py-6">
                         <div className="relative group">
                           <Image
-                            src={ad.image || "/placeholder.svg"}
+                            src={ad.image || "/announcement.png"}
                             alt={ad.title}
                             width={128}
                             height={80}
@@ -583,36 +603,22 @@ export function AdsManagement() {
                       <TableCell className="text-gray-700 font-medium py-6">{ad.startDate}</TableCell>
                       <TableCell className="text-gray-700 font-medium py-6">{ad.endDate}</TableCell>
                       <TableCell className="py-6">
-                        {ad.link ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            asChild
-                            className="text-lama-yellow hover:text-white hover:bg-lama-yellow rounded-xl p-3 transition-all duration-300"
-                          >
-                            <a href={ad.link} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-5 w-5" />
-                            </a>
-                          </Button>
-                        ) : (
-                          <span className="text-gray-400 text-sm font-medium">لا يوجد</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-6">
                         <div className="flex gap-3">
                           <Button
                             variant="ghost"
                             size="sm"
+                            disabled={loading}
                             onClick={() => handleEdit(ad)}
-                            className="text-blue-600 hover:text-white hover:bg-blue-600 rounded-xl p-3 transition-all duration-300"
+                            className="text-blue-600 hover:text-white hover:bg-blue-600 rounded-xl p-3 transition-all duration-300 disabled:opacity-50"
                           >
                             <Edit className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
+                            disabled={loading}
                             onClick={() => toggleStatus(ad.id)}
-                            className={`rounded-xl p-3 transition-all duration-300 ${ad.status === "نشط"
+                            className={`rounded-xl p-3 transition-all duration-300 disabled:opacity-50 ${ad.status === "نشط"
                               ? "text-green-600 hover:text-white hover:bg-green-600"
                               : "text-gray-400 hover:text-white hover:bg-gray-600"
                               }`}
@@ -628,7 +634,8 @@ export function AdsManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600 hover:text-white hover:bg-red-600 rounded-xl p-3 transition-all duration-300"
+                                disabled={loading}
+                                className="text-red-600 hover:text-white hover:bg-red-600 rounded-xl p-3 transition-all duration-300 disabled:opacity-50"
                               >
                                 <Trash2 className="h-5 w-5" />
                               </Button>
@@ -646,9 +653,10 @@ export function AdsManagement() {
                                 <AlertDialogCancel className="rounded-xl">إلغاء</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => handleDelete(ad.id)}
-                                  className="bg-red-600 hover:bg-red-700 rounded-xl"
+                                  disabled={loading}
+                                  className="bg-red-600 hover:bg-red-700 rounded-xl disabled:opacity-50"
                                 >
-                                  حذف
+                                  {loading ? "جاري الحذف..." : "حذف"}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
