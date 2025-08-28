@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { auth } from "@clerk/nextjs/server"
 
 const ALLOWED_SUBJECTS = [
   "قرآن وأحكامه",
@@ -16,22 +17,63 @@ const ALLOWED_SUBJECTS = [
   "حاسوب"
 ]
 
-export async function GET() {
+// جلب المواد الدراسية
+export async function GET(request: NextRequest) {
   try {
-    // تأكيد وجود المواد المسموحة وإنشاؤها إن لزم
-    await prisma.subject.createMany({
-      data: ALLOWED_SUBJECTS.map((name) => ({ name })),
-      skipDuplicates: true,
-    })
-    // إعادة فقط المواد ضمن القائمة المطلوبة
+    const { userId, sessionClaims } = auth()
+    if (!userId) {
+      return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const academicYear = searchParams.get("academicYear")
+
+    let whereClause: any = {}
+
+    if (academicYear) {
+      whereClause.academicYear = academicYear
+    }
+
     const subjects = await prisma.subject.findMany({
-      where: { name: { in: ALLOWED_SUBJECTS } },
-      orderBy: { name: "asc" },
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        academicYear: true,
+        TeacherSubject: {
+          select: {
+            Teacher: {
+              select: {
+                id: true,
+                fullName: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        name: "asc"
+      }
     })
-    return NextResponse.json({ subjects })
+
+    // تنسيق البيانات لإزالة التداخل
+    const formattedSubjects = subjects.map(subject => ({
+      id: subject.id,
+      name: subject.name,
+      academicYear: subject.academicYear,
+      teachers: subject.TeacherSubject.map(ts => ({
+        id: ts.Teacher.id,
+        name: ts.Teacher.fullName
+      }))
+    }))
+
+    return NextResponse.json(formattedSubjects)
   } catch (error) {
-    console.error("Error fetching subjects:", error)
-    return NextResponse.json({ error: "خطأ داخلي" }, { status: 500 })
+    console.error("خطأ في جلب المواد الدراسية:", error)
+    return NextResponse.json(
+      { error: "خطأ في جلب البيانات" },
+      { status: 500 }
+    )
   }
 }
 

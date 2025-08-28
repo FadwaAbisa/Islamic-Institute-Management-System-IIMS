@@ -1,169 +1,119 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { auth } from "@clerk/nextjs/server"
 
+// جلب سجلات الحضور
 export async function GET(request: NextRequest) {
     try {
-        const { userId, sessionClaims } = auth();
-        const role = (sessionClaims?.metadata as { role?: string })?.role;
-
+        const { userId, sessionClaims } = auth()
         if (!userId) {
-            return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+            return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
         }
 
-        const { searchParams } = new URL(request.url);
-        const studentId = searchParams.get("studentId");
-        const lessonId = searchParams.get("lessonId");
-        const classId = searchParams.get("classId");
-        const dateFrom = searchParams.get("dateFrom");
-        const dateTo = searchParams.get("dateTo");
+        const { searchParams } = new URL(request.url)
+        const date = searchParams.get("date")
+        const classId = searchParams.get("classId")
+        const subjectId = searchParams.get("subjectId")
 
-        let whereCondition: any = {};
+        let whereClause: any = {}
 
-        // إضافة شروط البحث
-        if (studentId) whereCondition.studentId = studentId;
-        if (lessonId) whereCondition.lessonId = parseInt(lessonId);
-        if (classId) whereCondition.lesson = { classId: parseInt(classId) };
+        if (date) {
+            const startDate = new Date(date)
+            const endDate = new Date(startDate)
+            endDate.setDate(endDate.getDate() + 1)
 
-        if (dateFrom && dateTo) {
-            whereCondition.date = {
-                gte: new Date(dateFrom),
-                lte: new Date(dateTo),
-            };
+            whereClause.date = {
+                gte: startDate,
+                lt: endDate
+            }
         }
 
-        // شروط الصلاحيات
-        switch (role) {
-            case "admin":
-                break;
-            case "teacher":
-                whereCondition.lesson = {
-                    ...whereCondition.lesson,
-                    teacherId: userId,
-                };
-                break;
-            case "student":
-                whereCondition.studentId = userId;
-                break;
-            case "parent":
-                whereCondition.student = {
-                    parentId: userId,
-                };
-                break;
-            default:
-                return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+        if (classId) {
+            // هنا يمكن إضافة فلترة حسب الفصل إذا كان موجوداً في قاعدة البيانات
         }
 
-        const attendance = await prisma.attendance.findMany({
-            where: whereCondition,
+        if (subjectId) {
+            whereClause.lessonId = parseInt(subjectId)
+        }
+
+        const attendanceRecords = await prisma.attendance.findMany({
+            where: whereClause,
             include: {
-                student: {
+                Student: {
                     select: {
                         id: true,
                         fullName: true,
-                        class: {
-                            select: { name: true }
-                        }
-                    }
-                },
-                lesson: {
-                    include: {
-                        subject: {
-                            select: { name: true }
-                        },
-                        class: {
-                            select: { name: true }
-                        }
+                        studentPhoto: true,
+                        studyLevel: true,
+                        specialization: true
                     }
                 }
             },
             orderBy: {
                 date: "desc"
             }
-        });
+        })
 
-        return NextResponse.json(attendance);
+        return NextResponse.json(attendanceRecords)
     } catch (error) {
-        console.error("خطأ في جلب بيانات الحضور:", error);
+        console.error("خطأ في جلب سجلات الحضور:", error)
         return NextResponse.json(
-            { error: "خطأ في الخادم الداخلي" },
+            { error: "خطأ في جلب البيانات" },
             { status: 500 }
-        );
+        )
     }
 }
 
+// إضافة سجل حضور جديد
 export async function POST(request: NextRequest) {
     try {
-        const { userId, sessionClaims } = auth();
-        const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-        if (!userId || (role !== "admin" && role !== "teacher")) {
-            return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+        const { userId, sessionClaims } = auth()
+        if (!userId) {
+            return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
         }
 
-        const body = await request.json();
-        const { attendanceRecords } = body;
+        const body = await request.json()
+        const { studentId, lessonId, present, date, notes } = body
 
-        if (!attendanceRecords || !Array.isArray(attendanceRecords)) {
-            return NextResponse.json(
-                { error: "بيانات الحضور مطلوبة" },
-                { status: 400 }
-            );
-        }
-
-        // التحقق من صلاحية المعلم للدرس
-        if (role === "teacher") {
-            const lessonId = attendanceRecords[0]?.lessonId;
-            if (lessonId) {
-                const lesson = await prisma.lesson.findFirst({
-                    where: {
-                        id: lessonId,
-                        teacherId: userId
-                    }
-                });
-
-                if (!lesson) {
-                    return NextResponse.json(
-                        { error: "غير مصرح لتسجيل الحضور لهذا الدرس" },
-                        { status: 403 }
-                    );
+        // التحقق من وجود سجل حضور سابق لنفس الطالب في نفس اليوم
+        const existingRecord = await prisma.attendance.findFirst({
+            where: {
+                studentId,
+                lessonId,
+                date: {
+                    gte: new Date(date),
+                    lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1))
                 }
             }
-        }
+        })
 
-        // حذف السجلات الموجودة لنفس التاريخ والدرس أولاً
-        const firstRecord = attendanceRecords[0];
-        if (firstRecord?.lessonId && firstRecord?.date) {
-            await prisma.attendance.deleteMany({
-                where: {
-                    lessonId: firstRecord.lessonId,
-                    date: {
-                        gte: new Date(new Date(firstRecord.date).setHours(0, 0, 0, 0)),
-                        lt: new Date(new Date(firstRecord.date).setHours(23, 59, 59, 999))
-                    }
+        if (existingRecord) {
+            // تحديث السجل الموجود
+            const updatedRecord = await prisma.attendance.update({
+                where: { id: existingRecord.id },
+                data: {
+                    present,
+                    date: new Date(date)
                 }
-            });
+            })
+            return NextResponse.json(updatedRecord)
+        } else {
+            // إنشاء سجل جديد
+            const newRecord = await prisma.attendance.create({
+                data: {
+                    studentId,
+                    lessonId,
+                    present,
+                    date: new Date(date)
+                }
+            })
+            return NextResponse.json(newRecord)
         }
-
-        // إنشاء السجلات الجديدة
-        const createdRecords = await prisma.attendance.createMany({
-            data: attendanceRecords.map((record: any) => ({
-                studentId: record.studentId,
-                lessonId: record.lessonId,
-                date: new Date(record.date),
-                present: record.present
-            }))
-        });
-
-        return NextResponse.json({
-            message: "تم حفظ الحضور بنجاح",
-            count: createdRecords.count
-        });
     } catch (error) {
-        console.error("خطأ في حفظ الحضور:", error);
+        console.error("خطأ في إضافة سجل الحضور:", error)
         return NextResponse.json(
-            { error: "خطأ في الخادم الداخلي" },
+            { error: "خطأ في حفظ البيانات" },
             { status: 500 }
-        );
+        )
     }
 }

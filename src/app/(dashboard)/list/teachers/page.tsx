@@ -1,175 +1,154 @@
-import FormContainer from "@/components/FormContainer";
-import Pagination from "@/components/Pagination";
-import Table from "@/components/Table";
-import TableSearch from "@/components/TableSearch";
-import prisma from "@/lib/prisma";
-import { Class, Prisma, Subject, Teacher } from "@prisma/client";
-import Image from "next/image";
-import Link from "next/link";
-import { ITEM_PER_PAGE } from "@/lib/settings";
-import { auth } from "@clerk/nextjs/server";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { GraduationCap, Plus, Users, Eye, Edit } from "lucide-react"
 
-type TeacherList = Teacher & { subjects: Subject[] } & { classes: Class[] };
-
-const TeacherListPage = async ({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | undefined };
-}) => {
-  const { sessionClaims } = auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-  const columns = [
-    {
-      header: "Info",
-      accessor: "info",
-    },
-    {
-      header: "Teacher ID",
-      accessor: "teacherId",
-      className: "hidden md:table-cell",
-    },
-    {
-      header: "Subjects",
-      accessor: "subjects",
-      className: "hidden md:table-cell",
-    },
-    {
-      header: "Classes",
-      accessor: "classes",
-      className: "hidden md:table-cell",
-    },
-    {
-      header: "Phone",
-      accessor: "phone",
-      className: "hidden lg:table-cell",
-    },
-    {
-      header: "Address",
-      accessor: "address",
-      className: "hidden lg:table-cell",
-    },
-    ...(role === "admin"
-      ? [
-          {
-            header: "Actions",
-            accessor: "action",
-          },
-        ]
-      : []),
-  ];
-
-  const renderRow = (item: TeacherList) => (
-    <tr
-      key={item.id}
-      className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
-    >
-      <td className="flex items-center gap-4 p-4">
-        <Image
-          src={item.img || "/noAvatar.png"}
-          alt=""
-          width={40}
-          height={40}
-          className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
-        />
-        <div className="flex flex-col">
-          <h3 className="font-semibold">{item.name}</h3>
-          <p className="text-xs text-gray-500">{item?.email}</p>
-        </div>
-      </td>
-      <td className="hidden md:table-cell">{item.username}</td>
-      <td className="hidden md:table-cell">
-        {item.subjects.map((subject) => subject.name).join(",")}
-      </td>
-      <td className="hidden md:table-cell">
-        {item.classes.map((classItem) => classItem.name).join(",")}
-      </td>
-      <td className="hidden md:table-cell">{item.phone}</td>
-      <td className="hidden md:table-cell">{item.address}</td>
-      <td>
-        <div className="flex items-center gap-2">
-          <Link href={`/list/teachers/${item.id}`}>
-            <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky">
-              <Image src="/view.png" alt="" width={16} height={16} />
-            </button>
-          </Link>
-          {role === "admin" && (
-            // <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
-            //   <Image src="/delete.png" alt="" width={16} height={16} />
-            // </button>
-            <FormContainer table="teacher" type="delete" id={item.id} />
-          )}
-        </div>
-      </td>
-    </tr>
-  );
-  const { page, ...queryParams } = searchParams;
-
-  const p = page ? parseInt(page) : 1;
-
-  // URL PARAMS CONDITION
-
-  const query: Prisma.TeacherWhereInput = {};
-
-  if (queryParams) {
-    for (const [key, value] of Object.entries(queryParams)) {
-      if (value !== undefined) {
-        switch (key) {
-          case "classId":
-            query.lessons = {
-              some: {
-                classId: parseInt(value),
-              },
-            };
-            break;
-          case "search":
-            query.name = { contains: value, mode: "insensitive" };
-            break;
-          default:
-            break;
-        }
-      }
-    }
-  }
-
-  const [data, count] = await prisma.$transaction([
-    prisma.teacher.findMany({
-      where: query,
-      include: {
-        subjects: true,
-        classes: true,
-      },
-      take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (p - 1),
-    }),
-    prisma.teacher.count({ where: query }),
-  ]);
-
+export default function TeachersPage() {
   return (
-    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
-      {/* TOP */}
-      <div className="flex items-center justify-between">
-        <h1 className="hidden md:block text-lg font-semibold">All Teachers</h1>
-        <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-          <TableSearch />
-          <div className="flex items-center gap-4 self-end">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/filter.png" alt="" width={14} height={14} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/sort.png" alt="" width={14} height={14} />
-            </button>
-            {role === "admin" && (
-              <FormContainer table="teacher" type="create" />
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-lamaPurpleLight to-lamaPurple" dir="rtl">
+      {/* Header */}
+      <header className="bg-gradient-to-r from-lamaSky to-lamaYellow text-white shadow-lg">
+        <div className="container mx-auto px-6 py-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-1">المعهد المتوسط للدراسات الإسلامية - عثمان بن عفان</h1>
+            <div className="w-16 h-0.5 bg-white mx-auto mb-2 rounded-full"></div>
+            <p className="text-white/90 text-lg">إدارة المعلمين</p>
           </div>
         </div>
-      </div>
-      {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={data} />
-      {/* PAGINATION */}
-      <Pagination page={p} count={count} />
-    </div>
-  );
-};
+      </header>
 
-export default TeacherListPage;
+      <div className="container mx-auto p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Add Teacher Card */}
+          <Card className="shadow-xl border-2 border-lamaSkyLight bg-white/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Plus className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-xl text-lamaYellow font-bold">إضافة معلم جديد</CardTitle>
+              <p className="text-gray-600">إضافة معلم جديد للنظام مع جميع البيانات المطلوبة</p>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Link href="/list/teachers/add">
+                <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-300">
+                  <Plus className="w-5 h-5 ml-2" />
+                  إضافة معلم جديد
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* View Teachers Card */}
+          <Card className="shadow-xl border-2 border-lamaSkyLight bg-white/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-xl text-lamaYellow font-bold">عرض المعلمين</CardTitle>
+              <p className="text-gray-600">عرض قائمة جميع المعلمين مع إمكانية البحث والتصفية</p>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Link href="/list/teachers/view_teachers">
+                <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-300">
+                  <Eye className="w-5 h-5 ml-2" />
+                  عرض المعلمين
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions Card */}
+          <Card className="shadow-xl border-2 border-lamaSkyLight bg-white/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <GraduationCap className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-xl text-lamaYellow font-bold">إجراءات سريعة</CardTitle>
+              <p className="text-gray-600">إجراءات سريعة لإدارة المعلمين</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Link href="/list/teachers/view_teachers" className="block">
+                <Button variant="outline" className="w-full border-lamaYellow text-lamaYellow hover:bg-lamaYellow hover:text-white">
+                  <Eye className="w-4 h-4 ml-2" />
+                  عرض قائمة المعلمين
+                </Button>
+              </Link>
+              <Link href="/list/teachers/add" className="block">
+                <Button variant="outline" className="w-full border-lamaSky text-lamaSky hover:bg-lamaSky hover:text-white">
+                  <Plus className="w-4 h-4 ml-2" />
+                  إضافة معلم جديد
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Additional Information */}
+        <div className="mt-8">
+          <Card className="shadow-xl border-2 border-lamaSkyLight bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-xl text-lamaYellow font-bold flex items-center gap-2">
+                <GraduationCap className="w-6 h-6" />
+                معلومات عن نظام إدارة المعلمين
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-lamaYellow mb-3">الميزات المتاحة:</h3>
+                  <ul className="space-y-2 text-gray-700">
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaYellow rounded-full"></div>
+                      إضافة معلمين جدد مع نموذج متعدد الخطوات
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaYellow rounded-full"></div>
+                      عرض قائمة المعلمين مع البحث والتصفية
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaYellow rounded-full"></div>
+                      عرض تفاصيل كاملة لكل معلم
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaYellow rounded-full"></div>
+                      تعديل بيانات المعلمين
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaYellow rounded-full"></div>
+                      حذف المعلمين مع تأكيد
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-lamaYellow mb-3">البيانات المدعومة:</h3>
+                  <ul className="space-y-2 text-gray-700">
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaSky rounded-full"></div>
+                      المعلومات الشخصية والهوية
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaSky rounded-full"></div>
+                      معلومات الاتصال والطوارئ
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaSky rounded-full"></div>
+                      البيانات الوظيفية والتواريخ
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaSky rounded-full"></div>
+                      المؤهلات العلمية والتخصصات
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-lamaSky rounded-full"></div>
+                      المواد الدراسية والمراحل
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}

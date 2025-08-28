@@ -3,74 +3,68 @@ import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
-    request: NextRequest,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-    try {
-        const { userId, sessionClaims } = auth();
-        const role = (sessionClaims?.metadata as { role?: string })?.role;
+  try {
+    const { userId, sessionClaims } = auth();
+    const role = (sessionClaims?.metadata as { role?: string })?.role;
 
-        if (!userId) {
-            return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-        }
-
-        const classId = parseInt(params.id);
-
-        if (isNaN(classId)) {
-            return NextResponse.json({ error: "معرف الفصل غير صحيح" }, { status: 400 });
-        }
-
-        // التحقق من صلاحية الوصول للفصل
-        let whereCondition: any = { classId };
-
-        switch (role) {
-            case "admin":
-                break;
-            case "teacher":
-                // التأكد من أن المعلم يدرس في هذا الفصل
-                const teacherClass = await prisma.class.findFirst({
-                    where: {
-                        id: classId,
-                        lessons: {
-                            some: {
-                                teacherId: userId
-                            }
-                        }
-                    }
-                });
-
-                if (!teacherClass) {
-                    return NextResponse.json({ error: "غير مصرح للوصول لهذا الفصل" }, { status: 403 });
-                }
-                break;
-            default:
-                return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
-        }
-
-        const students = await prisma.student.findMany({
-            where: whereCondition,
-            select: {
-                id: true,
-                fullName: true,
-                class: {
-                    select: {
-                        name: true
-                    }
-                }
-            },
-            orderBy: {
-                fullName: 'asc'
-            }
-        });
-
-        return NextResponse.json(students);
-    } catch (error) {
-        console.error("خطأ في جلب طلاب الفصل:", error);
-        return NextResponse.json(
-            { error: "خطأ في جلب طلاب الفصل" },
-            { status: 500 }
-        );
+    if (!userId) {
+      return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
     }
+
+    const classId = params.id;
+
+    // جلب الطلاب في الفصل المحدد
+    const students = await prisma.student.findMany({
+      where: {
+        studyLevel: classId, // استخدام studyLevel كمعرف للفصل
+      },
+      select: {
+        id: true,
+        fullName: true,
+        studyLevel: true,
+        academicYear: true,
+      },
+      orderBy: {
+        fullName: 'asc'
+      }
+    });
+
+    // تحويل البيانات إلى الشكل المطلوب
+    const formattedStudents = students.map(student => ({
+      id: student.id,
+      fullName: student.fullName,
+      class: {
+        name: getClassName(student.studyLevel || '')
+      }
+    }));
+
+    return NextResponse.json(formattedStudents);
+  } catch (error) {
+    console.error("خطأ في جلب الطلاب:", error);
+    return NextResponse.json(
+      { error: "خطأ في الخادم الداخلي" },
+      { status: 500 }
+    );
+  }
+}
+
+// دالة لتحويل السنة الدراسية إلى اسم الفصل
+function getClassName(studyLevel: string): string {
+  switch (studyLevel) {
+    case "FIRST_YEAR":
+      return "السنة الأولى";
+    case "SECOND_YEAR":
+      return "السنة الثانية";
+    case "THIRD_YEAR":
+      return "السنة الثالثة";
+    case "GRADUATION":
+      return "سنة التخرج";
+    default:
+      return studyLevel;
+  }
 }
 
 

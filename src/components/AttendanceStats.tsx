@@ -1,149 +1,203 @@
-import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+"use client";
 
-const AttendanceStats = async () => {
-    const { userId, sessionClaims } = auth();
-    const role = (sessionClaims?.metadata as { role?: string })?.role;
-    const currentUserId = userId;
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Calendar } from "./ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { CalendarIcon, Users, UserCheck, UserX, TrendingUp, TrendingDown } from "lucide-react";
 
-    // حساب إحصائيات مختلفة حسب الدور
-    let whereCondition: any = {};
 
-    switch (role) {
-        case "admin":
-            break;
-        case "teacher":
-            whereCondition.lesson = {
-                teacherId: currentUserId!,
-            };
-            break;
-        case "student":
-            whereCondition.studentId = currentUserId!;
-            break;
-        case "parent":
-            whereCondition.student = {
-                parentId: currentUserId!,
-            };
-            break;
-    }
+interface AttendanceStatsProps {
+    classId?: string;
+}
 
-    // إحصائيات اليوم
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+interface Stats {
+    totalStudents: number;
+    present: number;
+    absent: number;
+    attendanceRate: number;
+    previousDayRate: number;
+    trend: "up" | "down" | "stable";
+}
 
-    const todayStats = await prisma.attendance.groupBy({
-        by: ["present"],
-        where: {
-            ...whereCondition,
-            date: {
-                gte: today,
-                lt: tomorrow,
-            },
-        },
-        _count: {
-            id: true,
-        },
+const AttendanceStats = ({ classId }: AttendanceStatsProps) => {
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [stats, setStats] = useState<Stats>({
+        totalStudents: 0,
+        present: 0,
+        absent: 0,
+        attendanceRate: 0,
+        previousDayRate: 0,
+        trend: "stable",
     });
+    const [loading, setLoading] = useState(false);
 
-    // إحصائيات هذا الأسبوع
-    const startOfWeek = new Date(today);
-    const dayOfWeek = today.getDay();
-    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    startOfWeek.setDate(today.getDate() - daysSinceMonday);
+    // جلب الإحصائيات
+    useEffect(() => {
+        const fetchStats = async () => {
+            if (!selectedDate) return;
 
-    const weekStats = await prisma.attendance.groupBy({
-        by: ["present"],
-        where: {
-            ...whereCondition,
-            date: {
-                gte: startOfWeek,
-            },
-        },
-        _count: {
-            id: true,
-        },
-    });
+            setLoading(true);
+            try {
+                const params = new URLSearchParams({
+                    date: selectedDate.toISOString(),
+                });
 
-    // إحصائيات هذا الشهر
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                if (classId) {
+                    params.append("classId", classId);
+                }
 
-    const monthStats = await prisma.attendance.groupBy({
-        by: ["present"],
-        where: {
-            ...whereCondition,
-            date: {
-                gte: startOfMonth,
-            },
-        },
-        _count: {
-            id: true,
-        },
-    });
+                const response = await fetch(`/api/attendance/stats?${params}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setStats(data);
+                }
+            } catch (error) {
+                console.error("خطأ في جلب الإحصائيات:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    // حساب النسب
-    const calculateStats = (stats: any[]) => {
-        const present = stats.find((s) => s.present === true)?._count.id || 0;
-        const absent = stats.find((s) => s.present === false)?._count.id || 0;
-        const total = present + absent;
-        const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : "0";
-        return { present, absent, total, percentage };
+        fetchStats();
+    }, [selectedDate, classId]);
+
+    // حساب الاتجاه
+    const getTrendIcon = () => {
+        if (stats.trend === "up") {
+            return <TrendingUp className="w-5 h-5 text-green-600" />;
+        } else if (stats.trend === "down") {
+            return <TrendingDown className="w-5 h-4 text-red-600" />;
+        }
+        return <div className="w-5 h-5 text-gray-400">─</div>;
     };
 
-    const todayData = calculateStats(todayStats);
-    const weekData = calculateStats(weekStats);
-    const monthData = calculateStats(monthStats);
+    const getTrendText = () => {
+        if (stats.trend === "up") {
+            return "تحسن";
+        } else if (stats.trend === "down") {
+            return "تراجع";
+        }
+        return "مستقر";
+    };
 
-    const StatCard = ({
-        title,
-        data,
-        bgColor,
-        iconColor
-    }: {
-        title: string;
-        data: any;
-        bgColor: string;
-        iconColor: string;
-    }) => (
-        <div className={`${bgColor} rounded-2xl p-4 min-h-[100px]`}>
-            <div className="flex justify-between items-start">
-                <div className="flex flex-col h-full">
-                    <span className="text-[10px] bg-white px-2 py-1 rounded-full text-green-600 w-fit">
-                        {title}
-                    </span>
-                    <h1 className="text-2xl font-semibold my-4">{data.percentage}%</h1>
-                    <h2 className="capitalize text-sm font-medium text-gray-500">
-                        {data.present} حاضر من أصل {data.total}
-                    </h2>
-                </div>
-                <div className={`w-8 h-8 ${iconColor} rounded-full flex items-center justify-center`}>
-                    📊
-                </div>
-            </div>
-        </div>
-    );
+    const getTrendColor = () => {
+        if (stats.trend === "up") {
+            return "text-green-600";
+        } else if (stats.trend === "down") {
+            return "text-red-600";
+        }
+        return "text-gray-600";
+    };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <StatCard
-                title="اليوم"
-                data={todayData}
-                bgColor="bg-gradient-to-r from-blue-50 to-blue-100"
-                iconColor="bg-blue-500"
-            />
-            <StatCard
-                title="هذا الأسبوع"
-                data={weekData}
-                bgColor="bg-gradient-to-r from-green-50 to-green-100"
-                iconColor="bg-green-500"
-            />
-            <StatCard
-                title="هذا الشهر"
-                data={monthData}
-                bgColor="bg-gradient-to-r from-purple-50 to-purple-100"
-                iconColor="bg-purple-500"
-            />
+        <div className="space-y-6">
+            {/* اختيار التاريخ */}
+            <div className="flex justify-center">
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            <CalendarIcon className="w-4 h-4" />
+                            <span>{selectedDate.toLocaleDateString('ar-SA')}</span>
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={(date: Date | undefined) => date && setSelectedDate(date)}
+                            initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
+            </div>
+
+            {/* الإحصائيات */}
+            {loading ? (
+                <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                    <p className="mt-2 text-gray-600">جاري تحميل الإحصائيات...</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* إجمالي الطلاب */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">إجمالي الطلاب</CardTitle>
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stats.totalStudents}</div>
+                            <p className="text-xs text-muted-foreground">طالب</p>
+                        </CardContent>
+                    </Card>
+
+                    {/* الطلاب الحاضرون */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">الحاضرون</CardTitle>
+                            <UserCheck className="h-4 w-4 text-green-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-green-600">{stats.present}</div>
+                            <p className="text-xs text-muted-foreground">
+                                {stats.totalStudents > 0 ? `${((stats.present / stats.totalStudents) * 100).toFixed(1)}%` : "0%"}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    {/* الطلاب الغائبون */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">الغائبون</CardTitle>
+                            <UserX className="h-4 w-4 text-red-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-red-600">{stats.absent}</div>
+                            <p className="text-xs text-muted-foreground">
+                                {stats.totalStudents > 0 ? `${((stats.absent / stats.totalStudents) * 100).toFixed(1)}%` : "0%"}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    {/* معدل الحضور */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">معدل الحضور</CardTitle>
+                            {getTrendIcon()}
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stats.attendanceRate.toFixed(1)}%</div>
+                            <p className={`text-xs ${getTrendColor()}`}>
+                                {getTrendText()} من اليوم السابق
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {/* رسم بياني بسيط */}
+            {stats.totalStudents > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">معدل الحضور</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="w-full bg-gray-200 rounded-full h-4">
+                            <div
+                                className="bg-green-600 h-4 rounded-full transition-all duration-500"
+                                style={{ width: `${stats.attendanceRate}%` }}
+                            ></div>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600 mt-2">
+                            <span>0%</span>
+                            <span>{stats.attendanceRate.toFixed(1)}%</span>
+                            <span>100%</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

@@ -1,10 +1,10 @@
 "use client"
 
-import type React from "react"
+import React, { useState } from "react"
 import Image from "next/image"
 
-import { useState } from "react"
 import { useAds, type Advertisement } from "@/contexts/AdsContext"
+import Toast from "@/components/ui/toast"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,8 +24,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { toast } from "@/hooks/use-toast"
-import { Toaster } from "@/components/ui/toaster"
 import {
   Plus,
   Edit,
@@ -67,6 +65,7 @@ export function AdsManagement() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("الكل")
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,18 +76,18 @@ export function AdsManagement() {
         image: formData.image || "/generic-advertisement-banner.png",
       })
       setEditingId(null)
-      toast({
-        title: "تم تحديث الإعلان بنجاح ✅",
-        description: "تم حفظ التغييرات على الإعلان",
+      setToast({
+        message: "تم تحديث الإعلان بنجاح ✅",
+        type: "success"
       })
     } else {
       addAd({
         ...formData,
         image: formData.image || "/generic-advertisement-banner.png",
       })
-      toast({
-        title: "تمت إضافة الإعلان بنجاح ✅",
-        description: "تم إنشاء إعلان جديد وإضافته للقائمة",
+      setToast({
+        message: "تمت إضافة الإعلان بنجاح ✅",
+        type: "success"
       })
     }
 
@@ -664,7 +663,13 @@ export function AdsManagement() {
           </CardContent>
         </Card>
       </div>
-      <Toaster />
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }

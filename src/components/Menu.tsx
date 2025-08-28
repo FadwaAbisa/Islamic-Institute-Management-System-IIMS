@@ -37,7 +37,7 @@ const menuItems = [
           {
             icon: Users,
             label: "قائمة المعلمين",
-            href: "/list/teachers",
+            href: "/list/teachers/view_teachers",
             description: "عرض جميع المعلمين"
           },
           {
@@ -382,7 +382,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
         <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={closeMobileMenu} />
       )}
 
-      {/* Sidebar Menu */}  
+      {/* Sidebar Menu */}
       <div className={`
         fixed lg:static inset-y-0 left-0 z-50
         w-[35rem] lg:w-full h-full
@@ -525,26 +525,26 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
                             {item.subItems
                               .filter(isSubItemVisible)
                               .map((subItem, subIndex) => (
-                              <Link
-                                key={subItem.label}
-                                href={subItem.href}
-                                onClick={closeMobileMenu}
-                                className="group flex items-center gap-3 p-2 mr-4 rounded-lg transition-all duration-200 hover:bg-lamaSkyLight/50 hover:translate-x-1"
-                              >
-                                <div className="w-8 h-8 bg-white border-2 border-lamaSkyLight rounded-lg flex items-center justify-center group-hover:border-lamaSky group-hover:bg-lamaSky transition-all duration-200">
-                                  <subItem.icon className="w-4 h-4 text-lamaSky group-hover:text-white transition-colors duration-200" />
-                                </div>
+                                <Link
+                                  key={subItem.label}
+                                  href={subItem.href}
+                                  onClick={closeMobileMenu}
+                                  className="group flex items-center gap-3 p-2 mr-4 rounded-lg transition-all duration-200 hover:bg-lamaSkyLight/50 hover:translate-x-1"
+                                >
+                                  <div className="w-8 h-8 bg-white border-2 border-lamaSkyLight rounded-lg flex items-center justify-center group-hover:border-lamaSky group-hover:bg-lamaSky transition-all duration-200">
+                                    <subItem.icon className="w-4 h-4 text-lamaSky group-hover:text-white transition-colors duration-200" />
+                                  </div>
 
-                                <div className="flex flex-col flex-1 min-w-0">
-                                  <span className="text-sm font-medium text-gray-700 group-hover:text-lamaSky transition-colors duration-200">
-                                    {subItem.label}
-                                  </span>
-                                  <span className="text-xs text-gray-500 truncate">
-                                    {subItem.description}
-                                  </span>
-                                </div>
-                              </Link>
-                            ))}
+                                  <div className="flex flex-col flex-1 min-w-0">
+                                    <span className="text-sm font-medium text-gray-700 group-hover:text-lamaSky transition-colors duration-200">
+                                      {subItem.label}
+                                    </span>
+                                    <span className="text-xs text-gray-500 truncate">
+                                      {subItem.description}
+                                    </span>
+                                  </div>
+                                </Link>
+                              ))}
                           </div>
                         </div>
                       )}
@@ -569,8 +569,8 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
               <p className="text-xs text-gray-500 capitalize">
                 {role === 'admin' ? 'مدير النظام' :
                   role === 'staff' ? 'موظف إداري' :
-                  role === 'teacher' ? 'معلم' :
-                    role === 'student' ? 'طالب' : 'ولي أمر'}
+                    role === 'teacher' ? 'معلم' :
+                      role === 'student' ? 'طالب' : 'ولي أمر'}
               </p>
             </div>
           </div>

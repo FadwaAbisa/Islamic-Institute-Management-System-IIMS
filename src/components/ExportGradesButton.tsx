@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Download, FileSpreadsheet } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
+import Toast from "@/components/ui/toast"
+
 
 interface ExportGradesButtonProps {
     filters: {
@@ -17,6 +18,7 @@ interface ExportGradesButtonProps {
 
 export function ExportGradesButton({ filters }: ExportGradesButtonProps) {
     const [isExporting, setIsExporting] = useState(false)
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null)
 
     // استخراج اسم المادة سواء كان نصاً أو كائناً
     const getSubjectName = () => {
@@ -30,10 +32,9 @@ export function ExportGradesButton({ filters }: ExportGradesButtonProps) {
         const subjectName = getSubjectName()
 
         if (!subjectName || !filters.academicYear || !filters.evaluationPeriod) {
-            toast({
-                title: "خطأ",
-                description: "يرجى اختيار المادة والعام الدراسي وفترة التقييم أولاً",
-                variant: "destructive",
+            setToast({
+                message: "يرجى اختيار المادة والعام الدراسي وفترة التقييم أولاً",
+                type: "error"
             })
             return
         }
@@ -67,17 +68,16 @@ export function ExportGradesButton({ filters }: ExportGradesButtonProps) {
             // تحميل الملف
             downloadCSV(csvContent, `درجات_${subjectName}_${filters.academicYear}_${filters.evaluationPeriod}.csv`)
 
-            toast({
-                title: "تم التصدير بنجاح",
-                description: `تم تصدير درجات ${data.totalStudents} طالب`,
+            setToast({
+                message: `تم تصدير درجات ${data.totalStudents} طالب`,
+                type: "success"
             })
 
         } catch (error) {
             console.error("Export error:", error)
-            toast({
-                title: "خطأ في التصدير",
-                description: "حدث خطأ أثناء تصدير البيانات",
-                variant: "destructive",
+            setToast({
+                message: "حدث خطأ أثناء تصدير البيانات",
+                type: "error"
             })
         } finally {
             setIsExporting(false)
@@ -116,22 +116,32 @@ export function ExportGradesButton({ filters }: ExportGradesButtonProps) {
     const subjectName = getSubjectName()
 
     return (
-        <Button
-            onClick={handleExport}
-            disabled={isExporting || !subjectName || !filters.academicYear || !filters.evaluationPeriod}
-            className="bg-green-600 hover:bg-green-700 text-white"
-        >
-            {isExporting ? (
-                <>
-                    <FileSpreadsheet className="w-4 h-4 mr-2 animate-spin" />
-                    جاري التصدير...
-                </>
-            ) : (
-                <>
-                    <Download className="w-4 h-4 mr-2" />
-                    تصدير الدرجات
-                </>
+        <>
+            <Button
+                onClick={handleExport}
+                disabled={isExporting || !subjectName || !filters.academicYear || !filters.evaluationPeriod}
+                className="bg-green-600 hover:bg-green-700 text-white"
+            >
+                {isExporting ? (
+                    <>
+                        <FileSpreadsheet className="w-4 h-4 mr-2 animate-spin" />
+                        جاري التصدير...
+                    </>
+                ) : (
+                    <>
+                        <Download className="w-4 h-4 mr-2" />
+                        تصدير الدرجات
+                    </>
+                )}
+            </Button>
+
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
             )}
-        </Button>
+        </>
     )
 }

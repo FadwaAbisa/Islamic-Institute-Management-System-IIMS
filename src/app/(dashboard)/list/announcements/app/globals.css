@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @custom-variant dark (&:is(.dark *));
 
@@ -128,6 +129,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground font-sans;
   }
@@ -154,18 +156,23 @@
 .bg-lama-sky {
   background-color: var(--color-lama-sky);
 }
+
 .bg-lama-sky-light {
   background-color: var(--color-lama-sky-light);
 }
+
 .bg-lama-purple {
   background-color: var(--color-lama-purple);
 }
+
 .bg-lama-purple-light {
   background-color: var(--color-lama-purple-light);
 }
+
 .bg-lama-yellow {
   background-color: var(--color-lama-yellow);
 }
+
 .bg-lama-yellow-light {
   background-color: var(--color-lama-yellow-light);
 }
@@ -173,18 +180,23 @@
 .text-lama-sky {
   color: var(--color-lama-sky);
 }
+
 .text-lama-sky-light {
   color: var(--color-lama-sky-light);
 }
+
 .text-lama-purple {
   color: var(--color-lama-purple);
 }
+
 .text-lama-purple-light {
   color: var(--color-lama-purple-light);
 }
+
 .text-lama-yellow {
   color: var(--color-lama-yellow);
 }
+
 .text-lama-yellow-light {
   color: var(--color-lama-yellow-light);
 }
@@ -192,18 +204,23 @@
 .border-lama-sky {
   border-color: var(--color-lama-sky);
 }
+
 .border-lama-sky-light {
   border-color: var(--color-lama-sky-light);
 }
+
 .border-lama-purple {
   border-color: var(--color-lama-purple);
 }
+
 .border-lama-purple-light {
   border-color: var(--color-lama-purple-light);
 }
+
 .border-lama-yellow {
   border-color: var(--color-lama-yellow);
 }
+
 .border-lama-yellow-light {
   border-color: var(--color-lama-yellow-light);
 }
