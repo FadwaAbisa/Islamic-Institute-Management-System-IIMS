@@ -9,8 +9,8 @@ import { AdsProvider } from "@/contexts/AdsContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "نظام إدارة المدرسة - المعهد المتوسط للدراسات الإسلامية",
-  description: "نظام إدارة شامل للمدرسة في المعهد المتوسط للدراسات الإسلامية - عثمان بن عفان",
+  title: "نظام إدارة المعهد المتوسط للدراسات الإسلامية",
+  description: "نظام إدارة شامل المعهد المتوسط للدراسات الإسلامية - عثمان بن عفان",
   generator: 'Next.js',
   icons: {
     icon: '/icons/logo.png',

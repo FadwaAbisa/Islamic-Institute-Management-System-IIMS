@@ -117,7 +117,7 @@ export default function AddStudentPage() {
 
     try {
       console.log("إرسال البيانات:", studentData)
-      
+
       const response = await fetch('/api/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -129,6 +129,13 @@ export default function AddStudentPage() {
       if (!response.ok) {
         const errorData = await response.json()
         console.error("خطأ من الخادم:", errorData)
+
+        // رسالة خطأ محسنة للطالب الموجود
+        if (response.status === 409 && errorData.details) {
+          const details = errorData.details
+          throw new Error(`يوجد طالب بنفس الرقم الوطني مسبقاً!\n\nالطالب الموجود:\nالاسم: ${details.existingStudentName}\nالرقم الوطني: ${details.nationalId}\n\nيرجى التحقق من البيانات أو استخدام رقم وطني مختلف.`)
+        }
+
         throw new Error(errorData.error || 'حدث خطأ أثناء إضافة الطالب')
       }
 
@@ -159,9 +166,8 @@ export default function AddStudentPage() {
       {[1, 2, 3].map((step) => (
         <div key={step} className="flex items-center">
           <div
-            className={`relative w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold shadow-xl transition-all duration-500 transform ${
-              step <= currentStep ? "bg-gradient-to-br from-lamaSky to-lamaYellow scale-110" : "bg-gray-300 scale-100"
-            }`}
+            className={`relative w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold shadow-xl transition-all duration-500 transform ${step <= currentStep ? "bg-gradient-to-br from-lamaSky to-lamaYellow scale-110" : "bg-gray-300 scale-100"
+              }`}
           >
             {step <= currentStep && (
               <div className="absolute inset-0 bg-gradient-to-br from-lamaSky to-lamaYellow rounded-2xl animate-pulse opacity-30"></div>
@@ -170,9 +176,8 @@ export default function AddStudentPage() {
           </div>
           {step < 3 && (
             <div
-              className={`w-24 h-2 mx-2 rounded-full transition-all duration-500 ${
-                step < currentStep ? "bg-gradient-to-r from-lamaSky to-lamaYellow" : "bg-gray-300"
-              }`}
+              className={`w-24 h-2 mx-2 rounded-full transition-all duration-500 ${step < currentStep ? "bg-gradient-to-r from-lamaSky to-lamaYellow" : "bg-gray-300"
+                }`}
             />
           )}
         </div>
@@ -615,8 +620,14 @@ export default function AddStudentPage() {
         {currentStep === 3 && renderAdditionalDataForm()}
 
         {submitError && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-4 text-center">
-            {submitError}
+          <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-xl mb-6 text-center shadow-lg">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <span className="font-semibold text-red-700">خطأ في إضافة الطالب</span>
+            </div>
+            <div className="text-red-600 whitespace-pre-line text-sm">
+              {submitError}
+            </div>
           </div>
         )}
 
@@ -672,7 +683,7 @@ export default function AddStudentPage() {
             >
               إضافة طالب آخر
             </Button>
-            <Link href="/list/students">
+            <Link href="/list/students/view_student">
               <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-300">
                 عرض الطلاب
               </Button>

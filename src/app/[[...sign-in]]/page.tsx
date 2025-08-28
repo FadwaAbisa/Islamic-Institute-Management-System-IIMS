@@ -218,7 +218,7 @@ const LoginPage = () => {
               {/* Logo Container */}
               <div className="w-full h-full relative rounded-2xl overflow-hidden z-10 bg-white/90">
                 <Image
-                  src="/icons/logoo.png"
+                  src="/icons/logo.png"
                   alt="البيان"
                   fill
                   className="object-cover"

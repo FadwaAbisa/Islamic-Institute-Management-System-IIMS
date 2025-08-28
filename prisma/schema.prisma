@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Admin {
-  id       String @id
+  id       String @id @default(cuid())
   username String @unique
 }
 
@@ -42,9 +42,9 @@ model Event {
 }
 
 model Student {
-  id                      String            @id
+  id                      String         @id @default(cuid())
   fullName                String
-  nationalId              String            @unique
+  nationalId              String         @unique
   guardianName            String?
   studentPhone            String?
   birthday                DateTime
@@ -52,11 +52,11 @@ model Student {
   address                 String
   nationality             String
   academicYear            String?
-  studyLevel              StudyLevel?
+  studyLevel              String?
   specialization          String?
-  studyMode               StudyMode?
-  enrollmentStatus        EnrollmentStatus?
-  studentStatus           StudentStatus?
+  studyMode               String?
+  enrollmentStatus        String?
+  studentStatus           String?
   relationship            String?
   guardianPhone           String?
   previousSchool          String?
@@ -75,7 +75,7 @@ model Student {
   educationForm           String?
   equivalencyDocument     String?
   otherDocuments          Json?
-  createdAt               DateTime          @default(now())
+  createdAt               DateTime       @default(now())
   Attendance              Attendance[]
   SubjectGrade            SubjectGrade[]
 }
@@ -109,7 +109,7 @@ model SubjectGrade {
 }
 
 model Teacher {
-  id                       String              @id
+  id                       String              @id @default(cuid())
   fullName                 String
   nationalId               String              @unique
   birthday                 DateTime
@@ -135,7 +135,7 @@ model Teacher {
 }
 
 model Staff {
-  id                     String         @id
+  id                     String         @id @default(cuid())
   fullName               String
   nationalId             String         @unique
   birthday               DateTime

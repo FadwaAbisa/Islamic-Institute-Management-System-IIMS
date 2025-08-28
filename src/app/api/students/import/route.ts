@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    
+
     if (!file) {
       return NextResponse.json({ error: 'لم يتم العثور على ملف' }, { status: 400 });
     }
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     for (let i = 0; i < data.length; i++) {
       const row = data[i] as any;
-      
+
       try {
         const studentData = await processStudentData(row, i + 2);
 
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('خطأ في معالجة الملف:', error);
     return NextResponse.json(
-      { error: 'خطأ في معالجة الملف: ' + error.message }, 
+      { error: 'خطأ في معالجة الملف: ' + error.message },
       { status: 500 }
     );
   }
@@ -99,7 +99,7 @@ async function processStudentData(row: any, rowNumber: number) {
   // تحويل الجنس
   const genderNormalized = String(genderRaw).replace(/\s+/g, '').toLowerCase();
   const sex = genderNormalized === 'ذكر' || genderNormalized === 'male' ? 'MALE' :
-              genderNormalized === 'أنثى' || genderNormalized === 'انثى' || genderNormalized === 'female' ? 'FEMALE' : null;
+    genderNormalized === 'أنثى' || genderNormalized === 'انثى' || genderNormalized === 'female' ? 'FEMALE' : null;
   if (!sex) throw new Error(`قيمة الجنس غير صحيحة (يجب ذكر/أنثى) في الصف ${rowNumber}`);
 
   // تحويل تاريخ الميلاد (يدعم serial من Excel)
@@ -157,5 +157,4 @@ async function createStudent(data: any) {
     throw err;
   }
 }
-     
-  
+

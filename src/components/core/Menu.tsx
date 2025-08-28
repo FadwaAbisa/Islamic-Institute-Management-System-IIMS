@@ -343,7 +343,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
   };
 
   return (
-    <div className="h-full bg-white">
+    <div className="h-full bg-white min-w-[380px] w-[380px]">
       {/* Header */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center gap-3">
@@ -358,7 +358,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
       </div>
 
       {/* Menu Items */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-6 py-6">
         {menuItems.map((section, sectionIndex) => {
           const visibleItems = section.items.filter(item => item.visible.includes(role));
 
@@ -377,14 +377,14 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
               </div>
 
               {/* Menu Items */}
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {visibleItems.map((item, itemIndex) => (
                   <div key={item.label}>
                     {/* Main Menu Item */}
                     {item.hasDropdown ? (
                       <button
                         onClick={() => toggleDropdown(item.label)}
-                        className="group relative w-full flex items-center gap-4 p-3 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-lamaSkyLight hover:to-transparent hover:shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                        className="group relative w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-lamaSkyLight hover:to-transparent hover:shadow-sm hover:scale-[1.02] active:scale-[0.98]"
                       >
                         {/* Icon Container */}
                         <div className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${item.color}`}>
@@ -421,7 +421,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
                     ) : (
                       <Link
                         href={item.href}
-                        className="group relative flex items-center gap-4 p-3 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-lamaSkyLight hover:to-transparent hover:shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                        className="group relative flex items-center gap-4 p-4 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-lamaSkyLight hover:to-transparent hover:shadow-sm hover:scale-[1.02] active:scale-[0.98]"
                       >
                         {/* Icon Container */}
                         <div className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${item.color}`}>
@@ -470,7 +470,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
                             <Link
                               key={subItem.label}
                               href={subItem.href}
-                              className="group flex items-center gap-3 p-2 mr-4 rounded-lg transition-all duration-200 hover:bg-lamaSkyLight/50 hover:translate-x-1"
+                              className="group flex items-center gap-3 p-3 mr-4 rounded-lg transition-all duration-200 hover:bg-lamaSkyLight/50 hover:translate-x-1"
                             >
                               <div className="w-8 h-8 bg-white border-2 border-lamaSkyLight rounded-lg flex items-center justify-center group-hover:border-lamaSky group-hover:bg-lamaSky transition-all duration-200">
                                 <subItem.icon className="w-4 h-4 text-lamaSky group-hover:text-white transition-colors duration-200" />

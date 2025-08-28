@@ -32,25 +32,25 @@ const CountChartContainer = async () => {
       <CountChart regular={Regular} distance={Distance} />
 
       {/* الإحصائيات السفلى المحسنة */}
-      <div className="flex justify-center gap-12 mt-4">
+      <div className="flex justify-center gap-6 mt-4 px-2">
         {/* إحصائية النظامي */}
-        <div className="flex flex-col gap-2 items-center">
+        <div className="flex flex-col gap-2 items-center min-w-[90px] max-w-[90px]">
           <div className="w-6 h-6 bg-[#B8956A] rounded-full shadow-sm"></div>
-          <h1 className="font-bold text-xl text-gray-800">
+          <h1 className="font-bold text-xl text-gray-800 text-center">
             {Regular.toLocaleString('ar-EG')}
           </h1>
-          <h2 className="text-sm text-gray-500 font-medium">
+          <h2 className="text-xs text-gray-500 font-medium text-center leading-tight break-words">
             نظامي ({Regular + Distance > 0 ? Math.round((Regular / (Regular + Distance)) * 100) : 0}%)
           </h2>
         </div>
 
         {/* إحصائية الانتساب */}
-        <div className="flex flex-col gap-2 items-center">
+        <div className="flex flex-col gap-2 items-center min-w-[90px] max-w-[90px]">
           <div className="w-6 h-6 bg-[#D2B48C] rounded-full shadow-sm"></div>
-          <h1 className="font-bold text-xl text-gray-800">
-            {girls.toLocaleString('ar-EG')}
+          <h1 className="font-bold text-xl text-gray-800 text-center">
+            {Distance.toLocaleString('ar-EG')}
           </h1>
-          <h2 className="text-sm text-gray-500 font-medium">
+          <h2 className="text-xs text-gray-500 font-medium text-center leading-tight break-words">
             انتساب ({Regular + Distance > 0 ? Math.round((Distance / (Regular + Distance)) * 100) : 0}%)
           </h2>
         </div>

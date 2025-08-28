@@ -131,6 +131,7 @@ export default function StudentsDataPage() {
   // حذف فلتر الجنس لأنه غير موجود في السكيما الجديدة
   const [statusFilter, setStatusFilter] = useState("all")
   const [enrollmentStatusFilter, setEnrollmentStatusFilter] = useState("all")
+  const [studyModeFilter, setStudyModeFilter] = useState("all")
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -181,6 +182,7 @@ export default function StudentsDataPage() {
       if (studyLevelFilter && studyLevelFilter !== "all") params.append('studyLevel', studyLevelFilter)
       if (statusFilter && statusFilter !== "all") params.append('studentStatus', statusFilter)
       if (enrollmentStatusFilter && enrollmentStatusFilter !== "all") params.append('enrollmentStatus', enrollmentStatusFilter)
+      if (studyModeFilter && studyModeFilter !== "all") params.append('studyMode', studyModeFilter)
       params.append('page', currentPage.toString())
       params.append('limit', itemsPerPage.toString())
       if (sortColumn) {
@@ -223,7 +225,7 @@ export default function StudentsDataPage() {
     } finally {
       setLoading(false)
     }
-  }, [searchTerm, academicYearFilter, studyLevelFilter, statusFilter, enrollmentStatusFilter, currentPage, itemsPerPage, sortColumn, sortDirection])
+  }, [searchTerm, academicYearFilter, studyLevelFilter, statusFilter, enrollmentStatusFilter, studyModeFilter, currentPage, itemsPerPage, sortColumn, sortDirection])
 
   // جلب البيانات عند تحميل الصفحة أو تغيير الفلاتر
   useEffect(() => {
@@ -867,10 +869,9 @@ export default function StudentsDataPage() {
                   </SelectTrigger>
                   <SelectContent align="end" side="bottom">
                     <SelectItem value="all">جميع المراحل</SelectItem>
-                    <SelectItem value="FIRST_YEAR">السنة الأولى</SelectItem>
-                    <SelectItem value="SECOND_YEAR">السنة الثانية</SelectItem>
-                    <SelectItem value="THIRD_YEAR">السنة الثالثة</SelectItem>
-                    <SelectItem value="GRADUATION">سنة التخرج</SelectItem>
+                    <SelectItem value="السنة الأولى">السنة الأولى</SelectItem>
+                    <SelectItem value="السنة الثانية">السنة الثانية</SelectItem>
+                    <SelectItem value="السنة الثالثة">السنة الثالثة</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -885,12 +886,8 @@ export default function StudentsDataPage() {
                   </SelectTrigger>
                   <SelectContent align="end" side="bottom">
                     <SelectItem value="all">جميع الحالات</SelectItem>
-                    <SelectItem value="ACTIVE">نشط</SelectItem>
-                    <SelectItem value="SUSPENDED">معلق</SelectItem>
-                    <SelectItem value="DROPPED">منسحب</SelectItem>
-                    <SelectItem value="EXPELLED">مطرود</SelectItem>
-                    <SelectItem value="PAUSED">متوقف مؤقتاً</SelectItem>
-                    <SelectItem value="GRADUATED">متخرج</SelectItem>
+                    <SelectItem value="مستمر">مستمر</SelectItem>
+                    <SelectItem value="متخرج">متخرج</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -903,8 +900,23 @@ export default function StudentsDataPage() {
                   </SelectTrigger>
                   <SelectContent align="end" side="bottom">
                     <SelectItem value="all">جميع الصفات</SelectItem>
-                    <SelectItem value="NEW">مستجد</SelectItem>
-                    <SelectItem value="REPEATER">معيد</SelectItem>
+                    <SelectItem value="مستجد">مستجد</SelectItem>
+                    <SelectItem value="مستجدة">مستجدة</SelectItem>
+                    <SelectItem value="معيدة">معيدة</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-lamaYellow">نوع الدراسة</label>
+                <Select value={studyModeFilter} onValueChange={setStudyModeFilter} dir="rtl">
+                  <SelectTrigger className="bg-white border-lamaSky/30 focus:border-lamaYellow">
+                    <SelectValue placeholder="اختر نوع الدراسة" />
+                  </SelectTrigger>
+                  <SelectContent align="end" side="bottom">
+                    <SelectItem value="all">جميع الأنواع</SelectItem>
+                    <SelectItem value="نظامي">نظامي</SelectItem>
+                    <SelectItem value="انتساب">انتساب</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -917,6 +929,7 @@ export default function StudentsDataPage() {
                     setStudyLevelFilter("all")
                     setStatusFilter("all")
                     setEnrollmentStatusFilter("all")
+                    setStudyModeFilter("all")
                     setSearchTerm("")
                   }}
                   className="w-full bg-lamaYellow hover:bg-lamaYellow/90 text-white"

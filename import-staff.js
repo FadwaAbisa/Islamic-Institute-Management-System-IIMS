@@ -47,11 +47,11 @@ async function main() {
                     // البيانات الاختيارية
                     birthday: row['تاريخ الميلاد (YYYY-MM-DD)'] ? parseDate(row['تاريخ الميلاد (YYYY-MM-DD)'].toString()) : new Date('1990-01-01'),
                     address: row['عنوان السكن']?.toString().trim() || null,
-                    
+
                     // البيانات الوظيفية
                     appointmentDate: row['تاريخ التعيين (YYYY-MM-DD)'] ? parseDate(row['تاريخ التعيين (YYYY-MM-DD)'].toString()) : null,
                     serviceStartDate: row['تاريخ بداية الخدمة (YYYY-MM-DD)'] ? parseDate(row['تاريخ بداية الخدمة (YYYY-MM-DD)'].toString()) : null,
-                    
+
                     // البيانات التعليمية
                     academicQualification: row['المؤهل العلمي']?.toString().trim() || null,
                     educationalInstitution: row['المؤسسة التعليمية']?.toString().trim() || null,
@@ -59,7 +59,7 @@ async function main() {
                     graduationYear: row['سنة التخرج']?.toString().trim() || null,
 
                     // تحويل Enums
-                    maritalStatus: row['الحالة الاجتماعية'] ? 
+                    maritalStatus: row['الحالة الاجتماعية'] ?
                         convertMaritalStatus(row['الحالة الاجتماعية'].toString()) : null,
                 };
 
@@ -101,7 +101,7 @@ async function main() {
 
 function parseDate(dateStr) {
     if (!dateStr || dateStr === 'لا يوجد') return null;
-    
+
     // تنسيق DD-MM-YYYY
     if (dateStr.includes('-')) {
         const parts = dateStr.split('-');
@@ -109,13 +109,13 @@ function parseDate(dateStr) {
             const day = parseInt(parts[0]);
             const month = parseInt(parts[1]) - 1; // الشهر يبدأ من 0
             const year = parseInt(parts[2]);
-            
+
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 return new Date(year, month, day);
             }
         }
     }
-    
+
     // تنسيق YYYY-MM-DD
     if (dateStr.includes('-') && dateStr.length === 10) {
         const date = new Date(dateStr);
@@ -123,7 +123,7 @@ function parseDate(dateStr) {
             return date;
         }
     }
-    
+
     // تنسيق DD/MM/YYYY
     if (dateStr.includes('/')) {
         const parts = dateStr.split('/');
@@ -131,13 +131,13 @@ function parseDate(dateStr) {
             const day = parseInt(parts[0]);
             const month = parseInt(parts[1]) - 1; // الشهر يبدأ من 0
             const year = parseInt(parts[2]);
-            
+
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 return new Date(year, month, day);
             }
         }
     }
-    
+
     // إذا كان رقم Excel (عدد الأيام منذ 1900)
     if (!isNaN(dateStr) && dateStr > 1000) {
         const excelDate = new Date((parseInt(dateStr) - 25569) * 86400 * 1000);
@@ -145,7 +145,7 @@ function parseDate(dateStr) {
             return excelDate;
         }
     }
-    
+
     // إذا فشل التحليل، استخدم تاريخ افتراضي
     console.warn(`⚠️ تعذر تحليل التاريخ: ${dateStr}، سيتم استخدام تاريخ افتراضي`);
     return new Date('1990-01-01');

@@ -14,39 +14,119 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const studyLevel = searchParams.get("studyLevel")
-    const specialization = searchParams.get("specialization")
 
-    let whereClause: any = {
-      studentStatus: "ACTIVE" // فقط الطلاب النشطين
+    // استخراج جميع معاملات الفلترة
+    const search = searchParams.get("search")
+    const academicYear = searchParams.get("academicYear")
+    const studyLevel = searchParams.get("studyLevel")
+    const studentStatus = searchParams.get("studentStatus")
+    const enrollmentStatus = searchParams.get("enrollmentStatus")
+    const studyMode = searchParams.get("studyMode")
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "10")
+    const sortBy = searchParams.get("sortBy") || "fullName"
+    const sortOrder = searchParams.get("sortOrder") || "asc"
+
+    // بناء where clause
+    let whereClause: any = {}
+
+    // فلترة البحث
+    if (search) {
+      whereClause.OR = [
+        { fullName: { contains: search } },
+        { nationalId: { contains: search } },
+        { guardianName: { contains: search } }
+      ]
     }
 
-    if (studyLevel) {
+    // فلترة السنة الدراسية
+    if (academicYear && academicYear !== "all") {
+      whereClause.academicYear = academicYear
+    }
+
+    // فلترة المستوى الدراسي
+    if (studyLevel && studyLevel !== "all") {
       whereClause.studyLevel = studyLevel
     }
 
-    if (specialization) {
-      whereClause.specialization = specialization
+    // فلترة حالة الطالب
+    if (studentStatus && studentStatus !== "all") {
+      whereClause.studentStatus = studentStatus
     }
 
-    const students = await prisma.student.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        fullName: true,
-        studentPhoto: true,
-        studyLevel: true,
-        specialization: true,
-        academicYear: true,
-        studentStatus: true,
-        createdAt: true
-      },
-      orderBy: {
-        fullName: "asc"
-      }
+    // فلترة حالة التسجيل
+    if (enrollmentStatus && enrollmentStatus !== "all") {
+      whereClause.enrollmentStatus = enrollmentStatus
+    }
+
+    // فلترة نوع الدراسة
+    if (studyMode && studyMode !== "all") {
+      whereClause.studyMode = studyMode
+    }
+
+    // حساب الإزاحة للصفحات
+    const skip = (page - 1) * limit
+
+    // جلب البيانات مع الفلترة والترتيب
+    const [students, totalCount] = await Promise.all([
+      prisma.student.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          fullName: true,
+          nationalId: true,
+          guardianName: true,
+          studentPhone: true,
+          birthday: true,
+          placeOfBirth: true,
+          address: true,
+          nationality: true,
+          academicYear: true,
+          studyLevel: true,
+          specialization: true,
+          studyMode: true,
+          enrollmentStatus: true,
+          studentStatus: true,
+          relationship: true,
+          guardianPhone: true,
+          previousSchool: true,
+          previousLevel: true,
+          healthCondition: true,
+          chronicDiseases: true,
+          allergies: true,
+          specialNeeds: true,
+          emergencyContactName: true,
+          emergencyContactPhone: true,
+          emergencyContactAddress: true,
+          notes: true,
+          studentPhoto: true,
+          nationalIdCopy: true,
+          birthCertificate: true,
+          educationForm: true,
+          equivalencyDocument: true,
+          otherDocuments: true,
+          createdAt: true
+        },
+        orderBy: {
+          [sortBy]: sortOrder as 'asc' | 'desc'
+        },
+        skip,
+        take: limit
+      }),
+      prisma.student.count({ where: whereClause })
+    ])
+
+    // حساب معلومات الصفحات
+    const totalPages = Math.ceil(totalCount / limit)
+
+    return NextResponse.json({
+      students,
+      currentPage: page,
+      totalPages,
+      totalItems: totalCount,
+      itemsPerPage: limit
     })
 
-    return NextResponse.json(students)
   } catch (error) {
     console.error("خطأ في جلب الطلاب:", error)
     return NextResponse.json(
@@ -124,9 +204,31 @@ export async function POST(request: NextRequest) {
 
     if (existingStudent) {
       return NextResponse.json(
-        { error: "يوجد طالب بنفس الرقم الوطني" },
+        {
+          error: "يوجد طالب بنفس الرقم الوطني مسبقاً",
+          details: {
+            existingStudentId: existingStudent.id,
+            existingStudentName: existingStudent.fullName,
+            nationalId: existingStudent.nationalId
+          }
+        },
         { status: 409 }
       );
+    }
+
+    // فحص إضافي للتأكد من عدم وجود طالب بنفس الاسم الكامل (اختياري)
+    if (body.fullName) {
+      const existingStudentByName = await prisma.student.findFirst({
+        where: {
+          fullName: body.fullName,
+          nationalId: { not: body.nationalId } // استثناء الطالب الحالي
+        }
+      });
+
+      if (existingStudentByName) {
+        console.log(`تحذير: يوجد طالب بنفس الاسم: ${body.fullName} (ID: ${existingStudentByName.id})`);
+        // لا نمنع الإضافة، فقط نرسل تحذير
+      }
     }
 
     // إنشاء الطالب مع البيانات المتوفرة في السكيما
