@@ -134,6 +134,23 @@ model Teacher {
   TeacherSubject           TeacherSubject[]
 }
 
+model Staff {
+  id                    String   @id 
+  fullName              String //الاسم الكامل 
+  nationalId            String   @unique//الرقم الوطني/الجواز
+  birthday              DateTime //تاريخ الميلاد
+  maritalStatus         MaritalStatus? // الحالة الاجتماعية 
+  address               String? //العنوان
+  phone1                String //الهاتف الأول
+  appointmentDate       DateTime? //تاريخ التعيين
+  serviceStartDate      DateTime? //تاريخ بدء الخدمة
+  academicQualification String? //المؤهل العلمي
+  educationalInstitution String? //المؤسسة التعليمية
+  majorSpecialization   String? //التخصص الرئيسي
+  graduationYear        String? //سنة التخرج
+  createdAt             DateTime @default(now()) //تاريخ الإنشاء
+}
+
 model TeacherStudyLevel {
   id         Int        @id @default(autoincrement())
   teacherId  String
