@@ -227,7 +227,9 @@ export default function ThirdPeriodManager({
                         الفترة الثالثة - النتائج النهائية
                     </CardTitle>
                     <div className="text-lama-purple-light">
-                        <p>حساب النتائج النهائية = مجموع الفترة الأولى + مجموع الفترة الثانية + امتحان الفترة الثالثة</p>
+                        <p className="text-lg font-semibold">المجموع النهائي = درجات الفترة الأولى + درجات الفترة الثانية + درجات الفترة الثالثة</p>
+                        <p className="text-sm mt-2">• درجات الفترات السابقة محفوظة ولا يمكن تعديلها من هنا</p>
+                        <p className="text-sm">• فقط درجة الفترة الثالثة قابلة للإدخال والتعديل</p>
                     </div>
                 </CardHeader>
             </Card>
@@ -259,22 +261,40 @@ export default function ThirdPeriodManager({
             {/* معلومات التوزيع */}
             <Card className="modern-card">
                 <CardContent className="p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                        <AlertCircle className="w-5 h-5 text-lama-yellow" />
-                        <span className="font-semibold">توزيع الدرجات للمادة: {selectedSubject?.name}</span>
+                    <div className="flex items-center gap-4 mb-6">
+                        <AlertCircle className="w-6 h-6 text-lama-yellow" />
+                        <div>
+                            <span className="font-bold text-xl text-gray-800">مادة: {selectedSubject?.name}</span>
+                            <p className="text-gray-600 text-sm">نظام الفترة الثالثة - المجموع النهائي</p>
+                        </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div className="flex items-center gap-2">
-                            <Lock className="w-4 h-4 text-gray-500" />
-                            <span>مجموع الفترة الأولى: (محفوظ)</span>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-200">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Lock className="w-5 h-5 text-blue-600" />
+                                <span className="font-bold text-blue-800">الفترة الأولى</span>
+                            </div>
+                            <p className="text-blue-700 text-sm">درجات محفوظة من نظام الفترة الأولى</p>
+                            <p className="text-blue-600 text-xs mt-1">لا يمكن التعديل من هنا</p>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Lock className="w-4 h-4 text-gray-500" />
-                            <span>مجموع الفترة الثانية: (محفوظ)</span>
+                        
+                        <div className="bg-green-50 p-4 rounded-2xl border-2 border-green-200">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Lock className="w-5 h-5 text-green-600" />
+                                <span className="font-bold text-green-800">الفترة الثانية</span>
+                            </div>
+                            <p className="text-green-700 text-sm">درجات محفوظة من نظام الفترة الثانية</p>
+                            <p className="text-green-600 text-xs mt-1">لا يمكن التعديل من هنا</p>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Calculator className="w-4 h-4 text-lama-sky" />
-                            <span>امتحان الفترة الثالثة: /{distribution.thirdPeriodTotal}</span>
+                        
+                        <div className="bg-lama-sky-light p-4 rounded-2xl border-2 border-lama-sky">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Calculator className="w-5 h-5 text-lama-sky" />
+                                <span className="font-bold text-lama-sky">الفترة الثالثة</span>
+                            </div>
+                            <p className="text-gray-700 text-sm">درجة الامتحان النهائي: <span className="font-bold">من {distribution.thirdPeriodTotal}</span></p>
+                            <p className="text-lama-sky text-xs mt-1">قابل للإدخال والتعديل</p>
                         </div>
                     </div>
                 </CardContent>
@@ -289,26 +309,31 @@ export default function ThirdPeriodManager({
                                 <TableRow className="bg-gray-50">
                                     <TableHead className="text-center font-bold">اسم الطالب</TableHead>
                                     <TableHead className="text-center font-bold">الرقم الوطني</TableHead>
-                                    <TableHead className="text-center font-bold">
+                                                                                <TableHead className="text-center font-bold">
                                         <div className="flex items-center justify-center gap-2">
                                             <Lock className="w-4 h-4 text-gray-500" />
-                                            مجموع الأولى
+                                            درجات الفترة الأولى
                                         </div>
+                                        <div className="text-xs text-gray-500">(محفوظة من الفترة الأولى)</div>
                                     </TableHead>
                                     <TableHead className="text-center font-bold">
                                         <div className="flex items-center justify-center gap-2">
                                             <Lock className="w-4 h-4 text-gray-500" />
-                                            مجموع الثانية
+                                            درجات الفترة الثانية
                                         </div>
+                                        <div className="text-xs text-gray-500">(محفوظة من الفترة الثانية)</div>
                                     </TableHead>
                                     <TableHead className="text-center font-bold">
-                                        امتحان الثالثة
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Calculator className="w-4 h-4 text-lama-sky" />
+                                            درجات الفترة الثالثة
+                                        </div>
                                         <div className="text-xs text-gray-500">/{distribution.thirdPeriodTotal}</div>
                                     </TableHead>
-                                    <TableHead className="text-center font-bold">المجموع النهائي</TableHead>
-                                    <TableHead className="text-center font-bold">النسبة %</TableHead>
+                                    <TableHead className="text-center font-bold">المجموع الكلي</TableHead>
+                                    <TableHead className="text-center font-bold">النسبة المئوية</TableHead>
                                     <TableHead className="text-center font-bold">التقدير</TableHead>
-                                    <TableHead className="text-center font-bold">النتيجة</TableHead>
+                                    <TableHead className="text-center font-bold">النتيجة النهائية</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -337,47 +362,73 @@ export default function ThirdPeriodManager({
                                             <TableCell className="text-center text-sm text-gray-600">
                                                 {student.studentNumber}
                                             </TableCell>
+                                            {/* درجات الفترة الأولى (محفوظة ومحمية) */}
                                             <TableCell className="text-center">
-                                                <Badge variant="outline" className="bg-gray-100">
-                                                    {prevGrade.firstPeriodTotal}
-                                                </Badge>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Lock className="w-3 h-3 text-gray-400" />
+                                                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 font-bold">
+                                                        {prevGrade.firstPeriodTotal}
+                                                    </Badge>
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-1">لا يمكن التعديل</div>
                                             </TableCell>
+                                            
+                                            {/* درجات الفترة الثانية (محفوظة ومحمية) */}
                                             <TableCell className="text-center">
-                                                <Badge variant="outline" className="bg-gray-100">
-                                                    {prevGrade.secondPeriodTotal}
-                                                </Badge>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Lock className="w-3 h-3 text-gray-400" />
+                                                    <Badge variant="secondary" className="bg-green-100 text-green-800 font-bold">
+                                                        {prevGrade.secondPeriodTotal}
+                                                    </Badge>
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-1">لا يمكن التعديل</div>
                                             </TableCell>
+                                            
+                                            {/* درجات الفترة الثالثة (قابلة للإدخال) */}
                                             <TableCell className="text-center">
-                                                <div className="space-y-1">
-                                                    <Input
-                                                        type="number"
-                                                        placeholder="0"
-                                                        min="0"
-                                                        max={distribution.thirdPeriodTotal}
-                                                        step="0.5"
-                                                        value={thirdGrade?.thirdExam || ''}
-                                                        onChange={(e) => handleThirdExamChange(student.id, e.target.value)}
-                                                        className="w-20 mx-auto"
-                                                        disabled={loading}
-                                                    />
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <Calculator className="w-3 h-3 text-lama-sky" />
+                                                        <Input
+                                                            type="number"
+                                                            placeholder="0"
+                                                            min="0"
+                                                            max={distribution.thirdPeriodTotal}
+                                                            step="0.5"
+                                                            value={thirdGrade?.thirdExam || ''}
+                                                            onChange={(e) => handleThirdExamChange(student.id, e.target.value)}
+                                                            className="w-20 mx-auto text-center font-bold"
+                                                            disabled={loading}
+                                                        />
+                                                    </div>
                                                     {error && (
                                                         <div className="text-xs text-red-500">{error}</div>
                                                     )}
+                                                    <div className="text-xs text-gray-500">من {distribution.thirdPeriodTotal}</div>
                                                 </div>
                                             </TableCell>
+                                            
+                                            {/* المجموع الكلي */}
                                             <TableCell className="text-center">
                                                 <Badge 
                                                     variant={thirdGrade?.finalTotal ? "default" : "outline"}
-                                                    className="font-bold"
+                                                    className="font-bold text-lg bg-lama-yellow text-white"
                                                 >
                                                     {thirdGrade?.finalTotal || prevGrade.combinedTotal}
                                                 </Badge>
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    {prevGrade.firstPeriodTotal} + {prevGrade.secondPeriodTotal} + {thirdGrade?.thirdExam || 0}
+                                                </div>
                                             </TableCell>
+                                            
+                                            {/* النسبة المئوية */}
                                             <TableCell className="text-center">
-                                                <Badge variant="outline">
+                                                <Badge variant="outline" className="font-bold">
                                                     {thirdGrade?.percentage || 0}%
                                                 </Badge>
                                             </TableCell>
+                                            
+                                            {/* التقدير */}
                                             <TableCell className="text-center">
                                                 <Badge 
                                                     variant={thirdGrade?.status === 'نجح' ? "default" : "destructive"}
@@ -386,9 +437,12 @@ export default function ThirdPeriodManager({
                                                     {thirdGrade?.grade || 'غير مكتمل'}
                                                 </Badge>
                                             </TableCell>
+                                            
+                                            {/* النتيجة النهائية */}
                                             <TableCell className="text-center">
                                                 <Badge 
                                                     variant={thirdGrade?.status === 'نجح' ? "default" : "destructive"}
+                                                    className="font-bold"
                                                 >
                                                     {thirdGrade?.status || 'غير مكتمل'}
                                                 </Badge>
