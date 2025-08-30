@@ -5,6 +5,7 @@ import EventCalendarContainer from "@/components/EventCalendarContainer";
 import FinanceChart from "@/components/FinanceChart";
 import UserCard from "@/components/UserCard";
 import { HomeAds } from "@/components/HomeAds";
+import { UpcomingEventsWidget } from "@/components/events";
 
 const AdminPage = ({
   searchParams,
@@ -40,6 +41,7 @@ const AdminPage = ({
       </div>
       {/* RIGHT */}
       <div className="w-full lg:w-1/3 flex flex-col gap-8">
+        <UpcomingEventsWidget />
         <EventCalendarContainer searchParams={searchParams} />
         <HomeAds />
         <Announcements />

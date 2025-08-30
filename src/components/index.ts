@@ -59,3 +59,6 @@ export { default as ViewResultsPage } from './pages/view-results-page';
 export { default as ReviewRequestsPage } from './pages/review-requests-page';
 export { AdsManagement } from './pages/ads-management';
 export { default as AdminDashboardCards } from './pages/admin-dashboard-cards';
+
+// Events Components
+export { EventsManagement, EventsDisplay, EventForm, UpcomingEventsWidget } from './events';

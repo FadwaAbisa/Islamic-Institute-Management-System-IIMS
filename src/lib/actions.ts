@@ -125,7 +125,7 @@ export const deleteClass = async (
   try {
     await prisma.student.updateMany({
       where: {
-        studyLevel: studyLevel,
+        studyLevel: studyLevel as any,
       },
       data: {
         studyLevel: null,
@@ -171,6 +171,27 @@ export const deleteExam = async (
 ) => {
   try {
     // Placeholder for exam deletion
+    return { success: true, error: false };
+  } catch (err) {
+    console.log(err);
+    return { success: false, error: true };
+  }
+};
+
+export const deleteEvent = async (
+  currentState: CurrentState,
+  data: FormData
+) => {
+  const id = data.get("id") as string;
+
+  try {
+    await prisma.event.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    // revalidatePath("/list/events");
     return { success: true, error: false };
   } catch (err) {
     console.log(err);

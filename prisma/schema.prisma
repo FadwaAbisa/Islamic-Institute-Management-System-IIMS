@@ -35,11 +35,26 @@ model Attendance {
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  startTime   DateTime
-  endTime     DateTime
+  id                Int             @id @default(autoincrement())
+  title             String
+  description       String
+  startTime         DateTime
+  endTime           DateTime
+  location          String?
+  eventType         EventType       @default(ACADEMIC)
+  priority          Priority        @default(MEDIUM)
+  status            EventStatus     @default(ACTIVE)
+  color             String? // لون مخصص للحدث
+  isAllDay          Boolean         @default(false)
+  recurrence        RecurrenceType? // نوع التكرار
+  recurrenceEndDate DateTime? // تاريخ انتهاء التكرار
+  attendees         String[] // قائمة المشاركين
+  createdBy         String? // منشئ الحدث
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  image             String? // صورة الحدث
+  tags              String[] // علامات للتصنيف
+  notes             String? // ملاحظات إضافية
 }
 
 model Student {
@@ -224,4 +239,38 @@ enum StudyLevel {
 enum StudyMode {
   REGULAR
   DISTANCE
+}
+
+enum EventType {
+  ACADEMIC // أكاديمي
+  SOCIAL // اجتماعي
+  RELIGIOUS // ديني
+  ADMINISTRATIVE // إداري
+  SPORTS // رياضي
+  CULTURAL // ثقافي
+  OTHER // أخرى
+}
+
+enum Priority {
+  LOW // منخفض
+  MEDIUM // متوسط
+  HIGH // عالي
+  URGENT // عاجل
+}
+
+enum EventStatus {
+  ACTIVE // نشط
+  CANCELLED // ملغي
+  POSTPONED // مؤجل
+  COMPLETED // مكتمل
+  DRAFT // مسودة
+}
+
+enum RecurrenceType {
+  NONE // بدون تكرار
+  DAILY // يومي
+  WEEKLY // أسبوعي
+  MONTHLY // شهري
+  YEARLY // سنوي
+  CUSTOM // مخصص
 }

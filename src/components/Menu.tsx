@@ -264,7 +264,7 @@ const menuItems = [
       {
         icon: "/calendar.png",
         label: "الفعاليات",
-        href: "/list/events",
+        href: "/events",
         visible: ["admin", "staff", "teacher", "student", "parent"],
         description: "التقويم والفعاليات المدرسية",
         color: "bg-violet-50 text-violet-600"
