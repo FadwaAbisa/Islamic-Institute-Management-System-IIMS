@@ -38,6 +38,7 @@ import {
     type EvaluationPeriod,
     type GradeDistribution
 } from "@/lib/grade-distributions"
+import ThirdPeriodManager from "./ThirdPeriodManager"
 
 interface Student {
     id: string
@@ -998,6 +999,59 @@ export default function EnhancedGradesManager() {
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* عرض النظام حسب الفترة المختارة */}
+                {isFormEnabled && students.length > 0 && (
+                    <>
+                        {selectedPeriod === "الفترة الثالثة" ? (
+                            <ThirdPeriodManager
+                                selectedYear={selectedYear}
+                                selectedLevel={selectedLevel}
+                                selectedSystem={selectedSystem}
+                                selectedSubject={selectedSubject}
+                                students={students}
+                            />
+                        ) : (
+                            <Card className="modern-card">
+                                <CardHeader className="bg-gradient-to-l from-lama-sky to-lama-yellow text-white rounded-t-3xl">
+                                    <CardTitle className="flex items-center gap-3 text-2xl">
+                                        <Calculator className="w-6 h-6" />
+                                        إدخال درجات {selectedPeriod}
+                                    </CardTitle>
+                                    <CardDescription className="text-lama-purple-light">
+                                        {students.length} طالب متاح لإدخال الدرجات
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-6">
+                                    <Alert className="border-blue-300 bg-blue-50 rounded-2xl mb-6">
+                                        <Calculator className="h-6 w-6 text-blue-600" />
+                                        <AlertDescription className="text-blue-800">
+                                            <p className="font-semibold mb-2">جاري تطوير نظام إدخال الدرجات للفترتين الأولى والثانية</p>
+                                            <p>حالياً متاح فقط نظام الفترة الثالثة المتطور. باقي الفترات قيد التطوير.</p>
+                                        </AlertDescription>
+                                    </Alert>
+                                    
+                                    <div className="text-center py-8">
+                                        <div className="text-6xl mb-4">⚙️</div>
+                                        <h3 className="text-2xl font-bold text-gray-800 mb-2">قيد التطوير</h3>
+                                        <p className="text-gray-600">نظام إدخال درجات {selectedPeriod} سيكون متاحاً قريباً</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </>
+                )}
+
+                {/* رسالة عدم وجود طلاب */}
+                {isFormEnabled && students.length === 0 && (
+                    <Card className="modern-card">
+                        <CardContent className="p-8 text-center">
+                            <div className="text-6xl mb-4">👥</div>
+                            <h3 className="text-2xl font-bold text-gray-800 mb-2">لا يوجد طلاب</h3>
+                            <p className="text-gray-600">لا يوجد طلاب مطابقون للمعايير المحددة</p>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
     )
