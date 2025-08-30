@@ -16,10 +16,8 @@ const Announcements = async () => {
     orderBy: { date: "desc" },
     where: {
       ...(role !== "admin" && {
-        OR: [
-          { classId: null },
-          { class: roleConditions[role as keyof typeof roleConditions] || {} },
-        ],
+        // تم إزالة classId لأنه غير موجود في النموذج
+        // class: roleConditions[role as keyof typeof roleConditions] || {},
       }),
     },
   });

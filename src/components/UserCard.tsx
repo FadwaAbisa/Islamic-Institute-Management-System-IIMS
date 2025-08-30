@@ -11,7 +11,7 @@ const UserCard = async ({ type }: UserCardProps) => {
     admin: prisma.admin,
     teacher: prisma.teacher,
     student: prisma.student,
-    parent: prisma.parent,
+    parent: prisma.staff, // استخدام نموذج Staff
   };
 
   // الحصول على البيانات مع معالجة الأخطاء
@@ -27,7 +27,7 @@ const UserCard = async ({ type }: UserCardProps) => {
     admin: "المسؤولين",
     teacher: "المعلمين", 
     student: "الطلاب",
-    parent: "أولياء الأمور",
+    parent: "الموظفين الإداريين",
   };
 
   // ألوان مخصصة للكروت - الأولى مع الثالثة، الثانية مع الرابعة
@@ -66,7 +66,7 @@ const UserCard = async ({ type }: UserCardProps) => {
       <div className="flex justify-between items-center mb-4">
         <div className={`${iconColors[type]} rounded-full p-3 backdrop-blur-sm`}>
           <Image
-            src={`/icons/${type}.png`}
+            src={type === 'parent' ? '/icons/staff.png' : `/icons/${type}.png`}
             alt={type}
             width={28}
             height={28}

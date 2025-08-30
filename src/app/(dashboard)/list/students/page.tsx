@@ -1,42 +1,83 @@
+"use client";
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Users, Search, Plus, Eye, Edit, Trash2 } from "lucide-react"
+import { Users, Plus, Eye, Edit, Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
+import TableSearch from "@/components/TableSearch"
+import StudentsFilters from "@/components/StudentsFilters"
+import Pagination from "@/components/Pagination"
 
-const mockStudents = [
-  {
-    id: 1,
-    name: "أحمد محمد علي السعيد",
-    nationalId: "1234567890",
-    level: "السنة الثانية",
-    branch: "الدراسات الإسلامية",
-    status: "مستمر",
-    phone: "0501234567",
-  },
-  {
-    id: 2,
-    name: "فاطمة عبدالله حسن النور",
-    nationalId: "0987654321",
-    level: "السنة الأولى",
-    branch: "القراءات",
-    status: "مستمر",
-    phone: "0507654321",
-  },
-  {
-    id: 3,
-    name: "محمد عبدالرحمن أحمد الزهراني",
-    nationalId: "1122334455",
-    level: "السنة الثالثة",
-    branch: "الدراسات الإسلامية",
-    status: "منقطع",
-    phone: "0501122334",
-  },
-]
+interface Student {
+  id: string;
+  fullName: string;
+  nationalId: string;
+  studyLevel: string | null;
+  specialization: string | null;
+  studentStatus: string | null;
+  studentPhone: string | null;
+}
 
 export default function StudentsPage() {
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({
+    academicYear: "الكل",
+    stage: "الكل",
+    gender: "الكل",
+    status: "الكل"
+  });
+
+  // التحقق من تسجيل الدخول
+  useEffect(() => {
+    if (isLoaded && !user) {
+      router.push('/login');
+      return;
+    }
+  }, [isLoaded, user, router]);
+
+  // جلب الطلاب
+  const fetchStudents = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/students');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'فشل في جلب الطلاب');
+      }
+
+      const data = await response.json();
+      setStudents(data);
+      setTotal(data.length); // مؤقتاً
+    } catch (err) {
+      console.error('خطأ في جلب الطلاب:', err);
+      setError(err instanceof Error ? err.message : 'خطأ غير معروف');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchStudents();
+    }
+  }, [user, page, search, filters]);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "مستمر":
@@ -82,71 +123,84 @@ export default function StudentsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Search Bar */}
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input placeholder="البحث بالاسم أو رقم الهوية..." className="pr-10" />
-              </div>
+            {/* Search & Filters */}
+            <div className="mb-6 flex flex-col gap-4">
+              <TableSearch />
+              <StudentsFilters years={[]} stages={[]} />
             </div>
+
+            {/* Loading State */}
+            {loading && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lamaSky mx-auto"></div>
+                <p className="mt-4 text-gray-600">جاري تحميل الطلاب...</p>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="text-center py-8">
+                <div className="text-red-600 text-lg mb-4">❌ {error}</div>
+                <Button onClick={fetchStudents} className="bg-lamaSky hover:bg-lamaSky/90">
+                  إعادة المحاولة
+                </Button>
+              </div>
+            )}
 
             {/* Students Table */}
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">الاسم الكامل</TableHead>
-                    <TableHead className="text-right">رقم الهوية</TableHead>
-                    <TableHead className="text-right">المستوى</TableHead>
-                    <TableHead className="text-right">الشعبة</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right">رقم الهاتف</TableHead>
-                    <TableHead className="text-right">الإجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockStudents.map((student) => (
-                    <TableRow key={student.id}>
-                      <TableCell className="font-medium">{student.name}</TableCell>
-                      <TableCell>{student.nationalId}</TableCell>
-                      <TableCell>{student.level}</TableCell>
-                      <TableCell>{student.branch}</TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(student.status)}>{student.status}</Badge>
-                      </TableCell>
-                      <TableCell>{student.phone}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 hover:text-red-700 bg-transparent"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            {!loading && !error && (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">الاسم الكامل</TableHead>
+                      <TableHead className="text-right">رقم الهوية</TableHead>
+                      <TableHead className="text-right">المستوى</TableHead>
+                      <TableHead className="text-right">الشعبة</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                      <TableHead className="text-right">رقم الهاتف</TableHead>
+                      <TableHead className="text-right">الإجراءات</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {students.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-medium">{student.fullName}</TableCell>
+                        <TableCell>{student.nationalId}</TableCell>
+                        <TableCell>{student.studyLevel || "غير محدد"}</TableCell>
+                        <TableCell>{student.specialization || "غير محدد"}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(student.studentStatus || "مستمر")}>
+                            {student.studentStatus || "مستمر"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{student.studentPhone || ""}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 hover:text-red-700 bg-transparent"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
-
-        <div className="mt-6 text-center">
-          <Link href="/">
-            <Button className="bg-gradient-to-r from-lamaSkyLight to-lamaYellowLight hover:from-lamaYellowLight hover:to-lamaSkyLight text-lamaYellow border border-lamaSky font-semibold px-6 py-2 rounded-lg shadow-md transition-all duration-300">
-              العودة للرئيسية
-            </Button>
-          </Link>
-        </div>
+        <Pagination page={page} count={total} />
       </div>
     </div>
   )

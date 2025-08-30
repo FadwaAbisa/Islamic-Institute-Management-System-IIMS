@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #fcfaf8;
+  --foreground: #2c1810;
+  --card: #ffffff;
+  --card-foreground: #2c1810;
+  --popover: #ffffff;
+  --popover-foreground: #2c1810;
+  --primary: #b8956a;
+  --primary-foreground: #ffffff;
+  --secondary: #e2d5c7;
+  --secondary-foreground: #2c1810;
+  --muted: #f7f3ee;
+  --muted-foreground: #8b7355;
+  --accent: #d2b48c;
+  --accent-foreground: #2c1810;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2d5c7;
+  --input: #f0e6d6;
+  --ring: rgba(184, 149, 106, 0.3);
+  --chart-1: #b8956a;
+  --chart-2: #d2b48c;
+  --chart-3: #e2d5c7;
+  --chart-4: #f0e6d6;
+  --chart-5: #f7f3ee;
+  --radius: 0.75rem;
+  --sidebar: #f7f3ee;
+  --sidebar-foreground: #2c1810;
+  --sidebar-primary: #b8956a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #d2b48c;
+  --sidebar-accent-foreground: #2c1810;
+  --sidebar-border: #e2d5c7;
+  --sidebar-ring: rgba(184, 149, 106, 0.3);
+
+  /* Added custom lama colors */
+  --lama-sky: #d2b48c;
+  --lama-sky-light: #f0e6d6;
+  --lama-purple: #f7f3ee;
+  --lama-purple-light: #fcfaf8;
+  --lama-yellow: #b8956a;
+  --lama-yellow-light: #e2d5c7;
+}
+
+.dark {
+  --background: #1a1611;
+  --foreground: #f0e6d6;
+  --card: #2c1810;
+  --card-foreground: #f0e6d6;
+  --popover: #2c1810;
+  --popover-foreground: #f0e6d6;
+  --primary: #d2b48c;
+  --primary-foreground: #1a1611;
+  --secondary: #8b7355;
+  --secondary-foreground: #f0e6d6;
+  --muted: #3d2f1f;
+  --muted-foreground: #b8956a;
+  --accent: #b8956a;
+  --accent-foreground: #1a1611;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #3d2f1f;
+  --input: #2c1810;
+  --ring: rgba(210, 180, 140, 0.3);
+  --sidebar: #2c1810;
+  --sidebar-foreground: #f0e6d6;
+  --sidebar-primary: #d2b48c;
+  --sidebar-primary-foreground: #1a1611;
+  --sidebar-accent: #b8956a;
+  --sidebar-accent-foreground: #1a1611;
+  --sidebar-border: #3d2f1f;
+  --sidebar-ring: rgba(210, 180, 140, 0.3);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Added custom lama color utilities */
+  --color-lama-sky: var(--lama-sky);
+  --color-lama-sky-light: var(--lama-sky-light);
+  --color-lama-purple: var(--lama-purple);
+  --color-lama-purple-light: var(--lama-purple-light);
+  --color-lama-yellow: var(--lama-yellow);
+  --color-lama-yellow-light: var(--lama-yellow-light);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+/* Enhanced RTL Support with better spacing */
+[dir="rtl"] {
+  direction: rtl;
+}
+
+[dir="rtl"] .rtl\:text-right {
+  text-align: right;
+}
+
+[dir="rtl"] .rtl\:mr-2 {
+  margin-right: 0.5rem;
+}
+
+[dir="rtl"] .rtl\:ml-2 {
+  margin-left: 0.5rem;
+}
+
+/* Custom utility classes for lama colors */
+.bg-lama-sky {
+  background-color: var(--color-lama-sky);
+}
+
+.bg-lama-sky-light {
+  background-color: var(--color-lama-sky-light);
+}
+
+.bg-lama-purple {
+  background-color: var(--color-lama-purple);
+}
+
+.bg-lama-purple-light {
+  background-color: var(--color-lama-purple-light);
+}
+
+.bg-lama-yellow {
+  background-color: var(--color-lama-yellow);
+}
+
+.bg-lama-yellow-light {
+  background-color: var(--color-lama-yellow-light);
+}
+
+.text-lama-sky {
+  color: var(--color-lama-sky);
+}
+
+.text-lama-sky-light {
+  color: var(--color-lama-sky-light);
+}
+
+.text-lama-purple {
+  color: var(--color-lama-purple);
+}
+
+.text-lama-purple-light {
+  color: var(--color-lama-purple-light);
+}
+
+.text-lama-yellow {
+  color: var(--color-lama-yellow);
+}
+
+.text-lama-yellow-light {
+  color: var(--color-lama-yellow-light);
+}
+
+.border-lama-sky {
+  border-color: var(--color-lama-sky);
+}
+
+.border-lama-sky-light {
+  border-color: var(--color-lama-sky-light);
+}
+
+.border-lama-purple {
+  border-color: var(--color-lama-purple);
+}
+
+.border-lama-purple-light {
+  border-color: var(--color-lama-purple-light);
+}
+
+.border-lama-yellow {
+  border-color: var(--color-lama-yellow);
+}
+
+.border-lama-yellow-light {
+  border-color: var(--color-lama-yellow-light);
+}

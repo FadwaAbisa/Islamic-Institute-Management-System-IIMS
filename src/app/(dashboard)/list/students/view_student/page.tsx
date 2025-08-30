@@ -1,7 +1,6 @@
 "use client"
 
-
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -46,202 +45,99 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-// تحديث بيانات الطلاب لتشمل الطالبة الجديدة وإزالة الحالات غير المرغوبة
-const studentsData = [
-  {
-    id: 1,
-    registrationNumber: "131686",
-    fullName: "آية جمعة عبدالسلام فرنانة",
-    status: "مستمر",
-    academicYear: "2024-2025",
-    stage: "السنة الثانية",
-    section: "الدراسات الإسلامية",
-    studySystem: "نظامي",
-    gender: "أنثى",
-    photo: null,
-    nationalId: "220080152695",
-    birthDate: "2008-10-23",
-    nationality: "ليبيا",
-    birthPlace: "طرابلس",
-    phone: "",
-    address: "الكريمية",
-    guardianName: "جمعة عبد السلام فرنانة",
-    guardianRelation: "اب",
-    guardianPhone: "913808566",
-    emergencyContact: "",
-    emergencyPhone: "",
-    emergencyAddress: "",
-    branch: "عثمان بن عفان",
-    registrationDate: "غير محدد",
-    registrationStatus: "مستجد",
-    previousLevel: "",
-    previousSchool: "",
-    healthStatus: "",
-    chronicDiseases: "",
-    allergies: "",
-    specialNeeds: "",
-    skills: "",
-  },
-  {
-    id: 2,
-    registrationNumber: "2024002",
-    fullName: "محمد عبدالله سالم حسن",
-    status: "منقول",
-    academicYear: "2024-2025",
-    stage: "الثانية",
-    section: "ب",
-    studySystem: "نظامي",
-    gender: "ذكر",
-    photo: "/placeholder.svg?height=40&width=40",
-    nationalId: "200012345678",
-    birthDate: "2000-03-20",
-    nationality: "ليبيا",
-    birthPlace: "بنغازي",
-    phone: "092-2345678",
-    address: "بنغازي - منطقة الصابري",
-    guardianName: "عبدالله سالم حسن",
-    guardianRelation: "الوالد",
-    guardianPhone: "091-8765432",
-    emergencyContact: "فاطمة سالم",
-    emergencyPhone: "094-1234567",
-    emergencyAddress: "بنغازي - الصابري",
-    branch: "الطب",
-    registrationDate: "2023-09-01",
-    registrationStatus: "مستمر",
-    previousLevel: "الثانوية العامة",
-    previousSchool: "ثانوية الصابري",
-    healthStatus: "جيد",
-    chronicDiseases: "لا يوجد",
-    allergies: "حساسية من البنسلين",
-    specialNeeds: "لا يوجد",
-    skills: "برمجة، رياضيات",
-  },
-  {
-    id: 3,
-    registrationNumber: "2024003",
-    fullName: "عائشة محمود إبراهيم أحمد",
-    status: "مستمر",
-    academicYear: "2024-2025",
-    stage: "الأولى",
-    section: "أ",
-    studySystem: "مسائي",
-    gender: "أنثى",
-    photo: "/placeholder.svg?height=40&width=40",
-    nationalId: "200123456789",
-    birthDate: "2001-07-10",
-    nationality: "ليبيا",
-    birthPlace: "مصراتة",
-    phone: "093-3456789",
-    address: "مصراتة - منطقة الزروق",
-    guardianName: "محمود إبراهيم أحمد",
-    guardianRelation: "الوالد",
-    guardianPhone: "094-9876543",
-    emergencyContact: "زينب محمود",
-    emergencyPhone: "095-2345678",
-    emergencyAddress: "مصراتة - الزروق",
-    branch: "الآداب",
-    registrationDate: "2024-09-01",
-    registrationStatus: "مستجد",
-    previousLevel: "الثانوية العامة",
-    previousSchool: "ثانوية الزروق",
-    healthStatus: "جيد",
-    chronicDiseases: "لا يوجد",
-    allergies: "لا يوجد",
-    specialNeeds: "لا يوجد",
-    skills: "كتابة، خطابة",
-  },
-  {
-    id: 4,
-    registrationNumber: "2024004",
-    fullName: "خالد سعد عمر محمد",
-    status: "منسحب",
-    academicYear: "2023-2024",
-    stage: "الرابعة",
-    section: "ج",
-    studySystem: "منتسب",
-    gender: "ذكر",
-    photo: null,
-    nationalId: "199812345678",
-    birthDate: "1998-12-05",
-    nationality: "ليبيا",
-    birthPlace: "سبها",
-    phone: "094-4567890",
-    address: "سبها - منطقة المنشية",
-    guardianName: "سعد عمر محمد",
-    guardianRelation: "الوالد",
-    guardianPhone: "095-0987654",
-    emergencyContact: "أمينة سعد",
-    emergencyPhone: "096-3456789",
-    emergencyAddress: "سبها - المنشية",
-    branch: "التجارة",
-    registrationDate: "2021-09-01",
-    registrationStatus: "منسحب",
-    previousLevel: "الثانوية العامة",
-    previousSchool: "ثانوية المنشية",
-    healthStatus: "جيد",
-    chronicDiseases: "السكري",
-    allergies: "لا يوجد",
-    specialNeeds: "لا يوجد",
-    skills: "محاسبة، إدارة",
-  },
-  {
-    id: 5,
-    registrationNumber: "2024005",
-    fullName: "مريم علي حسين عبدالله",
-    status: "متخرج",
-    academicYear: "2023-2024",
-    stage: "الرابعة",
-    section: "أ",
-    studySystem: "نظامي",
-    gender: "أنثى",
-    photo: "/placeholder.svg?height=40&width=40",
-    nationalId: "199712345678",
-    birthDate: "1997-09-15",
-    nationality: "ليبيا",
-    birthPlace: "الزاوية",
-    phone: "095-5678901",
-    address: "الزاوية - منطقة الحرية",
-    guardianName: "علي حسين عبدالله",
-    guardianRelation: "الوالد",
-    guardianPhone: "096-1098765",
-    emergencyContact: "خديجة علي",
-    emergencyPhone: "097-4567890",
-    emergencyAddress: "الزاوية - الحرية",
-    branch: "العلوم",
-    registrationDate: "2020-09-01",
-    registrationStatus: "متخرج",
-    previousLevel: "الثانوية العامة",
-    previousSchool: "ثانوية الحرية",
-    healthStatus: "جيد",
-    chronicDiseases: "لا يوجد",
-    allergies: "لا يوجد",
-    specialNeeds: "لا يوجد",
-    skills: "بحث علمي، تحليل",
-  },
-]
+// تعريف نوع البيانات حسب سكيما قاعدة البيانات الفعلية
+interface Student {
+  id: string;
+  fullName: string;
+  nationalId: string;
+  guardianName?: string;
+  studentPhone?: string;
+  birthday: string;
+  placeOfBirth: string;
+  address: string;
+  nationality: string;
+  academicYear?: string;
+  studyLevel?: 'FIRST_YEAR' | 'SECOND_YEAR' | 'THIRD_YEAR' | 'GRADUATION';
+  specialization?: string;
+  studyMode?: 'REGULAR' | 'DISTANCE';
+  enrollmentStatus?: 'NEW' | 'REPEATER';
+  studentStatus?: 'ACTIVE' | 'DROPPED' | 'SUSPENDED' | 'EXPELLED' | 'PAUSED' | 'GRADUATED';
+  relationship?: string;
+  guardianPhone?: string;
+  previousSchool?: string;
+  previousLevel?: string;
+  healthCondition?: string;
+  chronicDiseases?: string;
+  allergies?: string;
+  specialNeeds?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactAddress?: string;
+  notes?: string;
+  studentPhoto?: string;
+  nationalIdCopy?: string;
+  birthCertificate?: string;
+  educationForm?: string;
+  equivalencyDocument?: string;
+  otherDocuments?: any;
+  createdAt: string;
+}
 
-// تحديث ألوان الحالات لإزالة "نشط" و إضافة "مستمر"
+// تحديث ألوان الحالات حسب السكيما الجديدة
 const statusColors = {
-  مستمر: "bg-green-100 text-green-800 border-green-200",
-  منقول: "bg-blue-100 text-blue-800 border-blue-200",
-  منسحب: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  مفصول: "bg-red-100 text-red-800 border-red-200",
-  متخرج: "bg-gray-100 text-gray-800 border-gray-200",
-  مستجد: "bg-purple-100 text-purple-800 border-purple-200",
+  active: "bg-green-100 text-green-800 border-green-200",
+  graduated: "bg-blue-100 text-blue-800 border-blue-200",
+  transferred: "bg-purple-100 text-purple-800 border-purple-200",
+  suspended: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  withdrawn: "bg-red-100 text-red-800 border-red-200",
+}
+
+// ترجمة الحالات
+const statusTranslations = {
+  active: "نشط",
+  graduated: "متخرج",
+  transferred: "منقول",
+  suspended: "معلق",
+  withdrawn: "منسحب",
+  EXPELLED: "مفصول",
+  PAUSED: "متوقف مؤقتاً",
+  GRADUATED: "متخرج",
+}
+
+// ترجمة المراحل الدراسية
+const studyLevelTranslations = {
+  FIRST_YEAR: "السنة الأولى",
+  SECOND_YEAR: "السنة الثانية",
+  THIRD_YEAR: "السنة الثالثة",
+  GRADUATION: "سنة التخرج",
+}
+
+// ترجمة أنظمة الدراسة
+const studyModeTranslations = {
+  REGULAR: "نظامي",
+  DISTANCE: "عن بعد",
+}
+
+// ترجمة صفة القيد
+const enrollmentStatusTranslations = {
+  NEW: "مستجد",
+  REPEATER: "معيد",
 }
 
 export default function StudentsDataPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [academicYearFilter, setAcademicYearFilter] = useState("الكل")
-  const [stageFilter, setStageFilter] = useState("الكل")
-  const [genderFilter, setGenderFilter] = useState("الكل")
-  const [statusFilter, setStatusFilter] = useState("الكل")
-  const [selectedStudent, setSelectedStudent] = useState<any>(null)
+  const [academicYearFilter, setAcademicYearFilter] = useState("all")
+  const [studyLevelFilter, setStudyLevelFilter] = useState("all")
+  // حذف فلتر الجنس لأنه غير موجود في السكيما الجديدة
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [enrollmentStatusFilter, setEnrollmentStatusFilter] = useState("all")
+  const [studyModeFilter, setStudyModeFilter] = useState("all")
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [sortColumn, setSortColumn] = useState("")
   const [sortDirection, setSortDirection] = useState("asc")
-  const [students, setStudents] = useState<any[]>([])
+  const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [pagination, setPagination] = useState({
@@ -254,61 +150,87 @@ export default function StudentsDataPage() {
   // إضافة state جديد لإدارة الأعمدة المرئية
   const [visibleColumns, setVisibleColumns] = useState({
     index: true,
-    registrationNumber: true,
+    nationalId: true,
     fullName: true,
-    status: true,
+    studentStatus: true,
     academicYear: true,
-    stage: true,
-    section: true,
-    studySystem: true,
-    gender: true,
-    photo: true,
+    studyLevel: true,
+    specialization: true,
+    studyMode: true,
+    enrollmentStatus: true,
+    guardianName: true,
+    studentPhone: true,
+    studentPhoto: true,
     actions: true,
   })
 
   // إضافة state جديد لإدارة نافذة التعديل
-  const [editingStudent, setEditingStudent] = useState<any>(null)
-  const [editFormData, setEditFormData] = useState<any>({})
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
+  const [editFormData, setEditFormData] = useState<Partial<Student>>({})
 
   // دالة جلب البيانات من API
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       setLoading(true)
       setError("")
-      
-      const params = new URLSearchParams({
-        search: searchTerm,
-        academicYear: academicYearFilter,
-        stage: stageFilter,
-        gender: genderFilter,
-        status: statusFilter,
-        page: currentPage.toString(),
-        limit: itemsPerPage.toString(),
-        sortBy: sortColumn || 'fullName',
-        sortOrder: sortDirection
-      })
-      
-      const response = await fetch(`/api/students?${params}`)
-      
-      if (!response.ok) {
-        throw new Error('فشل في جلب البيانات')
+
+      // بناء query parameters
+      const params = new URLSearchParams()
+      if (searchTerm) params.append('search', searchTerm)
+
+      if (academicYearFilter && academicYearFilter !== "all") params.append('academicYear', academicYearFilter)
+      if (studyLevelFilter && studyLevelFilter !== "all") params.append('studyLevel', studyLevelFilter)
+      if (statusFilter && statusFilter !== "all") params.append('studentStatus', statusFilter)
+      if (enrollmentStatusFilter && enrollmentStatusFilter !== "all") params.append('enrollmentStatus', enrollmentStatusFilter)
+      if (studyModeFilter && studyModeFilter !== "all") params.append('studyMode', studyModeFilter)
+      params.append('page', currentPage.toString())
+      params.append('limit', itemsPerPage.toString())
+      if (sortColumn) {
+        params.append('sortBy', sortColumn)
+        params.append('sortOrder', sortDirection)
       }
-      
+
+      const response = await fetch(`/api/students?${params.toString()}`)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'فشل في جلب بيانات الطلاب')
+      }
+
       const data = await response.json()
-      setStudents(data.students)
-      setPagination(data.pagination)
-      
+
+      // إذا كان API يعيد مصفوفة بسيطة
+      if (Array.isArray(data)) {
+        setStudents(data)
+        setPagination({
+          currentPage,
+          totalPages: Math.ceil(data.length / itemsPerPage),
+          totalItems: data.length,
+          itemsPerPage
+        })
+      } else {
+        // إذا كان API يعيد كائن مع pagination
+        setStudents(data.students || data)
+        setPagination({
+          currentPage: data.currentPage || currentPage,
+          totalPages: data.totalPages || 1,
+          totalItems: data.totalItems || (data.students?.length || data.length || 0),
+          itemsPerPage: data.itemsPerPage || itemsPerPage
+        })
+      }
+
     } catch (err) {
+      console.error('خطأ في جلب الطلاب:', err)
       setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchTerm, academicYearFilter, studyLevelFilter, statusFilter, enrollmentStatusFilter, studyModeFilter, currentPage, itemsPerPage, sortColumn, sortDirection])
 
   // جلب البيانات عند تحميل الصفحة أو تغيير الفلاتر
   useEffect(() => {
     fetchStudents()
-  }, [searchTerm, academicYearFilter, stageFilter, genderFilter, statusFilter, currentPage, itemsPerPage, sortColumn, sortDirection])
+  }, [fetchStudents])
 
   // حساب البيانات للصفحة الحالية
   const currentStudents = students
@@ -327,26 +249,26 @@ export default function StudentsDataPage() {
     if (!confirm('هل أنت متأكد من حذف هذا الطالب؟')) {
       return
     }
-    
+
     try {
       const response = await fetch(`/api/students/${studentId}`, {
         method: 'DELETE'
       })
-      
+
       if (!response.ok) {
         throw new Error('فشل في حذف الطالب')
       }
-      
+
       // إعادة جلب البيانات
       fetchStudents()
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ أثناء الحذف')
     }
   }
 
   // وظيفة التعديل
-  const handleEdit = (student: any) => {
+  const handleEdit = (student: Student) => {
     setEditingStudent(student)
     setEditFormData({ ...student })
   }
@@ -354,7 +276,7 @@ export default function StudentsDataPage() {
   // وظيفة حفظ التعديلات
   const handleSaveEdit = async () => {
     if (!editingStudent) return
-    
+
     try {
       const response = await fetch(`/api/students/${editingStudent.id}`, {
         method: 'PUT',
@@ -363,16 +285,16 @@ export default function StudentsDataPage() {
         },
         body: JSON.stringify(editFormData)
       })
-      
+
       if (!response.ok) {
         throw new Error('فشل في تحديث بيانات الطالب')
       }
-      
+
       // إعادة جلب البيانات
       fetchStudents()
       setEditingStudent(null)
       setEditFormData({})
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ أثناء التحديث')
     }
@@ -380,7 +302,7 @@ export default function StudentsDataPage() {
 
   // إضافة وظيفة تحديث البيانات
   const handleInputChange = (field: string, value: any) => {
-    setEditFormData((prev: any) => ({
+    setEditFormData((prev) => ({
       ...prev,
       [field]: value,
     }))
@@ -388,27 +310,25 @@ export default function StudentsDataPage() {
 
   const exportToCSV = () => {
     const headers = [
-      "رقم القيد",
+      "الرقم الوطني",
       "الاسم الرباعي",
       "حالة الطالب",
       "العام الدراسي",
       "المرحلة الدراسية",
-      "الشعبة",
+      "التخصص",
       "نظام الدراسة",
-      "الجنس",
     ]
     const csvContent = [
       headers.join(","),
-      ...currentStudents.map((student: any) =>
+      ...currentStudents.map((student: Student) =>
         [
-          student.registrationNumber,
+          student.nationalId,
           student.fullName,
-          student.status,
-          student.academicYear,
-          student.stage,
-          student.section,
-          student.studySystem,
-          student.gender,
+          statusTranslations[student.studentStatus as keyof typeof statusTranslations] || student.studentStatus || "غير محدد",
+          student.academicYear || "غير محدد",
+          studyLevelTranslations[student.studyLevel as keyof typeof studyLevelTranslations] || student.studyLevel || "غير محدد",
+          student.specialization || "غير محدد",
+          studyModeTranslations[student.studyMode as keyof typeof studyModeTranslations] || student.studyMode || "غير محدد",
         ].join(","),
       ),
     ].join("\n")
@@ -518,34 +438,34 @@ export default function StudentsDataPage() {
           <thead>
             <tr>
               ${visibleColumns.index ? "<th>#</th>" : ""}
-              ${visibleColumns.registrationNumber ? "<th>رقم القيد</th>" : ""}
+              ${visibleColumns.nationalId ? "<th>رقم القيد</th>" : ""}
               ${visibleColumns.fullName ? "<th>الاسم الرباعي</th>" : ""}
-              ${visibleColumns.status ? "<th>حالة الطالب</th>" : ""}
+              ${visibleColumns.studentStatus ? "<th>حالة الطالب</th>" : ""}
               ${visibleColumns.academicYear ? "<th>العام الدراسي</th>" : ""}
-              ${visibleColumns.stage ? "<th>المرحلة الدراسية</th>" : ""}
-              ${visibleColumns.section ? "<th>الشعبة</th>" : ""}
-              ${visibleColumns.studySystem ? "<th>نظام الدراسة</th>" : ""}
-              ${visibleColumns.gender ? "<th>الجنس</th>" : ""}
+              ${visibleColumns.studyLevel ? "<th>المرحلة الدراسية</th>" : ""}
+              ${visibleColumns.specialization ? "<th>التخصص</th>" : ""}
+              ${visibleColumns.studyMode ? "<th>نظام الدراسة</th>" : ""}
+                              ${visibleColumns.studentPhoto ? "<th>صورة الطالب</th>" : ""}
             </tr>
           </thead>
           <tbody>
             ${currentStudents
-              .map(
-                (student: any, index: number) => `
+        .map(
+          (student: any, index: number) => `
               <tr>
                 ${visibleColumns.index ? `<td>${index + 1}</td>` : ""}
-                ${visibleColumns.registrationNumber ? `<td>${student.registrationNumber}</td>` : ""}
+                ${visibleColumns.nationalId ? `<td>${student.nationalId}</td>` : ""}
                 ${visibleColumns.fullName ? `<td>${student.fullName}</td>` : ""}
-                ${visibleColumns.status ? `<td><span class="status-badge status-${student.status}">${student.status}</span></td>` : ""}
+                ${visibleColumns.studentStatus ? `<td><span class="status-badge status-${student.studentStatus}">${student.studentStatus}</span></td>` : ""}
                 ${visibleColumns.academicYear ? `<td>${student.academicYear}</td>` : ""}
-                ${visibleColumns.stage ? `<td>${student.stage}</td>` : ""}
-                ${visibleColumns.section ? `<td>${student.section}</td>` : ""}
-                ${visibleColumns.studySystem ? `<td>${student.studySystem}</td>` : ""}
-                ${visibleColumns.gender ? `<td>${student.gender}</td>` : ""}
+                ${visibleColumns.studyLevel ? `<td>${student.studyLevel}</td>` : ""}
+                ${visibleColumns.specialization ? `<td>${student.specialization}</td>` : ""}
+                ${visibleColumns.studyMode ? `<td>${student.studyMode}</td>` : ""}
+                ${visibleColumns.studentPhoto ? `<td>${student.studentPhoto ? "موجود" : "غير موجود"}</td>` : ""}
               </tr>
             `,
-              )
-              .join("")}
+        )
+        .join("")}
           </tbody>
         </table>
 
@@ -693,7 +613,7 @@ export default function StudentsDataPage() {
             ${student.fullName.split(" ")[0][0]}
           </div>
           <div class="student-name">${student.fullName}</div>
-          <div class="student-id">رقم القيد: ${student.registrationNumber}</div>
+          <div class="student-id">رقم القيد: ${student.nationalId}</div>
         </div>
 
         <div class="section">
@@ -705,15 +625,15 @@ export default function StudentsDataPage() {
             </div>
             <div class="field-row">
               <div class="field-label">رقم القيد:</div>
-              <div class="field-value">${student.registrationNumber}</div>
+              <div class="field-value">${student.nationalId}</div>
             </div>
             <div class="field-row">
               <div class="field-label">الرقم الوطني:</div>
               <div class="field-value">${student.nationalId}</div>
             </div>
             <div class="field-row">
-              <div class="field-label">الجنس:</div>
-              <div class="field-value">${student.gender}</div>
+              <div class="field-label">صفة القيد:</div>
+              <div class="field-value">${student.enrollmentStatus || "غير محدد"}</div>
             </div>
             <div class="field-row">
               <div class="field-label">الجنسية:</div>
@@ -721,15 +641,15 @@ export default function StudentsDataPage() {
             </div>
             <div class="field-row">
               <div class="field-label">تاريخ الميلاد:</div>
-              <div class="field-value">${student.birthDate}</div>
+              <div class="field-value">${student.birthday}</div>
             </div>
             <div class="field-row">
               <div class="field-label">مكان الميلاد:</div>
-              <div class="field-value">${student.birthPlace}</div>
+              <div class="field-value">${student.placeOfBirth}</div>
             </div>
             <div class="field-row">
               <div class="field-label">رقم الهاتف:</div>
-              <div class="field-value">${student.phone || "غير محدد"}</div>
+              <div class="field-value">${student.studentPhone || "غير محدد"}</div>
             </div>
             <div class="field-row">
               <div class="field-label">العنوان:</div>
@@ -747,7 +667,7 @@ export default function StudentsDataPage() {
             </div>
             <div class="field-row">
               <div class="field-label">صلة القرابة:</div>
-              <div class="field-value">${student.guardianRelation}</div>
+              <div class="field-value">${student.relationship}</div>
             </div>
             <div class="field-row">
               <div class="field-label">رقم هاتف ولي الأمر:</div>
@@ -755,15 +675,15 @@ export default function StudentsDataPage() {
             </div>
             <div class="field-row">
               <div class="field-label">جهة الاتصال للطوارئ:</div>
-              <div class="field-value">${student.emergencyContact || "غير محدد"}</div>
+              <div class="field-value">${student.emergencyContactName || "غير محدد"}</div>
             </div>
             <div class="field-row">
               <div class="field-label">هاتف الطوارئ:</div>
-              <div class="field-value">${student.emergencyPhone || "غير محدد"}</div>
+              <div class="field-value">${student.emergencyContactPhone || "غير محدد"}</div>
             </div>
             <div class="field-row">
               <div class="field-label">عنوان الطوارئ:</div>
-              <div class="field-value">${student.emergencyAddress || "غير محدد"}</div>
+              <div class="field-value">${student.emergencyContactAddress || "غير محدد"}</div>
             </div>
           </div>
         </div>
@@ -772,8 +692,8 @@ export default function StudentsDataPage() {
           <div class="section-header">البيانات الأكاديمية</div>
           <div class="section-content">
             <div class="field-row">
-              <div class="field-label">الفرع:</div>
-              <div class="field-value">${student.branch}</div>
+              <div class="field-label">الشعبة:</div>
+              <div class="field-value">${student.specialization || "غير محدد"}</div>
             </div>
             <div class="field-row">
               <div class="field-label">العام الدراسي:</div>
@@ -781,27 +701,27 @@ export default function StudentsDataPage() {
             </div>
             <div class="field-row">
               <div class="field-label">المرحلة الدراسية:</div>
-              <div class="field-value">${student.stage}</div>
+              <div class="field-value">${student.studyLevel}</div>
             </div>
             <div class="field-row">
               <div class="field-label">الشعبة:</div>
-              <div class="field-value">${student.section}</div>
+              <div class="field-value">${student.specialization}</div>
             </div>
             <div class="field-row">
               <div class="field-label">نظام الدراسة:</div>
-              <div class="field-value">${student.studySystem}</div>
+              <div class="field-value">${student.studyMode}</div>
             </div>
             <div class="field-row">
               <div class="field-label">صفة القيد:</div>
-              <div class="field-value"><span class="status-badge status-${student.registrationStatus}">${student.registrationStatus}</span></div>
+              <div class="field-value"><span class="status-badge status-${student.enrollmentStatus}">${student.enrollmentStatus}</span></div>
             </div>
             <div class="field-row">
               <div class="field-label">حالة الطالب:</div>
-              <div class="field-value"><span class="status-badge status-${student.status}">${student.status}</span></div>
+              <div class="field-value"><span class="status-badge status-${student.studentStatus}">${student.studentStatus}</span></div>
             </div>
             <div class="field-row">
               <div class="field-label">تاريخ التسجيل:</div>
-              <div class="field-value">${student.registrationDate}</div>
+              <div class="field-value">${student.createdAt}</div>
             </div>
             <div class="field-row">
               <div class="field-label">المدرسة السابقة:</div>
@@ -819,7 +739,7 @@ export default function StudentsDataPage() {
           <div class="section-content">
             <div class="field-row">
               <div class="field-label">الحالة الصحية:</div>
-              <div class="field-value">${student.healthStatus || "غير محدد"}</div>
+              <div class="field-value">${student.healthCondition || "غير محدد"}</div>
             </div>
             <div class="field-row">
               <div class="field-label">أمراض مزمنة:</div>
@@ -836,20 +756,19 @@ export default function StudentsDataPage() {
           </div>
         </div>
 
-        ${
-          student.skills
-            ? `
+        ${student.notes
+        ? `
         <div class="section">
           <div class="section-header">ملاحظات (مهارات)</div>
           <div class="section-content">
             <div class="field-row">
-              <div class="field-value" style="width: 100%;">${student.skills}</div>
+              <div class="field-value" style="width: 100%;">${student.notes}</div>
             </div>
           </div>
         </div>
         `
-            : ""
-        }
+        : ""
+      }
 
         <script>
           window.onload = function() {
@@ -934,7 +853,7 @@ export default function StudentsDataPage() {
                     <SelectValue placeholder="اختر العام الدراسي" />
                   </SelectTrigger>
                   <SelectContent align="end" side="bottom">
-                    <SelectItem value="الكل">جميع الأعوام</SelectItem>
+                    <SelectItem value="all">جميع الأعوام</SelectItem>
                     <SelectItem value="2024-2025">2024-2025</SelectItem>
                     <SelectItem value="2023-2024">2023-2024</SelectItem>
                     <SelectItem value="2022-2023">2022-2023</SelectItem>
@@ -944,33 +863,20 @@ export default function StudentsDataPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-lamaYellow">المرحلة الدراسية</label>
-                <Select value={stageFilter} onValueChange={setStageFilter} dir="rtl">
+                <Select value={studyLevelFilter} onValueChange={setStudyLevelFilter} dir="rtl">
                   <SelectTrigger className="bg-white border-lamaSky/30 focus:border-lamaYellow">
                     <SelectValue placeholder="اختر المرحلة" />
                   </SelectTrigger>
                   <SelectContent align="end" side="bottom">
-                    <SelectItem value="الكل">جميع المراحل</SelectItem>
-                    <SelectItem value="الأولى">المرحلة الأولى</SelectItem>
-                    <SelectItem value="الثانية">المرحلة الثانية</SelectItem>
-                    <SelectItem value="الثالثة">المرحلة الثالثة</SelectItem>
-                    <SelectItem value="الرابعة">المرحلة الرابعة</SelectItem>
+                    <SelectItem value="all">جميع المراحل</SelectItem>
+                    <SelectItem value="السنة الأولى">السنة الأولى</SelectItem>
+                    <SelectItem value="السنة الثانية">السنة الثانية</SelectItem>
+                    <SelectItem value="السنة الثالثة">السنة الثالثة</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-lamaYellow">الجنس</label>
-                <Select value={genderFilter} onValueChange={setGenderFilter} dir="rtl">
-                  <SelectTrigger className="bg-white border-lamaSky/30 focus:border-lamaYellow">
-                    <SelectValue placeholder="اختر الجنس" />
-                  </SelectTrigger>
-                  <SelectContent align="end" side="bottom">
-                    <SelectItem value="الكل">الجميع</SelectItem>
-                    <SelectItem value="ذكر">ذكر</SelectItem>
-                    <SelectItem value="أنثى">أنثى</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* حذف فلتر الجنس لأنه غير موجود في السكيما الجديدة */}
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-lamaYellow">حالة الطالب</label>
@@ -979,13 +885,38 @@ export default function StudentsDataPage() {
                     <SelectValue placeholder="اختر الحالة" />
                   </SelectTrigger>
                   <SelectContent align="end" side="bottom">
-                    <SelectItem value="الكل">جميع الحالات</SelectItem>
+                    <SelectItem value="all">جميع الحالات</SelectItem>
                     <SelectItem value="مستمر">مستمر</SelectItem>
-                    <SelectItem value="مستجد">مستجد</SelectItem>
-                    <SelectItem value="منقول">منقول</SelectItem>
-                    <SelectItem value="منسحب">منسحب</SelectItem>
-                    <SelectItem value="مفصول">مفصول</SelectItem>
                     <SelectItem value="متخرج">متخرج</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-lamaYellow">صفة القيد</label>
+                <Select value={enrollmentStatusFilter} onValueChange={setEnrollmentStatusFilter} dir="rtl">
+                  <SelectTrigger className="bg-white border-lamaSky/30 focus:border-lamaYellow">
+                    <SelectValue placeholder="اختر صفة القيد" />
+                  </SelectTrigger>
+                  <SelectContent align="end" side="bottom">
+                    <SelectItem value="all">جميع الصفات</SelectItem>
+                    <SelectItem value="مستجد">مستجد</SelectItem>
+                    <SelectItem value="مستجدة">مستجدة</SelectItem>
+                    <SelectItem value="معيدة">معيدة</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-lamaYellow">نوع الدراسة</label>
+                <Select value={studyModeFilter} onValueChange={setStudyModeFilter} dir="rtl">
+                  <SelectTrigger className="bg-white border-lamaSky/30 focus:border-lamaYellow">
+                    <SelectValue placeholder="اختر نوع الدراسة" />
+                  </SelectTrigger>
+                  <SelectContent align="end" side="bottom">
+                    <SelectItem value="all">جميع الأنواع</SelectItem>
+                    <SelectItem value="نظامي">نظامي</SelectItem>
+                    <SelectItem value="انتساب">انتساب</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -994,10 +925,11 @@ export default function StudentsDataPage() {
                 <label className="text-sm font-semibold text-lamaYellow">الإجراءات</label>
                 <Button
                   onClick={() => {
-                    setAcademicYearFilter("الكل")
-                    setStageFilter("الكل")
-                    setGenderFilter("الكل")
-                    setStatusFilter("الكل")
+                    setAcademicYearFilter("all")
+                    setStudyLevelFilter("all")
+                    setStatusFilter("all")
+                    setEnrollmentStatusFilter("all")
+                    setStudyModeFilter("all")
                     setSearchTerm("")
                   }}
                   className="w-full bg-lamaYellow hover:bg-lamaYellow/90 text-white"
@@ -1040,9 +972,9 @@ export default function StudentsDataPage() {
                           <label className="text-sm font-medium">رقم القيد</label>
                           <input
                             type="checkbox"
-                            checked={visibleColumns.registrationNumber}
+                            checked={visibleColumns.nationalId}
                             onChange={(e) =>
-                              setVisibleColumns((prev) => ({ ...prev, registrationNumber: e.target.checked }))
+                              setVisibleColumns((prev) => ({ ...prev, nationalId: e.target.checked }))
                             }
                             className="rounded"
                           />
@@ -1060,8 +992,8 @@ export default function StudentsDataPage() {
                           <label className="text-sm font-medium">حالة الطالب</label>
                           <input
                             type="checkbox"
-                            checked={visibleColumns.status}
-                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, status: e.target.checked }))}
+                            checked={visibleColumns.studentStatus}
+                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, studentStatus: e.target.checked }))}
                             className="rounded"
                           />
                         </div>
@@ -1078,17 +1010,17 @@ export default function StudentsDataPage() {
                           <label className="text-sm font-medium">المرحلة الدراسية</label>
                           <input
                             type="checkbox"
-                            checked={visibleColumns.stage}
-                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, stage: e.target.checked }))}
+                            checked={visibleColumns.studyLevel}
+                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, studyLevel: e.target.checked }))}
                             className="rounded"
                           />
                         </div>
                         <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium">الشعبة</label>
+                          <label className="text-sm font-medium">التخصص</label>
                           <input
                             type="checkbox"
-                            checked={visibleColumns.section}
-                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, section: e.target.checked }))}
+                            checked={visibleColumns.specialization}
+                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, specialization: e.target.checked }))}
                             className="rounded"
                           />
                         </div>
@@ -1096,26 +1028,17 @@ export default function StudentsDataPage() {
                           <label className="text-sm font-medium">نظام الدراسة</label>
                           <input
                             type="checkbox"
-                            checked={visibleColumns.studySystem}
-                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, studySystem: e.target.checked }))}
+                            checked={visibleColumns.studyMode}
+                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, studyMode: e.target.checked }))}
                             className="rounded"
                           />
                         </div>
                         <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium">الجنس</label>
+                          <label className="text-sm font-medium">صورة الطالب</label>
                           <input
                             type="checkbox"
-                            checked={visibleColumns.gender}
-                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, gender: e.target.checked }))}
-                            className="rounded"
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium">الصورة</label>
-                          <input
-                            type="checkbox"
-                            checked={visibleColumns.photo}
-                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, photo: e.target.checked }))}
+                            checked={visibleColumns.studentPhoto}
+                            onChange={(e) => setVisibleColumns((prev) => ({ ...prev, studentPhoto: e.target.checked }))}
                             className="rounded"
                           />
                         </div>
@@ -1136,15 +1059,17 @@ export default function StudentsDataPage() {
                           onClick={() =>
                             setVisibleColumns({
                               index: true,
-                              registrationNumber: true,
+                              nationalId: true,
                               fullName: true,
-                              status: true,
+                              studentStatus: true,
                               academicYear: true,
-                              stage: true,
-                              section: true,
-                              studySystem: true,
-                              gender: true,
-                              photo: true,
+                              studyLevel: true,
+                              specialization: true,
+                              studyMode: true,
+                              enrollmentStatus: true,
+                              guardianName: true,
+                              studentPhone: true,
+                              studentPhoto: true,
                               actions: true,
                             })
                           }
@@ -1157,15 +1082,17 @@ export default function StudentsDataPage() {
                           onClick={() =>
                             setVisibleColumns({
                               index: false,
-                              registrationNumber: false,
+                              nationalId: false,
                               fullName: false,
-                              status: false,
+                              studentStatus: false,
                               academicYear: false,
-                              stage: false,
-                              section: false,
-                              studySystem: false,
-                              gender: false,
-                              photo: false,
+                              studyLevel: false,
+                              specialization: false,
+                              studyMode: false,
+                              enrollmentStatus: false,
+                              guardianName: false,
+                              studentPhone: false,
+                              studentPhoto: false,
                               actions: false,
                             })
                           }
@@ -1237,10 +1164,10 @@ export default function StudentsDataPage() {
                 <TableHeader className="bg-gradient-to-r from-lamaSky/5 to-lamaYellow/5 sticky top-0 z-10">
                   <TableRow>
                     {visibleColumns.index && <TableHead className="text-right font-semibold">#</TableHead>}
-                    {visibleColumns.registrationNumber && (
+                    {visibleColumns.nationalId && (
                       <TableHead
                         className="cursor-pointer hover:bg-gray-50 text-right font-semibold"
-                        onClick={() => handleSort("registrationNumber")}
+                        onClick={() => handleSort("nationalId")}
                       >
                         رقم القيد
                       </TableHead>
@@ -1253,19 +1180,18 @@ export default function StudentsDataPage() {
                         الاسم الرباعي
                       </TableHead>
                     )}
-                    {visibleColumns.status && <TableHead className="text-right font-semibold">حالة الطالب</TableHead>}
+                    {visibleColumns.studentStatus && <TableHead className="text-right font-semibold">حالة الطالب</TableHead>}
                     {visibleColumns.academicYear && (
                       <TableHead className="text-right font-semibold">العام الدراسي</TableHead>
                     )}
-                    {visibleColumns.stage && (
+                    {visibleColumns.studyLevel && (
                       <TableHead className="text-right font-semibold">المرحلة الدراسية</TableHead>
                     )}
-                    {visibleColumns.section && <TableHead className="text-right font-semibold">الشعبة</TableHead>}
-                    {visibleColumns.studySystem && (
+                    {visibleColumns.specialization && <TableHead className="text-right font-semibold">التخصص</TableHead>}
+                    {visibleColumns.studyMode && (
                       <TableHead className="text-right font-semibold">نظام الدراسة</TableHead>
                     )}
-                    {visibleColumns.gender && <TableHead className="text-right font-semibold">الجنس</TableHead>}
-                    {visibleColumns.photo && <TableHead className="text-center font-semibold">الصورة</TableHead>}
+                    {visibleColumns.studentPhoto && <TableHead className="text-center font-semibold">صورة الطالب</TableHead>}
                     {visibleColumns.actions && <TableHead className="text-center font-semibold">الإجراءات</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -1278,29 +1204,28 @@ export default function StudentsDataPage() {
                       {visibleColumns.index && (
                         <TableCell className="text-right font-medium">{((pagination.currentPage - 1) * pagination.itemsPerPage) + index + 1}</TableCell>
                       )}
-                      {visibleColumns.registrationNumber && (
-                        <TableCell className="font-medium text-right">{student.registrationNumber}</TableCell>
+                      {visibleColumns.nationalId && (
+                        <TableCell className="font-medium text-right">{student.nationalId}</TableCell>
                       )}
                       {visibleColumns.fullName && <TableCell className="text-right">{student.fullName}</TableCell>}
-                      {visibleColumns.status && (
+                      {visibleColumns.studentStatus && (
                         <TableCell className="text-right">
-                          <Badge className={statusColors[student.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200"}>{student.status}</Badge>
+                          <Badge className={statusColors[student.studentStatus as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200"}>{student.studentStatus}</Badge>
                         </TableCell>
                       )}
                       {visibleColumns.academicYear && (
                         <TableCell className="text-right">{student.academicYear}</TableCell>
                       )}
-                      {visibleColumns.stage && <TableCell className="text-right">{student.stage}</TableCell>}
-                      {visibleColumns.section && <TableCell className="text-right">{student.section}</TableCell>}
-                      {visibleColumns.studySystem && (
-                        <TableCell className="text-right">{student.studySystem}</TableCell>
+                      {visibleColumns.studyLevel && <TableCell className="text-right">{student.studyLevel}</TableCell>}
+                      {visibleColumns.specialization && <TableCell className="text-right">{student.specialization}</TableCell>}
+                      {visibleColumns.studyMode && (
+                        <TableCell className="text-right">{student.studyMode}</TableCell>
                       )}
-                      {visibleColumns.gender && <TableCell className="text-right">{student.gender}</TableCell>}
-                      {visibleColumns.photo && (
+                      {visibleColumns.studentPhoto && (
                         <TableCell className="text-center">
                           <Avatar className="h-10 w-10 mx-auto">
-                            {student.photo ? (
-                              <AvatarImage src={student.photo || "/placeholder.svg"} alt={student.fullName} />
+                            {student.studentPhoto ? (
+                              <AvatarImage src={student.studentPhoto || "/placeholder.svg"} alt={student.fullName} />
                             ) : (
                               <AvatarFallback className="bg-lamaYellow text-white font-bold">
                                 {student.fullName.split(" ")[0][0]}
@@ -1332,9 +1257,9 @@ export default function StudentsDataPage() {
                                     <div className="flex items-center gap-6 text-right">
                                       <div className="relative">
                                         <Avatar className="h-20 w-20 border-4 border-lamaSky shadow-lg">
-                                          {student.photo ? (
+                                          {student.studentPhoto ? (
                                             <AvatarImage
-                                              src={student.photo || "/placeholder.svg"}
+                                              src={student.studentPhoto || "/placeholder.svg"}
                                               alt={student.fullName}
                                             />
                                           ) : (
@@ -1348,9 +1273,9 @@ export default function StudentsDataPage() {
                                         <h3 className="text-2xl font-bold text-lamaYellow mb-1">{student.fullName}</h3>
                                         <div className="flex items-center gap-4 text-sm text-gray-600">
                                           <span className="bg-lamaSkyLight px-3 py-1 rounded-full">
-                                            رقم القيد: {student.registrationNumber}
+                                            رقم القيد: {student.nationalId}
                                           </span>
-                                          <Badge className={statusColors[student.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200"}>{student.status}</Badge>
+                                          <Badge className={statusColors[student.studentStatus as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200"}>{student.studentStatus}</Badge>
                                           <span className="bg-lamaYellowLight px-3 py-1 rounded-full">
                                             {student.academicYear}
                                           </span>
@@ -1421,7 +1346,7 @@ export default function StudentsDataPage() {
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
                                               <p className="font-medium font-mono text-right">
-                                                {student.registrationNumber}
+                                                {student.nationalId}
                                               </p>
                                             </div>
                                           </div>
@@ -1438,7 +1363,7 @@ export default function StudentsDataPage() {
                                               تاريخ الميلاد
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
-                                              <p className="font-medium text-right">{student.birthDate}</p>
+                                              <p className="font-medium text-right">{student.birthday}</p>
                                             </div>
                                           </div>
                                           <div className="space-y-2 text-right">
@@ -1451,10 +1376,12 @@ export default function StudentsDataPage() {
                                           </div>
                                           <div className="space-y-2 text-right">
                                             <label className="text-sm font-semibold text-lamaYellow block text-right">
-                                              الجنس
+                                              صفة القيد
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
-                                              <p className="font-medium text-right">{student.gender}</p>
+                                              <p className="font-medium text-right">
+                                                {enrollmentStatusTranslations[student.enrollmentStatus as keyof typeof enrollmentStatusTranslations] || student.enrollmentStatus || "غير محدد"}
+                                              </p>
                                             </div>
                                           </div>
                                           <div className="space-y-2 text-right">
@@ -1462,7 +1389,7 @@ export default function StudentsDataPage() {
                                               مكان الميلاد
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
-                                              <p className="font-medium text-right">{student.birthPlace}</p>
+                                              <p className="font-medium text-right">{student.placeOfBirth}</p>
                                             </div>
                                           </div>
                                           <div className="space-y-2 text-right">
@@ -1471,7 +1398,7 @@ export default function StudentsDataPage() {
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
                                               <p className="font-medium font-mono text-right">
-                                                {student.phone || "غير محدد"}
+                                                {student.studentPhone || "غير محدد"}
                                               </p>
                                             </div>
                                           </div>
@@ -1510,7 +1437,7 @@ export default function StudentsDataPage() {
                                               صلة القرابة
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
-                                              <p className="font-medium text-right">{student.guardianRelation}</p>
+                                              <p className="font-medium text-right">{student.relationship}</p>
                                             </div>
                                           </div>
                                           <div className="space-y-2 text-right">
@@ -1529,7 +1456,7 @@ export default function StudentsDataPage() {
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
                                               <p className="font-medium text-right">
-                                                {student.emergencyContact || "غير محدد"}
+                                                {student.emergencyContactName || "غير محدد"}
                                               </p>
                                             </div>
                                           </div>
@@ -1539,7 +1466,7 @@ export default function StudentsDataPage() {
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
                                               <p className="font-medium font-mono text-right">
-                                                {student.emergencyPhone || "غير محدد"}
+                                                {student.emergencyContactPhone || "غير محدد"}
                                               </p>
                                             </div>
                                           </div>
@@ -1549,7 +1476,7 @@ export default function StudentsDataPage() {
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
                                               <p className="font-medium text-right">
-                                                {student.emergencyAddress || "غير محدد"}
+                                                {student.emergencyContactAddress || "غير محدد"}
                                               </p>
                                             </div>
                                           </div>
@@ -1570,10 +1497,10 @@ export default function StudentsDataPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" dir="rtl">
                                           <div className="space-y-2 text-right">
                                             <label className="text-sm font-semibold text-lamaYellow block text-right">
-                                              الفرع الأكاديمي
+                                              الشعبة
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
-                                              <p className="font-medium text-right">{student.branch}</p>
+                                              <p className="font-medium text-right">{student.specialization || "غير محدد"}</p>
                                             </div>
                                           </div>
                                           <div className="space-y-2 text-right">
@@ -1589,7 +1516,7 @@ export default function StudentsDataPage() {
                                               المرحلة الدراسية
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
-                                              <p className="font-medium text-right">{student.stage}</p>
+                                              <p className="font-medium text-right">{student.studyLevel}</p>
                                             </div>
                                           </div>
                                           <div className="space-y-2 text-right">
@@ -1597,7 +1524,7 @@ export default function StudentsDataPage() {
                                               الشعبة
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-center">
-                                              <p className="font-medium text-xl">{student.section}</p>
+                                              <p className="font-medium text-xl">{student.specialization}</p>
                                             </div>
                                           </div>
                                           <div className="space-y-2 text-right">
@@ -1607,11 +1534,11 @@ export default function StudentsDataPage() {
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
                                               <Badge
                                                 className={
-                                                  statusColors[student.registrationStatus as keyof typeof statusColors] ||
+                                                  statusColors[student.enrollmentStatus as keyof typeof statusColors] ||
                                                   "bg-gray-100 text-gray-800 border-gray-200"
                                                 }
                                               >
-                                                {student.registrationStatus}
+                                                {student.enrollmentStatus}
                                               </Badge>
                                             </div>
                                           </div>
@@ -1620,7 +1547,7 @@ export default function StudentsDataPage() {
                                               نظام الدراسة
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
-                                              <p className="font-medium text-right">{student.studySystem}</p>
+                                              <p className="font-medium text-right">{student.studyMode}</p>
                                             </div>
                                           </div>
                                           <div className="space-y-2 text-right">
@@ -1628,7 +1555,7 @@ export default function StudentsDataPage() {
                                               تاريخ التسجيل
                                             </label>
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
-                                              <p className="font-medium text-right">{student.registrationDate}</p>
+                                              <p className="font-medium text-right">{student.createdAt}</p>
                                             </div>
                                           </div>
                                           <div className="space-y-2 text-right">
@@ -1673,7 +1600,7 @@ export default function StudentsDataPage() {
                                             <div className="p-3 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
                                               <div className="flex items-center gap-2 justify-end">
                                                 <p className="font-medium text-right">
-                                                  {student.healthStatus || "غير محدد"}
+                                                  {student.healthCondition || "غير محدد"}
                                                 </p>
                                                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                                               </div>
@@ -1840,7 +1767,7 @@ export default function StudentsDataPage() {
                                     </Card>
                                   </TabsContent>
 
-                                  {student.skills && (
+                                  {student.notes && (
                                     <TabsContent value="skills" className="space-y-8 mt-6" dir="rtl">
                                       <Card className="bg-white border-lamaSky/20">
                                         <CardHeader className="bg-lamaSky/5">
@@ -1851,7 +1778,7 @@ export default function StudentsDataPage() {
                                         </CardHeader>
                                         <CardContent className="pt-6" dir="rtl">
                                           <div className="p-4 bg-lamaPurpleLight rounded-lg border border-lamaSky/20 text-right">
-                                            <p className="font-medium leading-relaxed text-right">{student.skills}</p>
+                                            <p className="font-medium leading-relaxed text-right">{student.notes}</p>
                                           </div>
                                         </CardContent>
                                       </Card>
@@ -1884,9 +1811,9 @@ export default function StudentsDataPage() {
                                     <div className="flex items-center gap-6 text-right">
                                       <div className="relative">
                                         <Avatar className="h-20 w-20 border-4 border-lamaSky shadow-lg">
-                                          {editFormData.photo ? (
+                                          {editFormData.studentPhoto ? (
                                             <AvatarImage
-                                              src={editFormData.photo || "/placeholder.svg"}
+                                              src={editFormData.studentPhoto || "/placeholder.svg"}
                                               alt={editFormData.fullName}
                                             />
                                           ) : (
@@ -1900,10 +1827,10 @@ export default function StudentsDataPage() {
                                         <h3 className="text-2xl font-bold text-lamaYellow mb-1">تعديل بيانات الطالب</h3>
                                         <div className="flex items-center gap-4 text-sm text-gray-600">
                                           <span className="bg-lamaSkyLight px-3 py-1 rounded-full">
-                                            رقم القيد: {editFormData.registrationNumber}
+                                            رقم القيد: {editFormData.nationalId}
                                           </span>
-                                          <Badge className={statusColors[editFormData.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200"}>
-                                            {editFormData.status}
+                                          <Badge className={statusColors[editFormData.studentStatus as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200"}>
+                                            {editFormData.studentStatus}
                                           </Badge>
                                         </div>
                                       </div>
@@ -1983,8 +1910,8 @@ export default function StudentsDataPage() {
                                               رقم القيد *
                                             </label>
                                             <Input
-                                              value={editFormData.registrationNumber || ""}
-                                              onChange={(e) => handleInputChange("registrationNumber", e.target.value)}
+                                              value={editFormData.nationalId || ""}
+                                              onChange={(e) => handleInputChange("nationalId", e.target.value)}
                                               className="text-right border-lamaSky/30 focus:border-lamaYellow font-mono"
                                               placeholder="أدخل رقم القيد"
                                             />
@@ -2008,8 +1935,8 @@ export default function StudentsDataPage() {
                                             </label>
                                             <Input
                                               type="date"
-                                              value={editFormData.birthDate || ""}
-                                              onChange={(e) => handleInputChange("birthDate", e.target.value)}
+                                              value={editFormData.birthday || ""}
+                                              onChange={(e) => handleInputChange("birthday", e.target.value)}
                                               className="text-right border-lamaSky/30 focus:border-lamaYellow"
                                             />
                                           </div>
@@ -2038,32 +1965,15 @@ export default function StudentsDataPage() {
                                             </Select>
                                           </div>
 
-                                          <div className="space-y-2 text-right">
-                                            <label className="text-sm font-semibold text-lamaYellow block text-right">
-                                              الجنس *
-                                            </label>
-                                            <Select
-                                              value={editFormData.gender || ""}
-                                              onValueChange={(value) => handleInputChange("gender", value)}
-                                              dir="rtl"
-                                            >
-                                              <SelectTrigger className="text-right border-lamaSky/30 focus:border-lamaYellow">
-                                                <SelectValue placeholder="اختر الجنس" />
-                                              </SelectTrigger>
-                                              <SelectContent align="end" side="bottom">
-                                                <SelectItem value="ذكر">ذكر</SelectItem>
-                                                <SelectItem value="أنثى">أنثى</SelectItem>
-                                              </SelectContent>
-                                            </Select>
-                                          </div>
+                                          {/* حذف حقل الجنس لأنه غير موجود في السكيما الجديدة */}
 
                                           <div className="space-y-2 text-right">
                                             <label className="text-sm font-semibold text-lamaYellow block text-right">
                                               مكان الميلاد
                                             </label>
                                             <Input
-                                              value={editFormData.birthPlace || ""}
-                                              onChange={(e) => handleInputChange("birthPlace", e.target.value)}
+                                              value={editFormData.placeOfBirth || ""}
+                                              onChange={(e) => handleInputChange("placeOfBirth", e.target.value)}
                                               className="text-right border-lamaSky/30 focus:border-lamaYellow"
                                               placeholder="أدخل مكان الميلاد"
                                             />
@@ -2074,8 +1984,8 @@ export default function StudentsDataPage() {
                                               رقم الهاتف
                                             </label>
                                             <Input
-                                              value={editFormData.phone || ""}
-                                              onChange={(e) => handleInputChange("phone", e.target.value)}
+                                              value={editFormData.studentPhone || ""}
+                                              onChange={(e) => handleInputChange("studentPhone", e.target.value)}
                                               className="text-right border-lamaSky/30 focus:border-lamaYellow font-mono"
                                               placeholder="أدخل رقم الهاتف"
                                             />
@@ -2107,17 +2017,7 @@ export default function StudentsDataPage() {
                                       </CardHeader>
                                       <CardContent className="pt-6" dir="rtl">
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" dir="rtl">
-                                          <div className="space-y-2 text-right">
-                                            <label className="text-sm font-semibold text-lamaYellow block text-right">
-                                              الفرع الأكاديمي *
-                                            </label>
-                                            <Input
-                                              value={editFormData.branch || ""}
-                                              onChange={(e) => handleInputChange("branch", e.target.value)}
-                                              className="text-right border-lamaSky/30 focus:border-lamaYellow"
-                                              placeholder="أدخل الفرع الأكاديمي"
-                                            />
-                                          </div>
+                                          {/* حذف حقل الفرع الأكاديمي لأنه غير موجود في السكيما الجديدة */}
 
                                           <div className="space-y-2 text-right">
                                             <label className="text-sm font-semibold text-lamaYellow block text-right">
@@ -2145,22 +2045,18 @@ export default function StudentsDataPage() {
                                               المرحلة الدراسية *
                                             </label>
                                             <Select
-                                              value={editFormData.stage || ""}
-                                              onValueChange={(value) => handleInputChange("stage", value)}
+                                              value={editFormData.studyLevel || ""}
+                                              onValueChange={(value) => handleInputChange("studyLevel", value)}
                                               dir="rtl"
                                             >
                                               <SelectTrigger className="text-right border-lamaSky/30 focus:border-lamaYellow">
                                                 <SelectValue placeholder="اختر المرحلة" />
                                               </SelectTrigger>
                                               <SelectContent align="end" side="bottom">
-                                                <SelectItem value="الأولى">المرحلة الأولى</SelectItem>
-                                                <SelectItem value="الثانية">المرحلة الثانية</SelectItem>
-                                                <SelectItem value="الثالثة">المرحلة الثالثة</SelectItem>
-                                                <SelectItem value="الرابعة">المرحلة الرابعة</SelectItem>
-                                                <SelectItem value="السنة الأولى">السنة الأولى</SelectItem>
-                                                <SelectItem value="السنة الثانية">السنة الثانية</SelectItem>
-                                                <SelectItem value="السنة الثالثة">السنة الثالثة</SelectItem>
-                                                <SelectItem value="السنة الرابعة">السنة الرابعة</SelectItem>
+                                                <SelectItem value="FIRST_YEAR">السنة الأولى</SelectItem>
+                                                <SelectItem value="SECOND_YEAR">السنة الثانية</SelectItem>
+                                                <SelectItem value="THIRD_YEAR">السنة الثالثة</SelectItem>
+                                                <SelectItem value="GRADUATION">سنة التخرج</SelectItem>
                                               </SelectContent>
                                             </Select>
                                           </div>
@@ -2170,8 +2066,8 @@ export default function StudentsDataPage() {
                                               الشعبة
                                             </label>
                                             <Input
-                                              value={editFormData.section || ""}
-                                              onChange={(e) => handleInputChange("section", e.target.value)}
+                                              value={editFormData.specialization || ""}
+                                              onChange={(e) => handleInputChange("specialization", e.target.value)}
                                               className="text-right border-lamaSky/30 focus:border-lamaYellow text-center"
                                               placeholder="أدخل الشعبة"
                                             />
@@ -2182,20 +2078,20 @@ export default function StudentsDataPage() {
                                               حالة الطالب *
                                             </label>
                                             <Select
-                                              value={editFormData.status || ""}
-                                              onValueChange={(value) => handleInputChange("status", value)}
+                                              value={editFormData.studentStatus || ""}
+                                              onValueChange={(value) => handleInputChange("studentStatus", value)}
                                               dir="rtl"
                                             >
                                               <SelectTrigger className="text-right border-lamaSky/30 focus:border-lamaYellow">
                                                 <SelectValue placeholder="اختر الحالة" />
                                               </SelectTrigger>
                                               <SelectContent align="end" side="bottom">
-                                                <SelectItem value="مستمر">مستمر</SelectItem>
-                                                <SelectItem value="مستجد">مستجد</SelectItem>
-                                                <SelectItem value="منقول">منقول</SelectItem>
-                                                <SelectItem value="منسحب">منسحب</SelectItem>
-                                                <SelectItem value="مفصول">مفصول</SelectItem>
-                                                <SelectItem value="متخرج">متخرج</SelectItem>
+                                                <SelectItem value="ACTIVE">نشط</SelectItem>
+                                                <SelectItem value="SUSPENDED">معلق</SelectItem>
+                                                <SelectItem value="DROPPED">منسحب</SelectItem>
+                                                <SelectItem value="EXPELLED">مطرود</SelectItem>
+                                                <SelectItem value="PAUSED">متوقف مؤقتاً</SelectItem>
+                                                <SelectItem value="GRADUATED">متخرج</SelectItem>
                                               </SelectContent>
                                             </Select>
                                           </div>
@@ -2205,18 +2101,17 @@ export default function StudentsDataPage() {
                                               نظام الدراسة *
                                             </label>
                                             <Select
-                                              value={editFormData.studySystem || ""}
-                                              onValueChange={(value) => handleInputChange("studySystem", value)}
+                                              value={editFormData.studyMode || ""}
+                                              onValueChange={(value) => handleInputChange("studyMode", value)}
                                               dir="rtl"
                                             >
                                               <SelectTrigger className="text-right border-lamaSky/30 focus:border-lamaYellow">
                                                 <SelectValue placeholder="اختر نظام الدراسة" />
                                               </SelectTrigger>
                                               <SelectContent align="end" side="bottom">
-                                                <SelectItem value="نظامي">نظامي</SelectItem>
-                                                <SelectItem value="مسائي">مسائي</SelectItem>
-                                                <SelectItem value="منتسب">منتسب</SelectItem>
-                                                <SelectItem value="عن بعد">عن بعد</SelectItem>
+                                                <SelectItem value="REGULAR">نظامي</SelectItem>
+                                                <SelectItem value="DISTANCE">عن بعد</SelectItem>
+
                                               </SelectContent>
                                             </Select>
                                           </div>
@@ -2226,8 +2121,8 @@ export default function StudentsDataPage() {
                                               صفة القيد
                                             </label>
                                             <Select
-                                              value={editFormData.registrationStatus || ""}
-                                              onValueChange={(value) => handleInputChange("registrationStatus", value)}
+                                              value={editFormData.enrollmentStatus || ""}
+                                              onValueChange={(value) => handleInputChange("enrollmentStatus", value)}
                                               dir="rtl"
                                             >
                                               <SelectTrigger className="text-right border-lamaSky/30 focus:border-lamaYellow">
@@ -2250,8 +2145,8 @@ export default function StudentsDataPage() {
                                             </label>
                                             <Input
                                               type="date"
-                                              value={editFormData.registrationDate || ""}
-                                              onChange={(e) => handleInputChange("registrationDate", e.target.value)}
+                                              value={editFormData.createdAt || ""}
+                                              onChange={(e) => handleInputChange("createdAt", e.target.value)}
                                               className="text-right border-lamaSky/30 focus:border-lamaYellow"
                                             />
                                           </div>
@@ -2299,8 +2194,8 @@ export default function StudentsDataPage() {
                                               الحالة الصحية العامة
                                             </label>
                                             <Select
-                                              value={editFormData.healthStatus || ""}
-                                              onValueChange={(value) => handleInputChange("healthStatus", value)}
+                                              value={editFormData.healthCondition || ""}
+                                              onValueChange={(value) => handleInputChange("healthCondition", value)}
                                               dir="rtl"
                                             >
                                               <SelectTrigger className="text-right border-lamaSky/30 focus:border-lamaYellow">
@@ -2357,8 +2252,8 @@ export default function StudentsDataPage() {
                                               ملاحظات صحية إضافية
                                             </label>
                                             <textarea
-                                              value={editFormData.skills || ""}
-                                              onChange={(e) => handleInputChange("skills", e.target.value)}
+                                              value={editFormData.notes || ""}
+                                              onChange={(e) => handleInputChange("notes", e.target.value)}
                                               className="w-full p-3 text-right border border-lamaSky/30 focus:border-lamaYellow rounded-md resize-none"
                                               rows={4}
                                               placeholder="أدخل أي ملاحظات أو مهارات خاصة بالطالب..."
@@ -2396,8 +2291,8 @@ export default function StudentsDataPage() {
                                               صلة القرابة *
                                             </label>
                                             <Select
-                                              value={editFormData.guardianRelation || ""}
-                                              onValueChange={(value) => handleInputChange("guardianRelation", value)}
+                                              value={editFormData.relationship || ""}
+                                              onValueChange={(value) => handleInputChange("relationship", value)}
                                             >
                                               <SelectTrigger className="text-right border-lamaSky/30 focus:border-lamaYellow">
                                                 <SelectValue placeholder="اختر صلة القرابة" />
@@ -2437,8 +2332,8 @@ export default function StudentsDataPage() {
                                               جهة الاتصال للطوارئ
                                             </label>
                                             <Input
-                                              value={editFormData.emergencyContact || ""}
-                                              onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
+                                              value={editFormData.emergencyContactName || ""}
+                                              onChange={(e) => handleInputChange("emergencyContactName", e.target.value)}
                                               className="text-right border-lamaSky/30 focus:border-lamaYellow"
                                               placeholder="أدخل اسم جهة الاتصال للطوارئ"
                                             />
@@ -2449,8 +2344,8 @@ export default function StudentsDataPage() {
                                               هاتف الطوارئ
                                             </label>
                                             <Input
-                                              value={editFormData.emergencyPhone || ""}
-                                              onChange={(e) => handleInputChange("emergencyPhone", e.target.value)}
+                                              value={editFormData.emergencyContactPhone || ""}
+                                              onChange={(e) => handleInputChange("emergencyContactPhone", e.target.value)}
                                               className="text-right border-lamaSky/30 focus:border-lamaYellow font-mono"
                                               placeholder="أدخل رقم هاتف الطوارئ"
                                             />
@@ -2461,8 +2356,8 @@ export default function StudentsDataPage() {
                                               عنوان الطوارئ
                                             </label>
                                             <Input
-                                              value={editFormData.emergencyAddress || ""}
-                                              onChange={(e) => handleInputChange("emergencyAddress", e.target.value)}
+                                              value={editFormData.emergencyContactAddress || ""}
+                                              onChange={(e) => handleInputChange("emergencyContactAddress", e.target.value)}
                                               className="text-right border-lamaSky/30 focus:border-lamaYellow"
                                               placeholder="أدخل عنوان الطوارئ"
                                             />
@@ -2507,7 +2402,7 @@ export default function StudentsDataPage() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-right">تأكيد الحذف</AlertDialogTitle>
                                   <AlertDialogDescription className="text-right">
-                                    هل أنت متأكد من حذف بيانات الطالب "{student.fullName}"؟
+                                    هل أنت متأكد من حذف بيانات الطالب &quot;{student.fullName}&quot;؟
                                     <br />
                                     لا يمكن التراجع عن هذا الإجراء.
                                   </AlertDialogDescription>

@@ -2,6 +2,7 @@
 
 import {
   deleteClass,
+  deleteEvent,
   deleteExam,
   deleteStudent,
   deleteSubject,
@@ -21,13 +22,13 @@ const deleteActionMap = {
   teacher: deleteTeacher,
   student: deleteStudent,
   exam: deleteExam,
+  event: deleteEvent,
   // TODO: باقي إجراءات الحذف
   parent: deleteSubject,
   lesson: deleteSubject,
   assignment: deleteSubject,
   result: deleteSubject,
   attendance: deleteSubject,
-  event: deleteSubject,
   announcement: deleteSubject,
 };
 
@@ -47,7 +48,9 @@ const ClassForm = dynamic(() => import("./forms/ClassForm"), {
 const ExamForm = dynamic(() => import("./forms/ExamForm"), {
   loading: () => <h1>جاري التحميل...</h1>,
 });
-// TODO: باقي النماذج
+const EventForm = dynamic(() => import("./forms/EventForm"), {
+  loading: () => <h1>جاري التحميل...</h1>,
+});
 
 const forms: {
   [key: string]: (
@@ -96,7 +99,14 @@ const forms: {
       setOpen={setOpen}
       relatedData={relatedData}
     />
-    // TODO: باقي النماذج
+  ),
+  event: (setOpen, type, data, relatedData) => (
+    <EventForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
   ),
 };
 
@@ -112,8 +122,8 @@ const FormModal = ({
     type === "create"
       ? "bg-lamaYellow"
       : type === "update"
-      ? "bg-lamaSky"
-      : "bg-lamaPurple";
+        ? "bg-lamaSky"
+        : "bg-lamaPurple";
 
   const [open, setOpen] = useState(false);
 
@@ -159,8 +169,8 @@ const FormModal = ({
           type === "create"
             ? `إضافة ${table}`
             : type === "update"
-            ? `تعديل ${table}`
-            : `حذف ${table}`
+              ? `تعديل ${table}`
+              : `حذف ${table}`
         }
       >
         <Image src={`/${type}.png`} alt="" width={16} height={16} />

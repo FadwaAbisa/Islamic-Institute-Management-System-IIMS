@@ -67,10 +67,12 @@
     direction: rtl;
   }
 }
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -244,4 +246,121 @@
 /* تحسينات لحقول الملفات */
 input[type="file"] {
   @apply file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-lamaSkyLight file:text-lamaYellow hover:file:bg-lamaSky hover:file:text-white file:transition-all file:duration-300 file:cursor-pointer;
+}
+
+/* Custom lama colors for ads management */
+:root {
+  --lama-sky: #d2b48c;
+  --lama-sky-light: #f0e6d6;
+  --lama-purple: #f7f3ee;
+  --lama-purple-light: #fcfaf8;
+  --lama-yellow: #b8956a;
+  --lama-yellow-light: #e2d5c7;
+  --lama-black: #2c2c2c;
+  --lama-dark-gray: #404040;
+  --lama-light-gray: #f5f5f5;
+}
+
+.bg-lama-sky {
+  background-color: var(--lama-sky);
+}
+
+.bg-lama-sky-light {
+  background-color: var(--lama-sky-light);
+}
+
+.bg-lama-purple {
+  background-color: var(--lama-purple);
+}
+
+.bg-lama-purple-light {
+  background-color: var(--lama-purple-light);
+}
+
+.bg-lama-yellow {
+  background-color: var(--lama-yellow);
+}
+
+.bg-lama-yellow-light {
+  background-color: var(--lama-yellow-light);
+}
+
+.text-lama-sky {
+  color: var(--lama-sky);
+}
+
+.text-lama-sky-light {
+  color: var(--lama-sky-light);
+}
+
+.text-lama-purple {
+  color: var(--lama-purple);
+}
+
+.text-lama-purple-light {
+  color: var(--lama-purple-light);
+}
+
+.text-lama-yellow {
+  color: var(--lama-yellow);
+}
+
+.text-lama-yellow-light {
+  color: var(--lama-yellow-light);
+}
+
+.border-lama-sky {
+  border-color: var(--lama-sky);
+}
+
+.border-lama-sky-light {
+  border-color: var(--lama-sky-light);
+}
+
+.border-lama-purple {
+  border-color: var(--lama-purple);
+}
+
+.border-lama-purple-light {
+  border-color: var(--lama-purple-light);
+}
+
+.border-lama-yellow {
+  border-color: var(--lama-yellow);
+}
+
+.border-lama-yellow-light {
+  border-color: var(--lama-yellow-light);
+}
+
+.bg-lama-black {
+  background-color: var(--lama-black);
+}
+
+.bg-lama-dark-gray {
+  background-color: var(--lama-dark-gray);
+}
+
+.bg-lama-light-gray {
+  background-color: var(--lama-light-gray);
+}
+
+.text-lama-black {
+  color: var(--lama-black);
+}
+
+.text-lama-dark-gray {
+  color: var(--lama-dark-gray);
+}
+
+.text-lama-light-gray {
+  color: var(--lama-light-gray);
+}
+
+.border-lama-black {
+  border-color: var(--lama-black);
+}
+
+.border-lama-dark-gray {
+  border-color: var(--lama-dark-gray);
 }

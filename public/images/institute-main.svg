@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" style="background: linear-gradient(135deg, #D2B48C 0%, #F0E6D6 50%, #E2D5C7 100%);">
+  <!-- Sky -->
+  <rect width="800" height="300" fill="url(#skyGradient)"/>
+  
+  <!-- Clouds -->
+  <ellipse cx="150" cy="80" rx="40" ry="25" fill="rgba(255,255,255,0.8)"/>
+  <ellipse cx="170" cy="85" rx="35" ry="20" fill="rgba(255,255,255,0.8)"/>
+  <ellipse cx="600" cy="60" rx="50" ry="30" fill="rgba(255,255,255,0.7)"/>
+  
+  <!-- Main Building -->
+  <rect x="200" y="200" width="400" height="300" fill="#F7F3EE" stroke="#D2B48C" stroke-width="3"/>
+  
+  <!-- Roof -->
+  <polygon points="150,200 400,120 650,200" fill="#B8956A"/>
+  
+  <!-- Dome -->
+  <ellipse cx="400" cy="150" rx="80" ry="50" fill="#D2B48C"/>
+  <ellipse cx="400" cy="150" rx="60" ry="35" fill="#F0E6D6"/>
+  
+  <!-- Minaret -->
+  <rect x="120" y="100" width="40" height="200" fill="#F7F3EE" stroke="#D2B48C" stroke-width="2"/>
+  <ellipse cx="140" cy="100" rx="25" ry="15" fill="#B8956A"/>
+  
+  <!-- Main Entrance -->
+  <rect x="350" y="350" width="100" height="150" fill="#E2D5C7"/>
+  <path d="M350 350 Q400 320 450 350 L450 500 L350 500 Z" fill="#D2B48C"/>
+  
+  <!-- Windows -->
+  <rect x="230" y="250" width="60" height="80" fill="#87CEEB" stroke="#B8956A" stroke-width="2"/>
+  <rect x="510" y="250" width="60" height="80" fill="#87CEEB" stroke="#B8956A" stroke-width="2"/>
+  <rect x="230" y="380" width="60" height="80" fill="#87CEEB" stroke="#B8956A" stroke-width="2"/>
+  <rect x="510" y="380" width="60" height="80" fill="#87CEEB" stroke="#B8956A" stroke-width="2"/>
+  
+  <!-- Islamic Calligraphy -->
+  <text x="400" y="280" text-anchor="middle" fill="#B8956A" font-family="serif" font-size="24" font-weight="bold">المعهد المتوسط</text>
+  <text x="400" y="310" text-anchor="middle" fill="#B8956A" font-family="serif" font-size="20">للدراسات الإسلامية</text>
+  
+  <!-- Trees -->
+  <ellipse cx="100" cy="450" rx="60" ry="80" fill="#228B22"/>
+  <rect x="90" y="480" width="20" height="40" fill="#8B4513"/>
+  
+  <ellipse cx="700" cy="430" rx="50" ry="70" fill="#228B22"/>
+  <rect x="690" y="450" width="20" height="50" fill="#8B4513"/>
+  
+  <!-- Ground -->
+  <rect x="0" y="500" width="800" height="100" fill="#DEB887"/>
+  
+  <!-- Decorative Islamic Pattern -->
+  <circle cx="400" cy="400" r="30" fill="none" stroke="#B8956A" stroke-width="2"/>
+  <circle cx="400" cy="400" r="20" fill="none" stroke="#D2B48C" stroke-width="1"/>
+  <circle cx="400" cy="400" r="10" fill="#B8956A"/>
+  
+  <defs>
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

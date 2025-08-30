@@ -1,200 +1,92 @@
-import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { protectApiRoute } from "@/lib/routeGuard";
+import { hasPermission } from "@/lib/permissions";
+import { auth } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    
-    // استخراج البيانات من الطلب
-    const {
-      // البيانات الشخصية (مطلوبة)
-      fullName,
-      nationalId,
-      gender,
-      birthDate,
-      birthPlace,
-      nationality,
-      address,
-      phoneNumber,
-      
-      // البيانات الأكاديمية (اختيارية)
-      academicYear,
-      academicLevel,
-      branch,
-      studySystem,
-      enrollmentStatus,
-      studentStatus,
-      
-      // البيانات الإضافية (اختيارية)
-      guardianName,
-      relationship,
-      guardianPhone,
-      previousSchool,
-      previousLevel,
-      healthCondition,
-      chronicDiseases,
-      allergies,
-      specialNeeds,
-      emergencyContactName,
-      emergencyContactPhone,
-      emergencyContactAddress,
-      notes
-    } = body
-
-    // التحقق من البيانات المطلوبة
-    if (!fullName || !nationalId || !gender || !birthDate || !birthPlace || !nationality || !address || !phoneNumber) {
-      return NextResponse.json(
-        { error: 'جميع البيانات الشخصية مطلوبة' },
-        { status: 400 }
-      )
-    }
-
-    // التحقق من عدم تكرار رقم الهوية
-    const existingStudent = await prisma.student.findUnique({
-      where: { nationalId }
-    })
-
-    if (existingStudent) {
-      return NextResponse.json(
-        { error: 'رقم الهوية موجود مسبقاً في النظام' },
-        { status: 409 }
-      )
-    }
-
-    // تحويل القيم إلى الأنواع المطلوبة في Prisma
-    const genderEnum = gender === 'male' ? 'MALE' : 'FEMALE'
-    const birthPlaceEnum = getBirthPlaceEnum(birthPlace)
-    const nationalityEnum = getNationalityEnum(nationality)
-    const branchEnum = getBranchEnum(branch)
-    const studySystemEnum = getStudySystemEnum(studySystem)
-    const enrollmentStatusEnum = getEnrollmentStatusEnum(enrollmentStatus)
-    const studentStatusEnum = getStudentStatusEnum(studentStatus)
-
-    // إنشاء الطالب الجديد في قاعدة البيانات
-    const newStudent = await prisma.student.create({
-      data: {
-        // البيانات الشخصية (مطلوبة)
-        fullName,
-        nationalId,
-        sex: genderEnum,
-        birthday: new Date(birthDate),
-        placeOfBirth: birthPlaceEnum,
-        nationality: nationalityEnum,
-        address,
-        studentPhone: phoneNumber,
-        
-        // البيانات الأكاديمية (اختيارية)
-        ...(academicYear && { academicYear }),
-        ...(academicLevel && { studyLevel: academicLevel }),
-        ...(branchEnum && { specialization: branchEnum }),
-        ...(studySystemEnum && { studyMode: studySystemEnum }),
-        ...(enrollmentStatusEnum && { enrollmentStatus: enrollmentStatusEnum }),
-        ...(studentStatusEnum && { studentStatus: studentStatusEnum }),
-        
-        // البيانات الإضافية (اختيارية)
-        guardianName: guardianName || null,
-        relationship: relationship || null,
-        guardianPhone: guardianPhone || null,
-        previousSchool: previousSchool || null,
-        previousLevel: previousLevel || null,
-        healthCondition: healthCondition || null,
-        chronicDiseases: chronicDiseases || null,
-        allergies: allergies || null,
-        specialNeeds: specialNeeds || null,
-        emergencyContactName: emergencyContactName || null,
-        emergencyContactPhone: emergencyContactPhone || null,
-        emergencyContactAddress: emergencyContactAddress || null,
-        notes: notes || null
-      }
-    })
-
-    return NextResponse.json(
-      { 
-        message: 'تم إضافة الطالب بنجاح',
-        student: newStudent
-      },
-      { status: 201 }
-    )
-
-  } catch (error) {
-    console.error('خطأ في إضافة الطالب:', error)
-    return NextResponse.json(
-      { error: 'حدث خطأ في الخادم أثناء إضافة الطالب' },
-      { status: 500 }
-    )
-  }
-}
-
+// جلب الطلاب
 export async function GET(request: NextRequest) {
   try {
+    const { userId, sessionClaims } = auth()
+    if (!userId) {
+      return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
-    
-    // استخراج معاملات البحث والتصفية
-    const search = searchParams.get('search') || ''
-    const academicYear = searchParams.get('academicYear') || ''
-    const stage = searchParams.get('stage') || ''
-    const gender = searchParams.get('gender') || ''
-    const status = searchParams.get('status') || ''
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const sortBy = searchParams.get('sortBy') || 'fullName'
-    const sortOrder = searchParams.get('sortOrder') || 'asc'
-    
-    // بناء شروط البحث
-    const where: any = {}
-    
+
+    // استخراج جميع معاملات الفلترة
+    const search = searchParams.get("search")
+    const academicYear = searchParams.get("academicYear")
+    const studyLevel = searchParams.get("studyLevel")
+    const studentStatus = searchParams.get("studentStatus")
+    const enrollmentStatus = searchParams.get("enrollmentStatus")
+    const studyMode = searchParams.get("studyMode")
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "10")
+    const sortBy = searchParams.get("sortBy") || "fullName"
+    const sortOrder = searchParams.get("sortOrder") || "asc"
+
+    // بناء where clause
+    let whereClause: any = {}
+
+    // فلترة البحث
     if (search) {
-      where.OR = [
-        { fullName: { contains: search, mode: 'insensitive' } },
-        { nationalId: { contains: search, mode: 'insensitive' } },
+      whereClause.OR = [
+        { fullName: { contains: search } },
+        { nationalId: { contains: search } },
+        { guardianName: { contains: search } }
       ]
     }
-    
-    if (academicYear && academicYear !== 'الكل') {
-      where.academicYear = academicYear
+
+    // فلترة السنة الدراسية
+    if (academicYear && academicYear !== "all") {
+      whereClause.academicYear = academicYear
     }
-    
-    if (stage && stage !== 'الكل') {
-      where.studyLevel = stage
+
+    // فلترة المستوى الدراسي
+    if (studyLevel && studyLevel !== "all") {
+      whereClause.studyLevel = studyLevel
     }
-    
-    if (gender && gender !== 'الكل') {
-      where.sex = gender === 'ذكر' ? 'MALE' : 'FEMALE'
+
+    // فلترة حالة الطالب
+    if (studentStatus && studentStatus !== "all") {
+      whereClause.studentStatus = studentStatus
     }
-    
-    if (status && status !== 'الكل') {
-      where.studentStatus = status
+
+    // فلترة حالة التسجيل
+    if (enrollmentStatus && enrollmentStatus !== "all") {
+      whereClause.enrollmentStatus = enrollmentStatus
     }
-    
-    // حساب الإزاحة
+
+    // فلترة نوع الدراسة
+    if (studyMode && studyMode !== "all") {
+      whereClause.studyMode = studyMode
+    }
+
+    // حساب الإزاحة للصفحات
     const skip = (page - 1) * limit
-    
-    // جلب الطلاب مع الصفحات
-    const [students, total] = await Promise.all([
+
+    // جلب البيانات مع الفلترة والترتيب
+    const [students, totalCount] = await Promise.all([
       prisma.student.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: {
-          [sortBy]: sortOrder as 'asc' | 'desc'
-        },
+        where: whereClause,
         select: {
           id: true,
           fullName: true,
           nationalId: true,
-          sex: true,
+          guardianName: true,
+          studentPhone: true,
           birthday: true,
           placeOfBirth: true,
-          nationality: true,
           address: true,
-          studentPhone: true,
+          nationality: true,
           academicYear: true,
           studyLevel: true,
           specialization: true,
           studyMode: true,
           enrollmentStatus: true,
           studentStatus: true,
-          guardianName: true,
           relationship: true,
           guardianPhone: true,
           previousSchool: true,
@@ -208,110 +100,189 @@ export async function GET(request: NextRequest) {
           emergencyContactAddress: true,
           notes: true,
           studentPhoto: true,
-          createdAt: true,
-        }
+          nationalIdCopy: true,
+          birthCertificate: true,
+          educationForm: true,
+          equivalencyDocument: true,
+          otherDocuments: true,
+          createdAt: true
+        },
+        orderBy: {
+          [sortBy]: sortOrder as 'asc' | 'desc'
+        },
+        skip,
+        take: limit
       }),
-      prisma.student.count({ where })
+      prisma.student.count({ where: whereClause })
     ])
-    
-    // تحويل البيانات لتتناسب مع الواجهة
-    const formattedStudents = students.map((student, index) => ({
-      id: student.id,
-      registrationNumber: (skip + index + 1).toString().padStart(6, '0'),
-      fullName: student.fullName,
-      status: student.studentStatus || 'مستمر',
-      academicYear: student.academicYear || 'غير محدد',
-      stage: student.studyLevel || 'غير محدد',
-      section: student.specialization || 'غير محدد',
-      studySystem: student.studyMode === 'REGULAR' ? 'نظامي' : student.studyMode === 'DISTANCE' ? 'انتساب' : 'غير محدد',
-      gender: student.sex === 'MALE' ? 'ذكر' : 'أنثى',
-      photo: student.studentPhoto,
-      nationalId: student.nationalId,
-      birthDate: student.birthday ? student.birthday.toISOString().split('T')[0] : '',
-      nationality: student.nationality,
-      birthPlace: student.placeOfBirth,
-      phone: student.studentPhone || '',
-      address: student.address,
-      guardianName: student.guardianName || '',
-      guardianRelation: student.relationship || '',
-      guardianPhone: student.guardianPhone || '',
-      emergencyContact: student.emergencyContactName || '',
-      emergencyPhone: student.emergencyContactPhone || '',
-      emergencyAddress: student.emergencyContactAddress || '',
-      branch: student.specialization || '',
-      registrationDate: student.createdAt ? student.createdAt.toISOString().split('T')[0] : '',
-      registrationStatus: student.enrollmentStatus === 'NEW' ? 'مستجد' : student.enrollmentStatus === 'REPEATER' ? 'معيد' : 'غير محدد',
-      previousLevel: student.previousLevel || '',
-      previousSchool: student.previousSchool || '',
-      healthStatus: student.healthCondition || '',
-      chronicDiseases: student.chronicDiseases || '',
-      allergies: student.allergies || '',
-      specialNeeds: student.specialNeeds || '',
-      skills: student.notes || '',
-    }))
-    
+
+    // حساب معلومات الصفحات
+    const totalPages = Math.ceil(totalCount / limit)
+
     return NextResponse.json({
-      students: formattedStudents,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(total / limit),
-        totalItems: total,
-        itemsPerPage: limit
-      }
+      students,
+      currentPage: page,
+      totalPages,
+      totalItems: totalCount,
+      itemsPerPage: limit
     })
-    
+
   } catch (error) {
-    console.error('خطأ في جلب الطلاب:', error)
+    console.error("خطأ في جلب الطلاب:", error)
     return NextResponse.json(
-      { error: 'حدث خطأ في الخادم أثناء جلب الطلاب' },
+      { error: "خطأ في جلب البيانات" },
       { status: 500 }
     )
   }
 }
 
-// دوال مساعدة لتحويل القيم إلى Enums
-function getBirthPlaceEnum(birthPlace: string) {
-  // إرجاع القيمة كما هي لأن placeOfBirth في schema هو String وليس Enum
-  return birthPlace
-}
+export async function POST(request: NextRequest) {
+  try {
+    // التحقق من تسجيل الدخول
+    const { userId, sessionClaims } = await auth();
 
-function getNationalityEnum(nationality: string) {
-  // إرجاع القيمة كما هي لأن nationality في schema هو String وليس Enum
-  return nationality
-}
+    if (!userId) {
+      return NextResponse.json(
+        { error: "يجب تسجيل الدخول لإضافة طالب جديد" },
+        { status: 401 }
+      );
+    }
 
-function getBranchEnum(branch: string | undefined) {
-  if (!branch) return null
-  // إرجاع القيمة كما هي لأن specialization في schema هو String وليس Enum
-  return branch
-}
+    // الحصول على الدور من Clerk API مباشرة
+    let userRole: string | undefined;
+    try {
+      const { clerkClient } = await import('@clerk/nextjs/server');
+      const user = await clerkClient.users.getUser(userId);
+      userRole = (user.publicMetadata as { role?: string })?.role;
+      console.log('=== DEBUG STUDENTS API ===');
+      console.log('User ID:', userId);
+      console.log('Role from Clerk API:', userRole);
+    } catch (apiError) {
+      console.log('Could not get user from Clerk API:', apiError);
+      // Fallback to session claims
+      userRole = (sessionClaims?.publicMetadata as { role?: string })?.role;
+      console.log('Role from session claims:', userRole);
+    }
 
-function getStudySystemEnum(studySystem: string | undefined) {
-  if (!studySystem) return null
-  switch (studySystem) {
-    case 'regular': return 'REGULAR'
-    case 'correspondence': return 'DISTANCE'
-    default: return null
-  }
-}
+    // التحقق من الدور
+    if (!userRole) {
+      return NextResponse.json(
+        { error: "لم يتم تحديد دور المستخدم" },
+        { status: 403 }
+      );
+    }
 
-function getEnrollmentStatusEnum(enrollmentStatus: string | undefined) {
-  if (!enrollmentStatus) return null
-  switch (enrollmentStatus) {
-    case 'new': return 'NEW'
-    case 'repeat': return 'REPEATER'
-    default: return null
-  }
-}
+    // التحقق من الأدوار المسموحة
+    if (!['admin', 'staff'].includes(userRole)) {
+      return NextResponse.json(
+        { error: "لا تملك صلاحية لإضافة طلاب جدد" },
+        { status: 403 }
+      );
+    }
 
-function getStudentStatusEnum(studentStatus: string | undefined) {
-  if (!studentStatus) return null
-  switch (studentStatus) {
-    case 'continuing': return 'ACTIVE'
-    case 'dropped': return 'DROPPED'
-    case 'suspended': return 'SUSPENDED'
-    case 'expelled': return 'EXPELLED'
-    case 'enrollment-suspended': return 'PAUSED'
-    default: return null
+    if (!hasPermission(userRole as any, 'manage_students')) {
+      return NextResponse.json(
+        { error: "لا تملك صلاحية لإضافة طلاب جدد" },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+
+    // التحقق من البيانات المطلوبة الأساسية
+    if (!body.fullName || !body.nationalId) {
+      return NextResponse.json(
+        { error: "الاسم الرباعي والرقم الوطني مطلوبان" },
+        { status: 400 }
+      );
+    }
+
+    // التحقق من عدم وجود طالب بنفس الرقم الوطني
+    const existingStudent = await prisma.student.findUnique({
+      where: { nationalId: body.nationalId }
+    });
+
+    if (existingStudent) {
+      return NextResponse.json(
+        {
+          error: "يوجد طالب بنفس الرقم الوطني مسبقاً",
+          details: {
+            existingStudentId: existingStudent.id,
+            existingStudentName: existingStudent.fullName,
+            nationalId: existingStudent.nationalId
+          }
+        },
+        { status: 409 }
+      );
+    }
+
+    // فحص إضافي للتأكد من عدم وجود طالب بنفس الاسم الكامل (اختياري)
+    if (body.fullName) {
+      const existingStudentByName = await prisma.student.findFirst({
+        where: {
+          fullName: body.fullName,
+          nationalId: { not: body.nationalId } // استثناء الطالب الحالي
+        }
+      });
+
+      if (existingStudentByName) {
+        console.log(`تحذير: يوجد طالب بنفس الاسم: ${body.fullName} (ID: ${existingStudentByName.id})`);
+        // لا نمنع الإضافة، فقط نرسل تحذير
+      }
+    }
+
+    // إنشاء الطالب مع البيانات المتوفرة في السكيما
+    const newStudent = await prisma.student.create({
+      data: {
+        fullName: body.fullName,
+        nationalId: body.nationalId,
+        birthday: body.birthDate ? new Date(body.birthDate) : new Date(),
+        placeOfBirth: body.birthPlace || '',
+        address: body.address || '',
+        nationality: body.nationality || '',
+        studentPhone: body.studentPhone || null,
+        academicYear: body.academicYear || null,
+        studyLevel: body.studyLevel || null,
+        specialization: body.specialization || null,
+        studyMode: body.studyMode || null,
+        enrollmentStatus: body.enrollmentStatus || null,
+        studentStatus: body.studentStatus || null,
+        guardianName: body.guardianName || null,
+        relationship: body.relationship || null,
+        guardianPhone: body.guardianPhone || null,
+        previousSchool: body.previousSchool || null,
+        previousLevel: body.previousLevel || null,
+        healthCondition: body.healthCondition || null,
+        chronicDiseases: body.chronicDiseases || null,
+        allergies: body.allergies || null,
+        specialNeeds: body.specialNeeds || null,
+        emergencyContactName: body.emergencyContactName || null,
+        emergencyContactPhone: body.emergencyContactPhone || null,
+        emergencyContactAddress: body.emergencyContactAddress || null,
+        notes: body.notes || null,
+        // حقول المستندات (تخزين كمسارات أو URLs)
+        studentPhoto: null,
+        nationalIdCopy: null,
+        birthCertificate: null,
+        educationForm: null,
+        equivalencyDocument: null,
+        otherDocuments: Prisma.JsonNull
+      } as any
+    });
+
+    return NextResponse.json(
+      {
+        message: "تم إضافة الطالب بنجاح",
+        student: newStudent
+      },
+      { status: 201 }
+    );
+
+  } catch (error) {
+    console.error("خطأ في إضافة الطالب:", error);
+    return NextResponse.json(
+      { error: "خطأ في إضافة الطالب" },
+      { status: 500 }
+    );
   }
 }

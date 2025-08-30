@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" style="background: linear-gradient(135deg, #F7F3EE 0%, #E2D5C7 50%, #D2B48C 100%);">
+  <!-- Graduation Hall -->
+  <rect x="0" y="0" width="800" height="600" fill="url(#hallGradient)"/>
+  
+  <!-- Stage -->
+  <rect x="100" y="400" width="600" height="100" fill="#8B4513"/>
+  <rect x="100" y="390" width="600" height="20" fill="#D2B48C"/>
+  
+  <!-- Backdrop -->
+  <rect x="150" y="200" width="500" height="200" fill="#2C3E50"/>
+  <rect x="160" y="210" width="480" height="180" fill="#34495E"/>
+  
+  <!-- Banner -->
+  <text x="400" y="250" text-anchor="middle" fill="#FFD700" font-family="serif" font-size="32" font-weight="bold">حفل التخرج</text>
+  <text x="400" y="285" text-anchor="middle" fill="#ECF0F1" font-family="serif" font-size="24">المعهد المتوسط للدراسات الإسلامية</text>
+  <text x="400" y="320" text-anchor="middle" fill="#ECF0F1" font-family="serif" font-size="18">الدفعة الخامسة والعشرون</text>
+  <text x="400" y="350" text-anchor="middle" fill="#ECF0F1" font-family="serif" font-size="16">1446 هـ - 2025 م</text>
+  
+  <!-- Graduates on stage -->
+  <!-- Graduate 1 -->
+  <circle cx="250" cy="360" r="15" fill="#FDBCB4"/>
+  <rect x="240" y="375" width="20" height="35" fill="#000"/>
+  <rect x="235" y="370" width="30" height="8" fill="#FFD700"/>
+  
+  <!-- Graduate 2 -->
+  <circle cx="300" cy="360" r="15" fill="#FDBCB4"/>
+  <rect x="290" y="375" width="20" height="35" fill="#000"/>
+  <rect x="285" y="370" width="30" height="8" fill="#FFD700"/>
+  
+  <!-- Graduate 3 -->
+  <circle cx="350" cy="360" r="15" fill="#FDBCB4"/>
+  <rect x="340" y="375" width="20" height="35" fill="#000"/>
+  <rect x="335" y="370" width="30" height="8" fill="#FFD700"/>
+  
+  <!-- Graduate 4 -->
+  <circle cx="450" cy="360" r="15" fill="#FDBCB4"/>
+  <rect x="440" y="375" width="20" height="35" fill="#000"/>
+  <rect x="435" y="370" width="30" height="8" fill="#FFD700"/>
+  
+  <!-- Graduate 5 -->
+  <circle cx="500" cy="360" r="15" fill="#FDBCB4"/>
+  <rect x="490" y="375" width="20" height="35" fill="#000"/>
+  <rect x="485" y="370" width="30" height="8" fill="#FFD700"/>
+  
+  <!-- Graduate 6 -->
+  <circle cx="550" cy="360" r="15" fill="#FDBCB4"/>
+  <rect x="540" y="375" width="20" height="35" fill="#000"/>
+  <rect x="535" y="370" width="30" height="8" fill="#FFD700"/>
+  
+  <!-- Graduation caps -->
+  <rect x="240" y="340" width="20" height="4" fill="#000"/>
+  <rect x="235" y="340" width="30" height="2" fill="#000"/>
+  <rect x="290" y="340" width="20" height="4" fill="#000"/>
+  <rect x="285" y="340" width="30" height="2" fill="#000"/>
+  <rect x="340" y="340" width="20" height="4" fill="#000"/>
+  <rect x="335" y="340" width="30" height="2" fill="#000"/>
+  <rect x="440" y="340" width="20" height="4" fill="#000"/>
+  <rect x="435" y="340" width="30" height="2" fill="#000"/>
+  <rect x="490" y="340" width="20" height="4" fill="#000"/>
+  <rect x="485" y="340" width="30" height="2" fill="#000"/>
+  <rect x="540" y="340" width="20" height="4" fill="#000"/>
+  <rect x="535" y="340" width="30" height="2" fill="#000"/>
+  
+  <!-- Dean/Principal -->
+  <circle cx="400" cy="340" r="18" fill="#FDBCB4"/>
+  <rect x="385" y="358" width="30" height="40" fill="#8B4513"/>
+  <rect x="380" y="355" width="40" height="10" fill="#FFD700"/>
+  
+  <!-- Audience (simplified) -->
+  <!-- Front row -->
+  <circle cx="50" cy="480" r="8" fill="#FDBCB4"/>
+  <circle cx="80" cy="480" r="8" fill="#FDBCB4"/>
+  <circle cx="110" cy="480" r="8" fill="#FDBCB4"/>
+  <circle cx="140" cy="480" r="8" fill="#FDBCB4"/>
+  <circle cx="170" cy="480" r="8" fill="#FDBCB4"/>
+  
+  <!-- Middle rows -->
+  <circle cx="50" cy="460" r="8" fill="#FDBCB4"/>
+  <circle cx="80" cy="460" r="8" fill="#FDBCB4"/>
+  <circle cx="110" cy="460" r="8" fill="#FDBCB4"/>
+  <circle cx="140" cy="460" r="8" fill="#FDBCB4"/>
+  <circle cx="170" cy="460" r="8" fill="#FDBCB4"/>
+  
+  <!-- Right side audience -->
+  <circle cx="630" cy="480" r="8" fill="#FDBCB4"/>
+  <circle cx="660" cy="480" r="8" fill="#FDBCB4"/>
+  <circle cx="690" cy="480" r="8" fill="#FDBCB4"/>
+  <circle cx="720" cy="480" r="8" fill="#FDBCB4"/>
+  <circle cx="750" cy="480" r="8" fill="#FDBCB4"/>
+  
+  <!-- Confetti -->
+  <circle cx="200" cy="100" r="3" fill="#FFD700"/>
+  <circle cx="250" cy="80" r="3" fill="#FF69B4"/>
+  <circle cx="300" cy="120" r="3" fill="#00FF00"/>
+  <circle cx="350" cy="90" r="3" fill="#FFD700"/>
+  <circle cx="400" cy="110" r="3" fill="#FF69B4"/>
+  <circle cx="450" cy="85" r="3" fill="#00FF00"/>
+  <circle cx="500" cy="105" r="3" fill="#FFD700"/>
+  <circle cx="550" cy="95" r="3" fill="#FF69B4"/>
+  <circle cx="600" cy="115" r="3" fill="#00FF00"/>
+  
+  <!-- Balloons -->
+  <ellipse cx="100" cy="150" rx="15" ry="20" fill="#FF0000"/>
+  <line x1="100" y1="170" x2="100" y2="200" stroke="#000" stroke-width="1"/>
+  
+  <ellipse cx="700" cy="130" rx="15" ry="20" fill="#0000FF"/>
+  <line x1="700" y1="150" x2="700" y2="180" stroke="#000" stroke-width="1"/>
+  
+  <ellipse cx="120" cy="140" rx="15" ry="20" fill="#FFFF00"/>
+  <line x1="120" y1="160" x2="120" y2="190" stroke="#000" stroke-width="1"/>
+  
+  <!-- Islamic decorations -->
+  <circle cx="750" cy="250" r="30" fill="none" stroke="#B8956A" stroke-width="3"/>
+  <circle cx="750" cy="250" r="20" fill="none" stroke="#D2B48C" stroke-width="2"/>
+  <circle cx="750" cy="250" r="10" fill="#B8956A"/>
+  <text x="750" y="255" text-anchor="middle" fill="white" font-size="12">✦</text>
+  
+  <circle cx="50" cy="250" r="30" fill="none" stroke="#B8956A" stroke-width="3"/>
+  <circle cx="50" cy="250" r="20" fill="none" stroke="#D2B48C" stroke-width="2"/>
+  <circle cx="50" cy="250" r="10" fill="#B8956A"/>
+  <text x="50" y="255" text-anchor="middle" fill="white" font-size="12">✦</text>
+  
+  <!-- Podium -->
+  <rect x="380" y="380" width="40" height="20" fill="#8B4513"/>
+  <rect x="375" y="375" width="50" height="8" fill="#D2B48C"/>
+  
+  <!-- Diplomas -->
+  <rect x="320" y="385" width="15" height="20" fill="#FFF"/>
+  <rect x="340" y="385" width="15" height="20" fill="#FFF"/>
+  <rect x="460" y="385" width="15" height="20" fill="#FFF"/>
+  <rect x="480" y="385" width="15" height="20" fill="#FFF"/>
+  
+  <defs>
+    <linearGradient id="hallGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F7F3EE;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#E2D5C7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D2B48C;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

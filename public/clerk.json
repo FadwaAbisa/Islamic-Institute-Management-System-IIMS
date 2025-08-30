@@ -1,0 +1,37 @@
+{
+  "locale": "ar-SA",
+  "signIn": {
+    "start": {
+      "title": "تسجيل الدخول",
+      "subtitle": "مرحباً بك في نظام إدارة المعهد الإسلامي"
+    }
+  },
+  "formFieldLabel": {
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "email": "البريد الإلكتروني"
+  },
+  "formFieldPlaceholder": {
+    "username": "أدخل اسم المستخدم",
+    "password": "أدخل كلمة المرور",
+    "email": "أدخل البريد الإلكتروني"
+  },
+  "formButtonPrimary": {
+    "username": "متابعة",
+    "password": "تسجيل الدخول",
+    "firstFactor": "تسجيل الدخول",
+    "secondFactor": "تأكيد",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "signUp": "إنشاء حساب"
+  },
+  "footerActionLink": {
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "forgotPassword": "نسيت كلمة المرور؟"
+  },
+  "dividerText": "أو",
+  "socialButtonsBlockButton": {
+    "google": "تسجيل الدخول بـ Google",
+    "github": "تسجيل الدخول بـ GitHub"
+  }
+}

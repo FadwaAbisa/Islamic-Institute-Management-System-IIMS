@@ -8,30 +8,23 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { CheckCircle, AlertCircle, User, GraduationCap, FileText, Upload, Sparkles } from "lucide-react"
+import { CheckCircle, AlertCircle, User, GraduationCap, FileText, Sparkles } from "lucide-react"
 import Link from "next/link"
 
-interface PersonalData {
+interface StudentData {
   fullName: string
   nationalId: string
-  gender: string
   birthDate: string
   birthPlace: string
   nationality: string
   address: string
-  phoneNumber: string
-}
-
-interface AcademicData {
+  studentPhone: string
   academicYear: string
-  academicLevel: string
-  branch: string
-  studySystem: string
+  studyLevel: string
+  specialization: string
+  studyMode: string
   enrollmentStatus: string
   studentStatus: string
-}
-
-interface AdditionalData {
   guardianName: string
   relationship: string
   guardianPhone: string
@@ -47,43 +40,26 @@ interface AdditionalData {
   notes: string
 }
 
-interface DocumentData {
-  studentPhoto: File | null
-  nationalIdCopy: File | null
-  birthCertificate: File | null
-  educationForm: File | null
-  equivalencyDocument: File | null
-  otherDocuments: File[]
-}
-
 export default function AddStudentPage() {
   const [currentStep, setCurrentStep] = useState(1)
-  const [showValidationDialog, setShowValidationDialog] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
 
-  const [personalData, setPersonalData] = useState<PersonalData>({
+  const [studentData, setStudentData] = useState<StudentData>({
     fullName: "",
     nationalId: "",
-    gender: "",
     birthDate: "",
     birthPlace: "",
     nationality: "",
     address: "",
-    phoneNumber: "",
-  })
-
-  const [academicData, setAcademicData] = useState<AcademicData>({
+    studentPhone: "",
     academicYear: "",
-    academicLevel: "",
-    branch: "",
-    studySystem: "",
+    studyLevel: "",
+    specialization: "",
+    studyMode: "",
     enrollmentStatus: "",
     studentStatus: "",
-  })
-
-  const [additionalData, setAdditionalData] = useState<AdditionalData>({
     guardianName: "",
     relationship: "",
     guardianPhone: "",
@@ -96,184 +72,112 @@ export default function AddStudentPage() {
     emergencyContactName: "",
     emergencyContactPhone: "",
     emergencyContactAddress: "",
-    notes: "",
+    notes: ""
   })
 
-  const [documentData, setDocumentData] = useState<DocumentData>({
-    studentPhoto: null,
-    nationalIdCopy: null,
-    birthCertificate: null,
-    educationForm: null,
-    equivalencyDocument: null,
-    otherDocuments: [],
-  })
-
-  const validatePersonalData = () => {
-    return Object.values(personalData).every((value) => value.trim() !== "")
+  const handleInputChange = (field: keyof StudentData, value: string) => {
+    setStudentData(prev => ({ ...prev, [field]: value }))
   }
 
-  const validateAcademicData = () => {
-    // جعل البيانات الأكاديمية غير إجبارية
-    return true
-  }
-
-  const validateAdditionalData = () => {
-    // جعل البيانات الإضافية غير إجبارية
-    return true
-  }
-
-  const validateDocuments = () => {
-    // جعل المستندات غير إجبارية
-    return true
-  }
-
-  const handleSubmitStudent = async () => {
-    setIsSubmitting(true)
-    setSubmitError("")
-
-    try {
-      const studentData = {
-        // البيانات الشخصية
-        ...personalData,
-        
-        // البيانات الأكاديمية
-        ...academicData,
-        
-        // البيانات الإضافية
-        ...additionalData
-      }
-
-      const response = await fetch('/api/students', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(studentData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'حدث خطأ أثناء إضافة الطالب')
-      }
-
-      const result = await response.json()
-      console.log('تم إضافة الطالب بنجاح:', result)
-      
-      // إعادة تعيين البيانات
-      setPersonalData({
-        fullName: "",
-        nationalId: "",
-        gender: "",
-        birthDate: "",
-        birthPlace: "",
-        nationality: "",
-        address: "",
-        phoneNumber: "",
-      })
-      setAcademicData({
-        academicYear: "",
-        academicLevel: "",
-        branch: "",
-        studySystem: "",
-        enrollmentStatus: "",
-        studentStatus: "",
-      })
-      setAdditionalData({
-        guardianName: "",
-        relationship: "",
-        guardianPhone: "",
-        previousSchool: "",
-        previousLevel: "",
-        healthCondition: "",
-        chronicDiseases: "",
-        allergies: "",
-        specialNeeds: "",
-        emergencyContactName: "",
-        emergencyContactPhone: "",
-        emergencyContactAddress: "",
-        notes: "",
-      })
-      setDocumentData({
-        studentPhoto: null,
-        nationalIdCopy: null,
-        birthCertificate: null,
-        educationForm: null,
-        equivalencyDocument: null,
-        otherDocuments: [],
-      })
-      
-      setCurrentStep(1)
-      setShowSuccessDialog(true)
-
-    } catch (error) {
-      console.error('خطأ في إرسال البيانات:', error)
-      setSubmitError(error instanceof Error ? error.message : 'حدث خطأ غير متوقع')
-    } finally {
-      setIsSubmitting(false)
+  const validateStep = (step: number) => {
+    switch (step) {
+      case 1:
+        return studentData.fullName && studentData.nationalId && studentData.birthDate && studentData.address
+      case 2:
+        return true // البيانات الأكاديمية اختيارية
+      case 3:
+        return true // البيانات الإضافية اختيارية
+      default:
+        return true
     }
   }
 
   const handleNext = () => {
-    let isValid = false
-
-    switch (currentStep) {
-      case 1:
-        isValid = validatePersonalData()
-        break
-      case 2:
-        isValid = validateAcademicData()
-        break
-      case 3:
-        isValid = validateAdditionalData()
-        break
-      case 4:
-        isValid = validateDocuments()
-        break
-    }
-
-    if (isValid) {
-      if (currentStep === 4) {
-        handleSubmitStudent()
+    if (validateStep(currentStep)) {
+      if (currentStep === 3) {
+        handleSubmit()
       } else {
         setCurrentStep(currentStep + 1)
       }
     } else {
-      setShowValidationDialog(true)
+      setSubmitError("الرجاء تعبئة جميع الحقول المطلوبة")
     }
   }
 
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
+      setSubmitError("")
     }
   }
 
-  const handleFileChange = (field: keyof DocumentData, file: File | null) => {
-    setDocumentData((prev) => ({
-      ...prev,
-      [field]: file,
-    }))
+  const handleSubmit = async () => {
+    setIsSubmitting(true)
+    setSubmitError("")
+
+    try {
+      console.log("إرسال البيانات:", studentData)
+
+      const response = await fetch('/api/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(studentData),
+      })
+
+      console.log("استجابة الخادم:", response.status, response.statusText)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("خطأ من الخادم:", errorData)
+
+        // رسالة خطأ محسنة للطالب الموجود
+        if (response.status === 409 && errorData.details) {
+          const details = errorData.details
+          throw new Error(`يوجد طالب بنفس الرقم الوطني مسبقاً!\n\nالطالب الموجود:\nالاسم: ${details.existingStudentName}\nالرقم الوطني: ${details.nationalId}\n\nيرجى التحقق من البيانات أو استخدام رقم وطني مختلف.`)
+        }
+
+        throw new Error(errorData.error || 'حدث خطأ أثناء إضافة الطالب')
+      }
+
+      const result = await response.json()
+      console.log("نتيجة النجاح:", result)
+
+      setShowSuccessDialog(true)
+      setStudentData({
+        fullName: "", nationalId: "", birthDate: "", birthPlace: "", nationality: "",
+        address: "", studentPhone: "", academicYear: "", studyLevel: "", specialization: "",
+        studyMode: "", enrollmentStatus: "", studentStatus: "", guardianName: "", relationship: "",
+        guardianPhone: "", previousSchool: "", previousLevel: "", healthCondition: "",
+        chronicDiseases: "", allergies: "", specialNeeds: "", emergencyContactName: "",
+        emergencyContactPhone: "", emergencyContactAddress: "", notes: ""
+      })
+      setCurrentStep(1)
+
+    } catch (error) {
+      console.error("خطأ في الإرسال:", error)
+      setSubmitError(error instanceof Error ? error.message : 'حدث خطأ غير متوقع')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const renderStepIndicator = () => (
     <div className="flex justify-center items-center mb-12">
-      {[1, 2, 3, 4].map((step) => (
+      {[1, 2, 3].map((step) => (
         <div key={step} className="flex items-center">
           <div
-            className={`relative w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold shadow-xl transition-all duration-500 transform ${
-              step <= currentStep ? "bg-gradient-to-br from-lamaSky to-lamaYellow scale-110" : "bg-gray-300 scale-100"
-            }`}
+            className={`relative w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold shadow-xl transition-all duration-500 transform ${step <= currentStep ? "bg-gradient-to-br from-lamaSky to-lamaYellow scale-110" : "bg-gray-300 scale-100"
+              }`}
           >
             {step <= currentStep && (
               <div className="absolute inset-0 bg-gradient-to-br from-lamaSky to-lamaYellow rounded-2xl animate-pulse opacity-30"></div>
             )}
             <span className="relative z-10 text-lg">{step}</span>
           </div>
-          {step < 4 && (
+          {step < 3 && (
             <div
-              className={`w-24 h-2 mx-2 rounded-full transition-all duration-500 ${
-                step < currentStep ? "bg-gradient-to-r from-lamaSky to-lamaYellow" : "bg-gray-300"
-              }`}
+              className={`w-24 h-2 mx-2 rounded-full transition-all duration-500 ${step < currentStep ? "bg-gradient-to-r from-lamaSky to-lamaYellow" : "bg-gray-300"
+                }`}
             />
           )}
         </div>
@@ -302,8 +206,8 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="fullName"
-              value={personalData.fullName}
-              onChange={(e) => setPersonalData((prev) => ({ ...prev, fullName: e.target.value }))}
+              value={studentData.fullName}
+              onChange={(e) => handleInputChange('fullName', e.target.value)}
               placeholder="الاسم الكامل"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
@@ -314,8 +218,8 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="nationalId"
-              value={personalData.nationalId}
-              onChange={(e) => setPersonalData((prev) => ({ ...prev, nationalId: e.target.value }))}
+              value={studentData.nationalId}
+              onChange={(e) => handleInputChange('nationalId', e.target.value)}
               placeholder="رقم الهوية"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
@@ -324,31 +228,26 @@ export default function AddStudentPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <Label htmlFor="gender" className="text-lamaYellow font-semibold flex items-center gap-2">
-              الجنس <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={personalData.gender}
-              onValueChange={(value) => setPersonalData((prev) => ({ ...prev, gender: value }))}
-            >
-              <SelectTrigger className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80">
-                <SelectValue placeholder="اختر الجنس" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">ذكر</SelectItem>
-                <SelectItem value="female">أنثى</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-3">
             <Label htmlFor="birthDate" className="text-lamaYellow font-semibold flex items-center gap-2">
               تاريخ الميلاد <span className="text-red-500">*</span>
             </Label>
             <Input
               id="birthDate"
               type="date"
-              value={personalData.birthDate}
-              onChange={(e) => setPersonalData((prev) => ({ ...prev, birthDate: e.target.value }))}
+              value={studentData.birthDate}
+              onChange={(e) => handleInputChange('birthDate', e.target.value)}
+              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
+            />
+          </div>
+          <div className="space-y-3">
+            <Label htmlFor="birthPlace" className="text-lamaYellow font-semibold flex items-center gap-2">
+              مكان الميلاد <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="birthPlace"
+              value={studentData.birthPlace}
+              onChange={(e) => handleInputChange('birthPlace', e.target.value)}
+              placeholder="مكان الميلاد"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
           </div>
@@ -356,34 +255,10 @@ export default function AddStudentPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <Label htmlFor="birthPlace" className="text-lamaYellow font-semibold flex items-center gap-2">
-              مكان الميلاد <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={personalData.birthPlace}
-              onValueChange={(value) => setPersonalData((prev) => ({ ...prev, birthPlace: value }))}
-            >
-              <SelectTrigger className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80">
-                <SelectValue placeholder="اختر مكان الميلاد" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="riyadh">الرياض</SelectItem>
-                <SelectItem value="jeddah">جدة</SelectItem>
-                <SelectItem value="mecca">مكة المكرمة</SelectItem>
-                <SelectItem value="medina">المدينة المنورة</SelectItem>
-                <SelectItem value="dammam">الدمام</SelectItem>
-                <SelectItem value="other">أخرى</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-3">
             <Label htmlFor="nationality" className="text-lamaYellow font-semibold flex items-center gap-2">
               الجنسية <span className="text-red-500">*</span>
             </Label>
-            <Select
-              value={personalData.nationality}
-              onValueChange={(value) => setPersonalData((prev) => ({ ...prev, nationality: value }))}
-            >
+            <Select value={studentData.nationality} onValueChange={(value) => handleInputChange('nationality', value)}>
               <SelectTrigger className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80">
                 <SelectValue placeholder="اختر الجنسية" />
               </SelectTrigger>
@@ -396,6 +271,18 @@ export default function AddStudentPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-3">
+            <Label htmlFor="studentPhone" className="text-lamaYellow font-semibold flex items-center gap-2">
+              رقم هاتف الطالب <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="studentPhone"
+              value={studentData.studentPhone}
+              onChange={(e) => handleInputChange('studentPhone', e.target.value)}
+              placeholder="رقم الهاتف"
+              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
+            />
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -404,23 +291,10 @@ export default function AddStudentPage() {
           </Label>
           <Textarea
             id="address"
-            value={personalData.address}
-            onChange={(e) => setPersonalData((prev) => ({ ...prev, address: e.target.value }))}
+            value={studentData.address}
+            onChange={(e) => handleInputChange('address', e.target.value)}
             placeholder="العنوان الكامل"
             className="min-h-[100px] rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 resize-none"
-          />
-        </div>
-
-        <div className="space-y-3">
-          <Label htmlFor="phoneNumber" className="text-lamaYellow font-semibold flex items-center gap-2">
-            رقم هاتف الطالب <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="phoneNumber"
-            value={personalData.phoneNumber}
-            onChange={(e) => setPersonalData((prev) => ({ ...prev, phoneNumber: e.target.value }))}
-            placeholder="رقم الهاتف"
-            className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
           />
         </div>
       </CardContent>
@@ -444,28 +318,25 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="academicYear"
-              value={academicData.academicYear}
-              onChange={(e) => setAcademicData((prev) => ({ ...prev, academicYear: e.target.value }))}
+              value={studentData.academicYear}
+              onChange={(e) => handleInputChange('academicYear', e.target.value)}
               placeholder="2024-2025"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
           </div>
           <div className="space-y-3">
-            <Label htmlFor="academicLevel" className="text-lamaYellow font-semibold">
+            <Label htmlFor="studyLevel" className="text-lamaYellow font-semibold">
               المرحلة الدراسية
             </Label>
-            <Select
-              value={academicData.academicLevel}
-              onValueChange={(value) => setAcademicData((prev) => ({ ...prev, academicLevel: value }))}
-            >
+            <Select value={studentData.studyLevel} onValueChange={(value) => handleInputChange('studyLevel', value)}>
               <SelectTrigger className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80">
                 <SelectValue placeholder="اختر المرحلة" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="first">السنة الأولى</SelectItem>
-                <SelectItem value="second">السنة الثانية</SelectItem>
-                <SelectItem value="third">السنة الثالثة</SelectItem>
-                <SelectItem value="fourth">السنة الرابعة</SelectItem>
+                <SelectItem value="FIRST_YEAR">السنة الأولى</SelectItem>
+                <SelectItem value="SECOND_YEAR">السنة الثانية</SelectItem>
+                <SelectItem value="THIRD_YEAR">السنة الثالثة</SelectItem>
+                <SelectItem value="GRADUATION">سنة التخرج</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -473,36 +344,28 @@ export default function AddStudentPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <Label htmlFor="branch" className="text-lamaYellow font-semibold">
+            <Label htmlFor="specialization" className="text-lamaYellow font-semibold">
               الشعبة التخصصية
             </Label>
-            <Select
-              value={academicData.branch}
-              onValueChange={(value) => setAcademicData((prev) => ({ ...prev, branch: value }))}
-            >
-              <SelectTrigger className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80">
-                <SelectValue placeholder="اختر الشعبة" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="islamic-studies">الدراسات الإسلامية</SelectItem>
-                <SelectItem value="readings">القراءات</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="specialization"
+              value={studentData.specialization}
+              onChange={(e) => handleInputChange('specialization', e.target.value)}
+              placeholder="التخصص"
+              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
+            />
           </div>
           <div className="space-y-3">
-            <Label htmlFor="studySystem" className="text-lamaYellow font-semibold">
+            <Label htmlFor="studyMode" className="text-lamaYellow font-semibold">
               النظام الدراسي
             </Label>
-            <Select
-              value={academicData.studySystem}
-              onValueChange={(value) => setAcademicData((prev) => ({ ...prev, studySystem: value }))}
-            >
+            <Select value={studentData.studyMode} onValueChange={(value) => handleInputChange('studyMode', value)}>
               <SelectTrigger className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80">
                 <SelectValue placeholder="اختر النظام" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="regular">نظامي</SelectItem>
-                <SelectItem value="correspondence">انتساب</SelectItem>
+                <SelectItem value="REGULAR">نظامي</SelectItem>
+                <SelectItem value="DISTANCE">انتساب</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -513,16 +376,13 @@ export default function AddStudentPage() {
             <Label htmlFor="enrollmentStatus" className="text-lamaYellow font-semibold">
               صفة القيد
             </Label>
-            <Select
-              value={academicData.enrollmentStatus}
-              onValueChange={(value) => setAcademicData((prev) => ({ ...prev, enrollmentStatus: value }))}
-            >
+            <Select value={studentData.enrollmentStatus} onValueChange={(value) => handleInputChange('enrollmentStatus', value)}>
               <SelectTrigger className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80">
                 <SelectValue placeholder="اختر صفة القيد" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="new">مستجد</SelectItem>
-                <SelectItem value="repeat">معيد</SelectItem>
+                <SelectItem value="NEW">مستجد</SelectItem>
+                <SelectItem value="REPEATER">معيد</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -530,19 +390,16 @@ export default function AddStudentPage() {
             <Label htmlFor="studentStatus" className="text-lamaYellow font-semibold">
               حالة الطالب
             </Label>
-            <Select
-              value={academicData.studentStatus}
-              onValueChange={(value) => setAcademicData((prev) => ({ ...prev, studentStatus: value }))}
-            >
+            <Select value={studentData.studentStatus} onValueChange={(value) => handleInputChange('studentStatus', value)}>
               <SelectTrigger className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80">
                 <SelectValue placeholder="اختر الحالة" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="continuing">مستمر</SelectItem>
-                <SelectItem value="dropped">منقطع</SelectItem>
-                <SelectItem value="suspended">موقوف</SelectItem>
-                <SelectItem value="expelled">مطرود</SelectItem>
-                <SelectItem value="enrollment-suspended">إيقاف قيد</SelectItem>
+                <SelectItem value="ACTIVE">مستمر</SelectItem>
+                <SelectItem value="DROPPED">منقطع</SelectItem>
+                <SelectItem value="SUSPENDED">موقوف</SelectItem>
+                <SelectItem value="EXPELLED">مطرود</SelectItem>
+                <SelectItem value="PAUSED">إيقاف قيد</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -568,8 +425,8 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="guardianName"
-              value={additionalData.guardianName}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, guardianName: e.target.value }))}
+              value={studentData.guardianName}
+              onChange={(e) => handleInputChange('guardianName', e.target.value)}
               placeholder="اسم ولي الأمر"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
@@ -580,8 +437,8 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="relationship"
-              value={additionalData.relationship}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, relationship: e.target.value }))}
+              value={studentData.relationship}
+              onChange={(e) => handleInputChange('relationship', e.target.value)}
               placeholder="الأب، الأم، الأخ..."
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
@@ -592,8 +449,8 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="guardianPhone"
-              value={additionalData.guardianPhone}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, guardianPhone: e.target.value }))}
+              value={studentData.guardianPhone}
+              onChange={(e) => handleInputChange('guardianPhone', e.target.value)}
               placeholder="رقم هاتف ولي الأمر"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
@@ -607,8 +464,8 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="previousSchool"
-              value={additionalData.previousSchool}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, previousSchool: e.target.value }))}
+              value={studentData.previousSchool}
+              onChange={(e) => handleInputChange('previousSchool', e.target.value)}
               placeholder="اسم المدرسة السابقة"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
@@ -617,20 +474,13 @@ export default function AddStudentPage() {
             <Label htmlFor="previousLevel" className="text-lamaYellow font-semibold">
               المستوى الأكاديمي السابق
             </Label>
-            <Select
-              value={additionalData.previousLevel}
-              onValueChange={(value) => setAdditionalData((prev) => ({ ...prev, previousLevel: value }))}
-            >
-              <SelectTrigger className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80">
-                <SelectValue placeholder="اختر المستوى السابق" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="high-school">الثانوية العامة</SelectItem>
-                <SelectItem value="diploma">دبلوم</SelectItem>
-                <SelectItem value="bachelor">بكالوريوس</SelectItem>
-                <SelectItem value="other">أخرى</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="previousLevel"
+              value={studentData.previousLevel}
+              onChange={(e) => handleInputChange('previousLevel', e.target.value)}
+              placeholder="المستوى السابق"
+              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
+            />
           </div>
         </div>
 
@@ -641,8 +491,8 @@ export default function AddStudentPage() {
             </Label>
             <Textarea
               id="healthCondition"
-              value={additionalData.healthCondition}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, healthCondition: e.target.value }))}
+              value={studentData.healthCondition}
+              onChange={(e) => handleInputChange('healthCondition', e.target.value)}
               placeholder="وصف الحالة الصحية"
               className="min-h-[80px] rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 resize-none"
             />
@@ -653,8 +503,8 @@ export default function AddStudentPage() {
             </Label>
             <Textarea
               id="chronicDiseases"
-              value={additionalData.chronicDiseases}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, chronicDiseases: e.target.value }))}
+              value={studentData.chronicDiseases}
+              onChange={(e) => handleInputChange('chronicDiseases', e.target.value)}
               placeholder="الأمراض المزمنة إن وجدت"
               className="min-h-[80px] rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 resize-none"
             />
@@ -665,8 +515,8 @@ export default function AddStudentPage() {
             </Label>
             <Textarea
               id="allergies"
-              value={additionalData.allergies}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, allergies: e.target.value }))}
+              value={studentData.allergies}
+              onChange={(e) => handleInputChange('allergies', e.target.value)}
               placeholder="أنواع الحساسية"
               className="min-h-[80px] rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 resize-none"
             />
@@ -679,8 +529,8 @@ export default function AddStudentPage() {
           </Label>
           <Textarea
             id="specialNeeds"
-            value={additionalData.specialNeeds}
-            onChange={(e) => setAdditionalData((prev) => ({ ...prev, specialNeeds: e.target.value }))}
+            value={studentData.specialNeeds}
+            onChange={(e) => handleInputChange('specialNeeds', e.target.value)}
             placeholder="الاحتياجات الخاصة إن وجدت"
             className="min-h-[80px] rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 resize-none"
           />
@@ -693,8 +543,8 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="emergencyContactName"
-              value={additionalData.emergencyContactName}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, emergencyContactName: e.target.value }))}
+              value={studentData.emergencyContactName}
+              onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
               placeholder="اسم جهة الاتصال"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
@@ -705,8 +555,8 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="emergencyContactPhone"
-              value={additionalData.emergencyContactPhone}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, emergencyContactPhone: e.target.value }))}
+              value={studentData.emergencyContactPhone}
+              onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
               placeholder="رقم هاتف الطوارئ"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
@@ -717,8 +567,8 @@ export default function AddStudentPage() {
             </Label>
             <Input
               id="emergencyContactAddress"
-              value={additionalData.emergencyContactAddress}
-              onChange={(e) => setAdditionalData((prev) => ({ ...prev, emergencyContactAddress: e.target.value }))}
+              value={studentData.emergencyContactAddress}
+              onChange={(e) => handleInputChange('emergencyContactAddress', e.target.value)}
               placeholder="عنوان جهة الاتصال"
               className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80"
             />
@@ -731,109 +581,11 @@ export default function AddStudentPage() {
           </Label>
           <Textarea
             id="notes"
-            value={additionalData.notes}
-            onChange={(e) => setAdditionalData((prev) => ({ ...prev, notes: e.target.value }))}
+            value={studentData.notes}
+            onChange={(e) => handleInputChange('notes', e.target.value)}
             placeholder="ملاحظات إضافية"
             className="min-h-[100px] rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 resize-none"
           />
-        </div>
-      </CardContent>
-    </Card>
-  )
-
-  const renderDocumentUploadForm = () => (
-    <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-lg rounded-3xl overflow-hidden">
-      <CardHeader className="text-center bg-gradient-to-r from-lamaSkyLight to-lamaYellowLight py-10">
-        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-lamaSky to-lamaYellow rounded-3xl flex items-center justify-center mb-6 shadow-2xl transform rotate-3 hover:rotate-6 transition-transform duration-300">
-          <Upload className="w-10 h-10 text-white" />
-        </div>
-        <CardTitle className="text-2xl font-bold text-lamaYellow mb-2">رفع المستندات</CardTitle>
-        <p className="text-gray-600">المستندات المطلوبة (اختيارية)</p>
-      </CardHeader>
-      <CardContent className="p-10 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <Label htmlFor="studentPhoto" className="text-lamaYellow font-semibold">
-              صورة الطالب الشخصية (JPG/PNG)
-            </Label>
-            <Input
-              id="studentPhoto"
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={(e) => handleFileChange("studentPhoto", e.target.files?.[0] || null)}
-              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-lamaSkyLight file:text-lamaYellow hover:file:bg-lamaSky hover:file:text-white"
-            />
-          </div>
-          <div className="space-y-3">
-            <Label htmlFor="nationalIdCopy" className="text-lamaYellow font-semibold">
-              صورة الهوية / الرقم الوطني (JPG/PNG)
-            </Label>
-            <Input
-              id="nationalIdCopy"
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={(e) => handleFileChange("nationalIdCopy", e.target.files?.[0] || null)}
-              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-lamaSkyLight file:text-lamaYellow hover:file:bg-lamaSky hover:file:text-white"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <Label htmlFor="birthCertificate" className="text-lamaYellow font-semibold">
-              شهادة الميلاد
-            </Label>
-            <Input
-              id="birthCertificate"
-              type="file"
-              accept=".pdf,image/jpeg,image/png"
-              onChange={(e) => handleFileChange("birthCertificate", e.target.files?.[0] || null)}
-              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-lamaSkyLight file:text-lamaYellow hover:file:bg-lamaSky hover:file:text-white"
-            />
-          </div>
-          <div className="space-y-3">
-            <Label htmlFor="educationForm" className="text-lamaYellow font-semibold">
-              استمارة التعليم
-            </Label>
-            <Input
-              id="educationForm"
-              type="file"
-              accept=".pdf,image/jpeg,image/png"
-              onChange={(e) => handleFileChange("educationForm", e.target.files?.[0] || null)}
-              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-lamaSkyLight file:text-lamaYellow hover:file:bg-lamaSky hover:file:text-white"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <Label htmlFor="equivalencyDocument" className="text-lamaYellow font-semibold">
-              وثيقة المعادلة (JPG/PNG)
-            </Label>
-            <Input
-              id="equivalencyDocument"
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={(e) => handleFileChange("equivalencyDocument", e.target.files?.[0] || null)}
-              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-lamaSkyLight file:text-lamaYellow hover:file:bg-lamaSky hover:file:text-white"
-            />
-          </div>
-          <div className="space-y-3">
-            <Label htmlFor="otherDocuments" className="text-lamaYellow font-semibold">
-              مستندات أخرى (متعدد)
-            </Label>
-            <Input
-              id="otherDocuments"
-              type="file"
-              multiple
-              accept=".pdf,image/jpeg,image/png"
-              onChange={(e) => {
-                const files = Array.from(e.target.files || [])
-                setDocumentData((prev) => ({ ...prev, otherDocuments: files }))
-              }}
-              className="h-12 rounded-xl border-2 border-lamaSkyLight focus:border-lamaSky transition-all duration-300 bg-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-lamaSkyLight file:text-lamaYellow hover:file:bg-lamaSky hover:file:text-white"
-            />
-          </div>
         </div>
       </CardContent>
     </Card>
@@ -866,7 +618,18 @@ export default function AddStudentPage() {
         {currentStep === 1 && renderPersonalDataForm()}
         {currentStep === 2 && renderAcademicDataForm()}
         {currentStep === 3 && renderAdditionalDataForm()}
-        {currentStep === 4 && renderDocumentUploadForm()}
+
+        {submitError && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-xl mb-6 text-center shadow-lg">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <span className="font-semibold text-red-700">خطأ في إضافة الطالب</span>
+            </div>
+            <div className="text-red-600 whitespace-pre-line text-sm">
+              {submitError}
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-between mt-10">
           {currentStep > 1 && (
@@ -880,11 +643,6 @@ export default function AddStudentPage() {
           )}
           {currentStep === 1 && <div></div>}
           <div className="flex flex-col items-end">
-            {submitError && (
-              <div className="text-red-600 text-sm mb-3 p-3 bg-red-50 rounded-lg border border-red-200 max-w-md">
-                {submitError}
-              </div>
-            )}
             <Button
               onClick={handleNext}
               disabled={isSubmitting}
@@ -893,36 +651,15 @@ export default function AddStudentPage() {
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  {currentStep === 4 ? "جاري الإضافة..." : "التالي"}
+                  {currentStep === 3 ? "جاري الإضافة..." : "التالي"}
                 </div>
               ) : (
-                currentStep === 4 ? "إضافة الطالب" : "التالي"
+                currentStep === 3 ? "إضافة الطالب" : "التالي"
               )}
             </Button>
           </div>
         </div>
       </div>
-
-      {/* Validation Dialog */}
-      <Dialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
-        <DialogContent className="text-center rounded-3xl border-0 shadow-2xl" dir="rtl">
-          <DialogHeader>
-            <div className="mx-auto w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
-              <AlertCircle className="w-10 h-10 text-red-600" />
-            </div>
-            <DialogTitle className="text-2xl text-red-600 font-bold">حقول مطلوبة</DialogTitle>
-            <DialogDescription className="text-gray-600 text-lg mt-4">
-              الرجاء تعبئة جميع الحقول المطلوبة في البيانات الشخصية قبل المتابعة
-            </DialogDescription>
-          </DialogHeader>
-          <Button
-            onClick={() => setShowValidationDialog(false)}
-            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg mt-6 transition-all duration-300"
-          >
-            حسناً
-          </Button>
-        </DialogContent>
-      </Dialog>
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
@@ -946,9 +683,9 @@ export default function AddStudentPage() {
             >
               إضافة طالب آخر
             </Button>
-            <Link href="/">
+            <Link href="/list/students/view_student">
               <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-300">
-                العودة للرئيسية
+                عرض الطلاب
               </Button>
             </Link>
           </div>
@@ -957,3 +694,4 @@ export default function AddStudentPage() {
     </div>
   )
 }
+

@@ -7,7 +7,10 @@ import { ChevronDown, ChevronLeft } from "lucide-react"
 import Image from "next/image"
 
 const Sidebar = () => {
+  const [isTeachersOpen, setIsTeachersOpen] = useState(false)
   const [isStudentsOpen, setIsStudentsOpen] = useState(false)
+  const [isResultsOpen, setIsResultsOpen] = useState(false)
+  const [isStaffOpen, setIsStaffOpen] = useState(false)
   const pathname = usePathname()
 
   const menuItems = [
@@ -18,12 +21,26 @@ const Sidebar = () => {
     },
     {
       title: "المعلمين",
-      href: "/list/teachers",
-      icon: "/teacher.png",
+      icon: "/icons/teacher.png",
+      hasDropdown: true,
+      subItems: [
+        {
+          title: "إضافة معلم",
+          href: "/list/teachers/add",
+        },
+        {
+          title: "قائمة المعلمين",
+          href: "/list/teachers",
+        },
+        {
+          title: "تقارير المعلمين",
+          href: "/list/teachers/reports",
+        },
+      ],
     },
     {
       title: "الطلاب",
-      icon: "/student.png",
+      icon: "/icons/student.png",
       hasDropdown: true,
       subItems: [
         {
@@ -31,7 +48,7 @@ const Sidebar = () => {
           href: "/list/students/add",
         },
         {
-          title: "إضافة الدرجات",
+          title: "إضافة درجات حسب المقرر",
           href: "/list/students/grades",
         },
         {
@@ -39,11 +56,7 @@ const Sidebar = () => {
           href: "/list/students/reviews",
         },
         {
-          title: "استعراض النتائج",
-          href: "/list/students/results",
-        },
-        {
-          title: "عرض الطلاب",
+          title: "قائمة الطلاب",
           href: "/list/students",
         },
         {
@@ -53,14 +66,43 @@ const Sidebar = () => {
       ],
     },
     {
-      title: "أولياء الأمور",
-      href: "/list/parents",
-      icon: "/parent.png",
+      title: "الموظفين الإداريين",
+      icon: "/icons/staff.png",
+      hasDropdown: true,
+      subItems: [
+        {
+          title: "إضافة موظف إداري",
+          href: "/list/staff/add",
+        },
+        {
+          title: "قائمة الموظفين الإداريين",
+          href: "/list/staff",
+        },
+        {
+          title: "تقارير الموظفين",
+          href: "/list/staff/reports",
+        },
+      ],
     },
     {
       title: "المواد الدراسية",
       href: "/list/subjects",
       icon: "/subject.png",
+    },
+    {
+      title: "النتائج",
+      icon: "/result.png",
+      hasDropdown: true,
+      subItems: [
+        {
+          title: "الاستعلام على النتائج",
+          href: "/list/results",
+        },
+        {
+          title: "تقارير النتائج",
+          href: "/grades/results",
+        },
+      ],
     },
     {
       title: "الفصول",
@@ -82,11 +124,7 @@ const Sidebar = () => {
       href: "/list/assignments",
       icon: "/assignment.png",
     },
-    {
-      title: "النتائج",
-      href: "/list/results",
-      icon: "/result.png",
-    },
+
     {
       title: "الحضور",
       href: "/list/attendance",
@@ -99,7 +137,10 @@ const Sidebar = () => {
     },
   ]
 
+  const isTeacherPath = pathname.startsWith("/list/teachers")
   const isStudentPath = pathname.startsWith("/list/students")
+  const isResultsPath = pathname.startsWith("/grades/results") || pathname.startsWith("/list/results")
+  const isStaffPath = pathname.startsWith("/list/staff")
 
   return (
     <div
@@ -126,11 +167,21 @@ const Sidebar = () => {
             <li key={index} className="px-4">
               {item.hasDropdown ? (
                 <div>
-                  {/* Students Main Item */}
+                  {/* Dropdown Item */}
                   <button
-                    onClick={() => setIsStudentsOpen(!isStudentsOpen)}
+                    onClick={() => {
+                      if (item.title === "المعلمين") {
+                        setIsTeachersOpen(!isTeachersOpen)
+                      } else if (item.title === "الطلاب") {
+                        setIsStudentsOpen(!isStudentsOpen)
+                      } else if (item.title === "النتائج") {
+                        setIsResultsOpen(!isResultsOpen)
+                      } else if (item.title === "الموظفين الإداريين") {
+                        setIsStaffOpen(!isStaffOpen)
+                      }
+                    }}
                     className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 group font-cairo ${
-                      isStudentPath
+                      (item.title === "المعلمين" && isTeacherPath) || (item.title === "الطلاب" && isStudentPath) || (item.title === "النتائج" && isResultsPath) || (item.title === "الموظفين الإداريين" && isStaffPath)
                         ? "bg-blue-50 text-blue-700 border-r-4 border-blue-500"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
@@ -148,7 +199,10 @@ const Sidebar = () => {
                       <span className="font-medium text-sm arabic-text">{item.title}</span>
                     </div>
                     <div className="transition-transform duration-200">
-                      {isStudentsOpen || isStudentPath ? (
+                      {(item.title === "المعلمين" && (isTeachersOpen || isTeacherPath)) ||
+                       (item.title === "الطلاب" && (isStudentsOpen || isStudentPath)) || 
+                       (item.title === "النتائج" && (isResultsOpen || isResultsPath)) ||
+                       (item.title === "الموظفين الإداريين" && (isStaffOpen || isStaffPath)) ? (
                         <ChevronDown className="w-4 h-4" />
                       ) : (
                         <ChevronLeft className="w-4 h-4" />
@@ -157,7 +211,10 @@ const Sidebar = () => {
                   </button>
 
                   {/* Dropdown Menu */}
-                  {(isStudentsOpen || isStudentPath) && (
+                  {((item.title === "المعلمين" && (isTeachersOpen || isTeacherPath)) ||
+                    (item.title === "الطلاب" && (isStudentsOpen || isStudentPath)) || 
+                    (item.title === "النتائج" && (isResultsOpen || isResultsPath)) ||
+                    (item.title === "الموظفين الإداريين" && (isStaffOpen || isStaffPath))) && (
                     <div className="mt-2 mr-8 space-y-1 border-r-2 border-gray-100 pr-4">
                       {item.subItems?.map((subItem, subIndex) => (
                         <Link
@@ -180,7 +237,7 @@ const Sidebar = () => {
                 </div>
               ) : (
                 <Link
-                  href={item.href}
+                  href={item.href || "#"}
                   className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 group font-cairo ${
                     pathname === item.href
                       ? "bg-blue-50 text-blue-700 border-r-4 border-blue-500"
