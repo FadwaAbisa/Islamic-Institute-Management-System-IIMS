@@ -189,15 +189,18 @@ export default function EnhancedGradesManager() {
                 academicYear: selectedYear,
                 educationLevel: selectedLevel as string,
                 studySystem: selectedSystem as string,
-                subject: selectedSubject?.id.toString() || "",
+                subject: selectedSubject?.name || "",
                 period: selectedPeriod as string
             })
 
-            const res = await fetch(`/api/students/filtered?${params}`)
-            if (res.ok) {
-                const data = await res.json()
-                setStudents(data.students || [])
-            }
+                  const res = await fetch(`/api/students/filtered?${params}`)
+      if (res.ok) {
+        const data = await res.json()
+        console.log("✅ تم استلام البيانات:", data)
+        setStudents(data.students || [])
+      } else {
+        console.error("❌ خطأ في الاستعلام:", res.status, await res.text())
+      }
         } catch (error) {
             console.error("خطأ في تحميل الطلاب:", error)
         } finally {
