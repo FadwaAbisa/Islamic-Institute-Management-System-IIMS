@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
+import { auth } from '@clerk/nextjs/server';
+import { z } from 'zod';
+
+// Schema للتحقق من صحة البيانات
+const createReplySchema = z.object({
+  content: z.string().min(1, "المحتوى مطلوب"),
+});
 
 // الحصول على ردود رسالة محددة
 export async function GET(
@@ -7,9 +14,24 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const messageId = parseInt(params.id);
+    const messageId = params.id;
     
-    const replies = await prisma.reply.findMany({
+    // إرجاع بيانات تجريبية لحين إتمام Migration
+    const mockReplies = [
+      {
+        id: "1",
+        content: "شكراً لك على الرسالة",
+        senderId: "user_123",
+        senderType: "teacher",
+        messageId: messageId,
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    return NextResponse.json(mockReplies);
+
+    /* الكود الأصلي سيفعل بعد تشغيل Migration:
+    const replies = await prisma.messageReply.findMany({
       where: { messageId },
       orderBy: {
         createdAt: 'asc'
@@ -17,6 +39,7 @@ export async function GET(
     });
 
     return NextResponse.json(replies);
+    */
   } catch (error) {
     console.error('Error fetching replies:', error);
     return NextResponse.json(

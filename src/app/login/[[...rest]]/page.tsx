@@ -27,18 +27,23 @@ const LoginPage = () => {
             if (role) {
                 console.log('Role found, redirecting...');
                 setIsLoading(true);
+                // تأخير أقل لتجنب مشاكل التوجيه
                 setTimeout(() => {
                     const redirectUrl = searchParams.get('redirect_url');
-                    const targetUrl = redirectUrl || `/${role}`;
+                    const targetUrl = redirectUrl || '/admin'; // توجيه افتراضي إلى admin
                     console.log('Redirecting to:', targetUrl);
-                    router.replace(targetUrl);
-                }, 500);
+                    window.location.href = targetUrl; // استخدام window.location بدلاً من router
+                }, 100);
             } else {
                 console.log('❌ NO ROLE FOUND!');
                 console.log('This means the user has no role in publicMetadata');
+                // في حالة عدم وجود دور، التوجيه إلى صفحة الإعداد
+                setTimeout(() => {
+                    window.location.href = '/role-setup';
+                }, 1000);
             }
         }
-    }, [isLoaded, isSignedIn, user, router, searchParams]);
+    }, [isLoaded, isSignedIn, user, searchParams]);
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
@@ -239,6 +244,7 @@ const LoginPage = () => {
                                     fill
                                     className="object-cover"
                                     priority
+                                    sizes="80px"
                                 />
                             </div>
                         </div>
@@ -260,6 +266,7 @@ const LoginPage = () => {
                     {/* Clerk SignIn Component with Enhanced Styling */}
                     <div className="w-full relative z-10">
                         <SignIn
+                            fallbackRedirectUrl="/admin"
                             appearance={{
                                 elements: {
                                     // Primary Button (Login Button)
