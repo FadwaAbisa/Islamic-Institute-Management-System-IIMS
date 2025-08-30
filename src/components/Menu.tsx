@@ -40,19 +40,13 @@ const menuItems = [
             href: "/list/teachers/view_teachers",
             description: "عرض جميع المعلمين"
           },
-          {
-            icon: FileText,
-            label: "تقارير المعلمين",
-            href: "/list/teachers/reports",
-            description: "تقارير أداء المعلمين"
-          }
         ]
       },
       {
         icon: "/icons/student.png",
         label: "الطلاب",
         href: "/list/students",
-        visible: ["admin", "staff"],
+        visible: ["admin", "staff", "teacher"],
         description: "إدارة الطلاب",
         color: "bg-purple-50 text-purple-600",
         hasDropdown: true,
@@ -68,12 +62,6 @@ const menuItems = [
             label: "إضافة درجات حسب المقرر",
             href: "/list/students/grades",
             description: "إدخال درجات الطلاب"
-          },
-          {
-            icon: ClipboardCheck,
-            label: "طلبات المراجعة",
-            href: "/list/students/reviews",
-            description: "مراجعة طلبات الطلاب"
           },
           {
             icon: Users,
@@ -188,95 +176,12 @@ const menuItems = [
           }
         ]
       },
-      {
-        icon: "/class.png",
-        label: "الفصول",
-        href: "/list/classes",
-        visible: ["admin", "staff"],
-        description: "إدارة الفصول الدراسية",
-        color: "bg-pink-50 text-pink-600",
-        hasDropdown: true,
-        subItems: [
-          {
-            icon: Plus,
-            label: "إضافة فصل",
-            href: "/list/classes/add",
-            description: "إنشاء فصل دراسي جديد"
-          },
-          {
-            icon: Users,
-            label: "قائمة الفصول",
-            href: "/list/classes",
-            description: "عرض جميع الفصول"
-          },
-          {
-            icon: Calendar,
-            label: "جدولة الفصول",
-            href: "/list/classes/schedule",
-            description: "تنظيم جداول الفصول"
-          }
-        ]
-      },
-    ],
-  },
-  {
-    title: "الأنشطة الأكاديمية",
-    icon: BookOpen,
-    items: [
-      {
-        icon: "/lesson.png",
-        label: "الدروس",
-        href: "/list/lessons",
-        visible: ["admin", "staff"],
-        description: "جدولة وإدارة الدروس",
-        color: "bg-teal-50 text-teal-600"
-      },
-      {
-        icon: "/exam.png",
-        label: "الامتحانات",
-        href: "/list/exams",
-        visible: ["admin", "staff", "teacher"],
-        description: "جدولة الامتحانات والنتائج",
-        color: "bg-red-50 text-red-600"
-      },
-      {
-        icon: "/assignment.png",
-        label: "الواجبات",
-        href: "/list/assignments",
-        visible: ["admin", "staff", "teacher", "student", "parent"],
-        description: "إدارة الواجبات المدرسية",
-        color: "bg-yellow-50 text-yellow-600"
-      },
-      {
-        icon: "/attendance.png",
-        label: "الحضور",
-        href: "/list/attendance",
-        visible: ["admin", "staff", "teacher", "student", "parent"],
-        description: "تتبع حضور الطلاب",
-        color: "bg-cyan-50 text-cyan-600"
-      },
     ],
   },
   {
     title: "التواصل والفعاليات",
     icon: MessageSquare,
     items: [
-      {
-        icon: "/calendar.png",
-        label: "الفعاليات",
-        href: "/events",
-        visible: ["admin", "staff", "teacher", "student", "parent"],
-        description: "التقويم والفعاليات المدرسية",
-        color: "bg-violet-50 text-violet-600"
-      },
-      {
-        icon: "/message.png",
-        label: "الرسائل",
-        href: "/list/messages",
-        visible: ["admin", "staff", "teacher", "student", "parent"],
-        description: "نظام الرسائل الداخلي",
-        color: "bg-blue-50 text-blue-600"
-      },
       {
         icon: "/announcement.png",
         label: "الإعلانات",
@@ -285,6 +190,23 @@ const menuItems = [
         description: "الإعلانات والأخبار المهمة",
         color: "bg-amber-50 text-amber-600"
       },
+      {
+        icon: "/calendar.png",
+        label: "الأحداث",
+        href: "/events",
+        visible: ["admin", "staff", "teacher", "student", "parent"],
+        description: "التقويم والفعاليات المدرسية",
+        color: "bg-violet-50 text-violet-600"
+      },
+      {
+        icon: "/message.png",
+        label: "الرسائل",
+        href: "/list/messages/working",
+        visible: ["admin", "staff", "teacher", "student", "parent"],
+        description: "نظام الرسائل والمحادثات",
+        color: "bg-blue-50 text-blue-600"
+      },
+
     ],
   },
   {
@@ -306,6 +228,14 @@ const menuItems = [
         visible: ["admin"],
         description: "إعدادات النظام والتفضيلات",
         color: "bg-gray-50 text-gray-600"
+      },
+      {
+        icon: "/setting.png",
+        label: "تشخيص الأدوار",
+        href: "/debug-role",
+        visible: ["admin", "staff", "teacher", "student", "parent"],
+        description: "فحص وتشخيص صلاحيات المستخدم",
+        color: "bg-orange-50 text-orange-600"
       },
       {
         icon: "/logout.png",

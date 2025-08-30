@@ -187,6 +187,22 @@ export const ALL_PERMISSIONS: Permission[] = [
     arabicDescription: 'عرض إعلانات النظام'
   },
   
+  // إدارة الرسائل
+  {
+    id: 'manage_messages',
+    name: 'Manage Messages',
+    description: 'Send and manage messages and conversations',
+    arabicName: 'إدارة الرسائل',
+    arabicDescription: 'إرسال وإدارة الرسائل والمحادثات'
+  },
+  {
+    id: 'view_messages',
+    name: 'View Messages',
+    description: 'View and reply to messages',
+    arabicName: 'عرض الرسائل',
+    arabicDescription: 'عرض والرد على الرسائل'
+  },
+  
   // التقارير والإحصائيات
   {
     id: 'manage_reports',
@@ -241,6 +257,7 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
       '/list/attendance',
       '/list/events',
       '/list/announcements',
+      '/list/messages',
       '/grades',
       '/settings'
     ],
@@ -258,7 +275,9 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
       'manage_grades',
       'manage_assignments',
       'manage_events',
-      'manage_reports'
+      'manage_reports',
+      'manage_messages',
+      'view_messages'
     ].includes(p.id)),
     allowedRoutes: [
       '/staff',
@@ -268,7 +287,8 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
       '/grades',
       '/list/assignments',
       '/list/events',
-      '/list/announcements'
+      '/list/announcements',
+      '/list/messages'
     ],
     restrictedRoutes: [
       '/admin',
@@ -286,25 +306,29 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
     permissions: ALL_PERMISSIONS.filter(p => [
       'login',
       'dashboard_access',
+      'manage_students',
       'manage_attendance',
       'manage_grades',
       'manage_assignments',
       'manage_events',
-      'view_reports'
+      'view_reports',
+      'manage_messages',
+      'view_messages'
     ].includes(p.id)),
     allowedRoutes: [
       '/teacher',
+      '/list/students',
       '/list/attendance',
       '/grades',
       '/list/assignments',
       '/list/events',
-      '/list/announcements'
+      '/list/announcements',
+      '/list/messages'
     ],
     restrictedRoutes: [
       '/admin',
       '/staff',
       '/list/teachers',
-      '/list/students',
       '/list/parents',
       '/list/subjects',
       '/list/classes',
@@ -322,7 +346,8 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
       'view_attendance',
       'view_grades',
       'view_assignments',
-      'view_events'
+      'view_events',
+      'view_messages'
     ].includes(p.id)),
     allowedRoutes: [
       '/student',
@@ -330,7 +355,8 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
       '/grades',
       '/list/assignments',
       '/list/events',
-      '/list/announcements'
+      '/list/announcements',
+      '/list/messages'
     ],
     restrictedRoutes: [
       '/admin',
@@ -357,7 +383,8 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
       'view_grades',
       'view_assignments',
       'view_events',
-      'view_announcements'
+      'view_announcements',
+      'view_messages'
     ].includes(p.id)),
     allowedRoutes: [
       '/parent',
@@ -365,7 +392,8 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
       '/grades',
       '/list/assignments',
       '/list/events',
-      '/list/announcements'
+      '/list/announcements',
+      '/list/messages'
     ],
     restrictedRoutes: [
       '/admin',

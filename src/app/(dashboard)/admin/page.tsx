@@ -2,7 +2,7 @@ import Announcements from "@/components/Announcements";
 import AttendanceChartContainer from "@/components/AttendanceChartContainer";
 import CountChartContainer from "@/components/CountChartContainer";
 import EventCalendarContainer from "@/components/EventCalendarContainer";
-import FinanceChart from "@/components/FinanceChart";
+import AcademicChartContainer from "@/components/AcademicChartContainer";
 import UserCard from "@/components/UserCard";
 import { HomeAds } from "@/components/HomeAds";
 import { UpcomingEventsWidget } from "@/components/events";
@@ -36,7 +36,7 @@ const AdminPage = ({
         </div>
         {/* BOTTOM CHART */}
         <div className="w-full h-[500px]">
-          <FinanceChart />
+          <AcademicChartContainer />
         </div>
       </div>
       {/* RIGHT */}

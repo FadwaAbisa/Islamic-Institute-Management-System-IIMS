@@ -1,5 +1,5 @@
 import Announcements from "@/components/Announcements";
-import BigCalendarContainer from "@/components/BigCalendarContainer";
+import BigCalendarWrapper from "@/components/BigCalendarWrapper";
 import BigCalendar from "@/components/BigCalender";
 import EventCalendar from "@/components/EventCalendar";
 import StudentAttendanceCard from "@/components/StudentAttendanceCard";
@@ -13,8 +13,8 @@ const StudentPage = async () => {
   const student = await prisma.student.findUnique({
     where: { id: userId! },
     include: {
-      attendances: true,
-      subjectGrades: true,
+      Attendance: true,
+      SubjectGrade: true,
     },
   });
 

@@ -125,7 +125,7 @@ model SubjectGrade {
 }
 
 model Teacher {
-  id                       String              @id
+  id                      String            @id @default(cuid())
   fullName                 String
   nationalId               String              @unique
   birthday                 DateTime
@@ -151,7 +151,7 @@ model Teacher {
 }
 
 model Staff {
-  id                     String         @id
+  id                      String            @id @default(cuid())
   fullName               String //الاسم الكامل 
   nationalId             String         @unique //الرقم الوطني/الجواز
   birthday               DateTime //تاريخ الميلاد
@@ -250,7 +250,6 @@ enum EventType {
   CULTURAL // ثقافي
   OTHER // أخرى
 }
-
 enum Priority {
   LOW // منخفض
   MEDIUM // متوسط
@@ -273,4 +272,65 @@ enum RecurrenceType {
   MONTHLY // شهري
   YEARLY // سنوي
   CUSTOM // مخصص
+}
+
+// نماذج نظام الرسائل
+model Message {
+  id          String      @id @default(cuid())
+  content     String
+  senderId    String
+  senderType  UserType
+  receiverId  String
+  receiverType UserType
+  readAt      DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // العلاقات
+  replies     MessageReply[]
+  
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+}
+
+model MessageReply {
+  id          String    @id @default(cuid())
+  content     String
+  senderId    String
+  senderType  UserType
+  messageId   String
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // العلاقات
+  message     Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  
+  @@index([messageId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id            String          @id @default(cuid())
+  participant1Id String
+  participant1Type UserType
+  participant2Id String
+  participant2Type UserType
+  lastMessageAt DateTime        @default(now())
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  @@unique([participant1Id, participant2Id])
+  @@index([participant1Id])
+  @@index([participant2Id])
+  @@index([lastMessageAt])
+}
+
+enum UserType {
+  STUDENT
+  TEACHER
+  STAFF
+  ADMIN
 }

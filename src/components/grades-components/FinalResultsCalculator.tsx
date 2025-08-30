@@ -704,7 +704,7 @@ export default function FinalResultsCalculator() {
                                 <Trophy className="w-24 h-24 mx-auto" />
                             </div>
                             <h3 className="text-2xl font-bold text-gray-600 mb-4">لا توجد نتائج</h3>
-                            <p className="text-lg text-gray-500">اضغط على "حساب النتائج النهائية" لعرض النتائج</p>
+                            <p className="text-lg text-gray-500">اضغط على &quot;حساب النتائج النهائية&quot; لعرض النتائج</p>
                         </CardContent>
                     </Card>
                 )}

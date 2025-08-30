@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import RoleGuard from "@/components/RoleGuard";
 import { 
   Users, 
   GraduationCap, 
@@ -35,17 +36,10 @@ const StaffDashboard = () => {
 
   useEffect(() => {
     if (isLoaded && user) {
-      // التحقق من دور المستخدم
-      const userRole = user.publicMetadata?.role;
-      if (userRole !== 'staff') {
-        router.push('/?error=insufficient_permissions');
-        return;
-      }
-
       // تحميل الإحصائيات (يمكن استبدالها بطلبات API حقيقية)
       loadDashboardStats();
     }
-  }, [isLoaded, user, router]);
+  }, [isLoaded, user]);
 
   const loadDashboardStats = async () => {
     try {
@@ -140,7 +134,8 @@ const StaffDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <RoleGuard allowedRoles={['staff', 'admin']}>
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -251,6 +246,7 @@ const StaffDashboard = () => {
         </div>
       </div>
     </div>
+    </RoleGuard>
   );
 };
 

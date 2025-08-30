@@ -50,8 +50,8 @@ const CountChart = ({ regular, distance }: { regular: number; distance: number }
         <Image
           src="/maleFemale.png"
           alt="نظامي وانتساب"
-          width={40}
-          height={40}
+          width={80}
+          height={80}
           className="opacity-80"
         />
       </div>
