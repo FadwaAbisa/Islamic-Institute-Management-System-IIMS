@@ -1005,11 +1005,9 @@ export default function EnhancedGradesManager() {
                     <>
                         {selectedPeriod === "الفترة الثالثة" ? (
                             <ThirdPeriodManagerFixed
-                                selectedYear={selectedYear}
+                                selectedSubject={selectedSubject ? selectedSubject.id.toString() : undefined}
                                 selectedLevel={selectedLevel}
-                                selectedSystem={selectedSystem}
-                                selectedSubject={selectedSubject}
-                                students={students}
+                                selectedMode={selectedSystem}
                             />
                         ) : (
                             <Card className="modern-card">

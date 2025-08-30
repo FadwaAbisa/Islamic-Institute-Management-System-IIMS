@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "check-excel": "node prisma/check-excel-data.js",
     "import-students": "node prisma/import-students.js",
     "import-staff": "node import-staff.js",
@@ -58,12 +59,14 @@
     "react-day-picker": "^9.9.0",
     "react-dom": "^18",
     "react-hook-form": "^7.52.2",
+    "react-hot-toast": "^2.6.0",
     "react-toastify": "^10.0.5",
     "recharts": "^2.12.7",
     "sonner": "^2.0.7",
     "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {

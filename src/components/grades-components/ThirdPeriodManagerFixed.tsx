@@ -1,223 +1,132 @@
+'use client'
 
-"use client"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-    Calculator,
-    Save,
-    Lock,
-    Users,
-    AlertCircle
-} from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AlertCircle, Save, Calculator, Users, Trophy, TrendingUp, FileDown, CheckCircle, XCircle } from 'lucide-react'
+
+
+interface Student {
+    id: string
+    fullName: string
+    studentId: string
+    studyLevel: string
+    studyMode: string
+    finalGrades?: {
+        firstPeriodTotal?: number
+        secondPeriodTotal?: number
+        thirdPeriodExam?: number
+        finalTotal?: number
+    }
+}
+
+interface Subject {
+    id: string
+    name: string
+    studyLevel: string
+}
 
 interface ThirdPeriodManagerFixedProps {
-    selectedYear: string
-    selectedLevel: string
-    selectedSystem: string
-    selectedSubject: { id: number; name: string } | null
-    students: any[]
+    selectedSubject?: string
+    selectedLevel?: string
+    selectedMode?: string
 }
 
-interface StudentGrades {
-    firstPeriodTotal: number;
-    secondPeriodTotal: number;
-    thirdPeriodExam: number | null;
-    finalTotal: number;
-    percentage: number;
-    grade: string;
-    status: 'نجح' | 'راسب' | 'غير مكتمل';
-    isThirdYear?: boolean;
-}
-
-export default function ThirdPeriodManagerFixed({
-    selectedYear,
-    selectedLevel,
-    selectedSystem,
+const ThirdPeriodManagerFixed: React.FC<ThirdPeriodManagerFixedProps> = ({
     selectedSubject,
-    students
-}: ThirdPeriodManagerFixedProps) {
-    const [studentGrades, setStudentGrades] = useState<Record<string, StudentGrades>>({})
+    selectedLevel,
+    selectedMode
+}) => {
+    const [students, setStudents] = useState<Student[]>([])
+    const [subjects, setSubjects] = useState<Subject[]>([])
     const [loading, setLoading] = useState(false)
-    const [errors, setErrors] = useState<Record<string, string>>({})
+    const [grades, setGrades] = useState<Record<string, number>>({})
 
-    // تحميل البيانات السابقة
+    // جلب البيانات
     useEffect(() => {
-        if (students.length > 0) {
-            loadPreviousPeriods()
+        if (selectedSubject && selectedLevel && selectedMode) {
+            fetchStudents()
+            fetchSubjects()
         }
-    }, [students])
+    }, [selectedSubject, selectedLevel, selectedMode])
 
-    const loadPreviousPeriods = async () => {
+    const fetchStudents = async () => {
+        setLoading(true)
         try {
-            setLoading(true)
-
-            // التحقق من وجود المادة المختارة
-            if (!selectedSubject) {
-                console.error('لم يتم اختيار مادة')
-                return
-            }
-
-            // جلب البيانات الحقيقية من API
-            const response = await fetch(`/api/grades/previous-periods?` + new URLSearchParams({
-                academicYear: selectedYear,
-                subject: selectedSubject.name,
-                studentIds: students.map(s => s.id).join(',')
-            }))
-
-            if (!response.ok) {
-                throw new Error('فشل في جلب البيانات')
-            }
-
+            const response = await fetch(`/api/students/filtered?studyLevel=${selectedLevel}&studyMode=${selectedMode}`)
             const data = await response.json()
-            console.log('📊 بيانات الفترات السابقة:', data)
-
-            // تحويل البيانات لصيغة مناسبة للعرض
-            const gradesData: Record<string, StudentGrades> = {}
-
-            students.forEach((student) => {
-                const studentData = data.previousGrades?.[student.id]
-
-                // للطلاب من غير السنة الثالثة: نأخذ مجاميع الفترات السابقة
-                // لطلاب السنة الثالثة: يدخلون الشهور كما هو معتاد
-                const isThirdYearStudent = student.educationLevel === "السنة الثالثة" || student.educationLevel === "THIRD_YEAR"
-
-                gradesData[student.id] = {
-                    firstPeriodTotal: studentData?.firstPeriodTotal || 0,
-                    secondPeriodTotal: studentData?.secondPeriodTotal || 0,
-                    thirdPeriodExam: null, // للإدخال من المستخدم
-                    finalTotal: (studentData?.firstPeriodTotal || 0) + (studentData?.secondPeriodTotal || 0),
-                    percentage: 0,
-                    grade: "",
-                    status: 'غير مكتمل',
-                    isThirdYear: isThirdYearStudent
-                }
-            })
-
-            setStudentGrades(gradesData)
+            setStudents(data)
         } catch (error) {
-            console.error("خطأ في تحميل البيانات:", error)
+            console.error('خطأ في جلب بيانات الطلاب')
         } finally {
             setLoading(false)
         }
     }
 
-    // التعامل مع إدخال درجة الفترة الثالثة
-    const handleThirdPeriodInput = (studentId: string, value: string) => {
-        const numValue = parseFloat(value) || 0
-        const maxGrade = 48 // الحد الأقصى لامتحان الفترة الثالثة
-
-        // التحقق من صحة الدرجة
-        if (numValue < 0) {
-            setErrors(prev => ({ ...prev, [studentId]: "الدرجة لا يمكن أن تكون سالبة" }))
-            return
+    const fetchSubjects = async () => {
+        try {
+            const response = await fetch('/api/subjects')
+            const data = await response.json()
+            setSubjects(data)
+        } catch (error) {
+            console.error('خطأ في جلب بيانات المواد')
         }
-
-        if (numValue > maxGrade) {
-            setErrors(prev => ({ ...prev, [studentId]: `الدرجة لا يمكن أن تتجاوز ${maxGrade}` }))
-            return
-        }
-
-        // مسح الخطأ
-        setErrors(prev => {
-            const newErrors = { ...prev }
-            delete newErrors[studentId]
-            return newErrors
-        })
-
-        // تحديث الدرجات
-        setStudentGrades(prev => {
-            const currentGrades = prev[studentId]
-            if (!currentGrades) return prev
-
-            const finalTotal = currentGrades.firstPeriodTotal + currentGrades.secondPeriodTotal + numValue
-            const maxPossible = 100 // إجمالي الدرجات الممكنة
-            const percentage = Math.round((finalTotal / maxPossible) * 100 * 10) / 10
-
-            // تحديد التقدير
-            let grade = 'غير مكتمل'
-            let status: 'نجح' | 'راسب' | 'غير مكتمل' = 'غير مكتمل'
-
-            if (numValue > 0) {
-                if (percentage >= 90) {
-                    grade = 'ممتاز'
-                    status = 'نجح'
-                } else if (percentage >= 80) {
-                    grade = 'جيد جداً'
-                    status = 'نجح'
-                } else if (percentage >= 70) {
-                    grade = 'جيد'
-                    status = 'نجح'
-                } else if (percentage >= 60) {
-                    grade = 'مقبول'
-                    status = 'نجح'
-                } else {
-                    grade = 'راسب'
-                    status = 'راسب'
-                }
-            }
-
-            return {
-                ...prev,
-                [studentId]: {
-                    ...currentGrades,
-                    thirdPeriodExam: numValue,
-                    finalTotal: finalTotal,
-                    percentage: percentage,
-                    grade: grade,
-                    status: status
-                }
-            }
-        })
     }
 
     // حفظ الدرجات
-    const saveGrades = async () => {
+    const handleSaveGrades = async () => {
+        setLoading(true)
         try {
-            setLoading(true)
-
-            const response = await fetch('/api/grades/final-period-fixed', {
+            const response = await fetch('/api/grades/third-period', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    studentGrades: studentGrades,
-                    subjectName: selectedSubject?.name,
-                    academicYear: selectedYear,
-                    educationLevel: selectedLevel
+                    subjectId: selectedSubject,
+                    grades
                 })
             })
 
-            const result = await response.json()
-
-            if (response.ok && result.success) {
-                alert(`تم حفظ ${result.saved} درجة بنجاح في قاعدة البيانات!`)
-                if (result.errors > 0) {
-                    console.warn("أخطاء:", result.errorMessages)
-                }
+            if (response.ok) {
+                console.log('تم حفظ الدرجات بنجاح')
             } else {
-                throw new Error(result.error || 'خطأ في الحفظ')
+                console.error('خطأ في حفظ الدرجات')
             }
         } catch (error) {
-            console.error("خطأ في حفظ الدرجات:", error)
-            alert("حدث خطأ أثناء حفظ الدرجات: " + (error instanceof Error ? error.message : 'خطأ غير معروف'))
+            console.error('خطأ في حفظ الدرجات')
         } finally {
             setLoading(false)
         }
     }
 
-    if (!selectedSubject) {
+    // حساب الإحصائيات
+    const stats = useMemo(() => {
+        const passedStudents = students.filter(s =>
+            (s.finalGrades?.finalTotal || 0) >= 50
+        ).length
+
+        const averageGrade = students.length > 0
+            ? students.reduce((sum, s) => sum + (s.finalGrades?.finalTotal || 0), 0) / students.length
+            : 0
+
+        return {
+            total: students.length,
+            passed: passedStudents,
+            failed: students.length - passedStudents,
+            average: averageGrade.toFixed(1)
+        }
+    }, [students])
+
+    if (!selectedSubject || !selectedLevel || !selectedMode) {
         return (
-            <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                    يرجى اختيار المادة أولاً لعرض نظام الفترة الثالثة
-                </AlertDescription>
-            </Alert>
+            <Card className="modern-card">
+                <CardContent className="p-8 text-center">
+                    <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">مطلوب اختيار المادة</h3>
+                    <p className="text-gray-600">يرجى اختيار المادة الدراسية من الفلاتر أعلاه لعرض نظام الفترة الثالثة</p>
+                </CardContent>
+            </Card>
         )
     }
 
@@ -231,10 +140,9 @@ export default function ThirdPeriodManagerFixed({
                         الفترة الثالثة - النتائج النهائية
                     </CardTitle>
                     <div className="text-lama-purple-light">
-                        <p className="text-lg font-semibold">المجموع النهائي = مجموع الفترة الأولى + مجموع الفترة الثانية + امتحان الفترة الثالثة</p>
-                        <p className="text-sm mt-2">• لجميع الطلاب: مجاميع الفترتين الأولى والثانية محفوظة ولا يمكن تعديلها</p>
-                        <p className="text-sm">• فقط درجة امتحان الفترة الثالثة قابلة للإدخال (الحد الأقصى: 48 درجة)</p>
-                        <p className="text-sm">• النظام يحسب النتيجة النهائية والنسبة المئوية تلقائياً</p>
+                        <p className="text-lg font-semibold">المجموع النهائي = مجموع الفترة الأولى + مجموع الفترة الثانية + درجة الفترة الثالثة</p>
+                        <p className="text-sm mt-2">• المجاميع السابقة محفوظة ولا يمكن تعديلها من هنا</p>
+                        <p className="text-sm">• فقط درجة امتحان الفترة الثالثة قابلة للإدخال</p>
                     </div>
                 </CardHeader>
             </Card>
@@ -243,184 +151,121 @@ export default function ThirdPeriodManagerFixed({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card className="modern-card text-center p-4">
                     <Users className="w-8 h-8 text-lama-sky mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-gray-800">{students.length}</div>
+                    <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
                     <div className="text-sm text-gray-600">إجمالي الطلاب</div>
                 </Card>
 
                 <Card className="modern-card text-center p-4">
-                    <Calculator className="w-8 h-8 text-lama-yellow mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-gray-800">
-                        {Object.values(studentGrades).filter(g => g.thirdPeriodExam !== null).length}
-                    </div>
-                    <div className="text-sm text-gray-600">درجات مدخلة</div>
+                    <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-green-600">{stats.passed}</div>
+                    <div className="text-sm text-gray-600">ناجح</div>
                 </Card>
 
                 <Card className="modern-card text-center p-4">
-                    <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold">✓</div>
-                    <div className="text-2xl font-bold text-gray-800">
-                        {Object.values(studentGrades).filter(g => g.status === 'نجح').length}
-                    </div>
-                    <div className="text-sm text-gray-600">ناجحين</div>
+                    <XCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-red-600">{stats.failed}</div>
+                    <div className="text-sm text-gray-600">راسب</div>
                 </Card>
 
                 <Card className="modern-card text-center p-4">
-                    <div className="w-8 h-8 bg-red-500 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold">✗</div>
-                    <div className="text-2xl font-bold text-gray-800">
-                        {Object.values(studentGrades).filter(g => g.status === 'راسب').length}
-                    </div>
-                    <div className="text-sm text-gray-600">راسبين</div>
+                    <TrendingUp className="w-8 h-8 text-lama-yellow mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-lama-yellow">{stats.average}</div>
+                    <div className="text-sm text-gray-600">المعدل العام</div>
                 </Card>
             </div>
 
-            {/* الجدول الرئيسي */}
+            {/* جدول الطلاب والدرجات */}
             <Card className="modern-card">
-                <CardHeader className="bg-gradient-to-l from-lama-yellow to-lama-sky text-white rounded-t-3xl">
-                    <CardTitle className="flex items-center gap-3 text-xl">
-                        <Calculator className="w-5 h-5" />
-                        جدول النتائج النهائية - {selectedSubject?.name || 'غير محدد'}
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                        <span>دفتر درجات الفترة الثالثة</span>
+                        <Button onClick={handleSaveGrades} disabled={loading}>
+                            <Save className="w-4 h-4 mr-2" />
+                            {loading ? 'جاري الحفظ...' : 'حفظ جميع الدرجات'}
+                        </Button>
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent>
                     <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-gray-50">
-                                    <TableHead className="text-center font-bold">النتيجة</TableHead>
-                                    <TableHead className="text-center font-bold">التقدير</TableHead>
-                                    <TableHead className="text-center font-bold">النسبة %</TableHead>
-                                    <TableHead className="text-center font-bold">المجموع النهائي</TableHead>
-                                    <TableHead className="text-center font-bold">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Calculator className="w-4 h-4 text-lama-sky" />
-                                            <span>امتحان الفترة الثالثة</span>
-                                        </div>
-                                        <div className="text-xs text-gray-500">(للإدخال - من 48)</div>
-                                    </TableHead>
-                                    <TableHead className="text-center font-bold">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Lock className="w-4 h-4 text-green-600" />
-                                            <span>مجموع الفترة الثانية</span>
-                                        </div>
-                                        <div className="text-xs text-gray-500">(محفوظ من النظام)</div>
-                                    </TableHead>
-                                    <TableHead className="text-center font-bold">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Lock className="w-4 h-4 text-blue-600" />
-                                            <span>مجموع الفترة الأولى</span>
-                                        </div>
-                                        <div className="text-xs text-gray-500">(محفوظ من النظام)</div>
-                                    </TableHead>
-                                    <TableHead className="text-center font-bold">الطالب</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {students.map((student) => {
-                                    const grades = studentGrades[student.id]
-                                    const error = errors[student.id]
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-gray-200">
+                                    <th className="text-right p-3 font-semibold">الرقم</th>
+                                    <th className="text-right p-3 font-semibold">اسم الطالب</th>
+                                    <th className="text-center p-3 font-semibold">الفترة الأولى</th>
+                                    <th className="text-center p-3 font-semibold">الفترة الثانية</th>
+                                    <th className="text-center p-3 font-semibold">امتحان الفترة الثالثة</th>
+                                    <th className="text-center p-3 font-semibold">المجموع النهائي</th>
+                                    <th className="text-center p-3 font-semibold">النتيجة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {students.map((student, index) => {
+                                    const firstPeriod = student.finalGrades?.firstPeriodTotal || 0
+                                    const secondPeriod = student.finalGrades?.secondPeriodTotal || 0
+                                    const thirdPeriod = grades[student.id] || student.finalGrades?.thirdPeriodExam || 0
+                                    const finalTotal = firstPeriod + secondPeriod + thirdPeriod
+                                    const passed = finalTotal >= 50
 
                                     return (
-                                        <TableRow key={student.id} className="hover:bg-gray-50">
-                                            {/* النتيجة النهائية */}
-                                            <TableCell className="text-center">
-                                                <Badge
-                                                    variant={grades?.status === 'نجح' ? "default" : "destructive"}
-                                                    className="font-bold"
-                                                >
-                                                    {grades?.status || 'غير مكتمل'}
-                                                </Badge>
-                                            </TableCell>
-
-                                            {/* التقدير */}
-                                            <TableCell className="text-center">
-                                                <Badge
-                                                    variant={grades?.status === 'نجح' ? "default" : "destructive"}
-                                                    className="font-bold"
-                                                >
-                                                    {grades?.grade || 'غير مكتمل'}
-                                                </Badge>
-                                            </TableCell>
-
-                                            {/* النسبة المئوية */}
-                                            <TableCell className="text-center">
-                                                <Badge variant="outline" className="font-bold">
-                                                    {grades?.percentage || 0}%
-                                                </Badge>
-                                            </TableCell>
-
-                                            {/* المجموع النهائي */}
-                                            <TableCell className="text-center">
-                                                <Badge className="font-bold text-lg bg-lama-yellow text-white">
-                                                    {grades?.finalTotal || 0}
-                                                </Badge>
-                                                <div className="text-xs text-gray-500 mt-1">
-                                                    {grades?.firstPeriodTotal || 0} + {grades?.secondPeriodTotal || 0} + {grades?.thirdPeriodExam || 0}
-                                                </div>
-                                            </TableCell>
-
-                                            {/* درجة الفترة الثالثة (للإدخال) */}
-                                            <TableCell className="text-center">
-                                                <div className="space-y-2">
-                                                    <Input
-                                                        type="number"
-                                                        placeholder="0"
-                                                        min="0"
-                                                        max="48"
-                                                        step="0.5"
-                                                        value={grades?.thirdPeriodExam || ''}
-                                                        onChange={(e) => handleThirdPeriodInput(student.id, e.target.value)}
-                                                        className="w-20 mx-auto text-center font-bold"
-                                                        disabled={loading}
-                                                    />
-                                                    {error && (
-                                                        <div className="text-xs text-red-500">{error}</div>
-                                                    )}
-                                                </div>
-                                            </TableCell>
-
-                                            {/* مجموع الفترة الثانية (محفوظ) */}
-                                            <TableCell className="text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <Lock className="w-3 h-3 text-green-500" />
-                                                    <Badge variant="secondary" className="bg-green-100 text-green-800 font-bold">
-                                                        {grades?.secondPeriodTotal || 0}
-                                                    </Badge>
-                                                </div>
-                                                <div className="text-xs text-gray-500 mt-1">لا يمكن التعديل</div>
-                                            </TableCell>
-
-                                            {/* مجموع الفترة الأولى (محفوظ) */}
-                                            <TableCell className="text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <Lock className="w-3 h-3 text-blue-500" />
-                                                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 font-bold">
-                                                        {grades?.firstPeriodTotal || 0}
-                                                    </Badge>
-                                                </div>
-                                                <div className="text-xs text-gray-500 mt-1">لا يمكن التعديل</div>
-                                            </TableCell>
-
-                                            {/* اسم الطالب */}
-                                            <TableCell className="text-center">
-                                                <div>
-                                                    <div className="font-semibold">{student.studentName}</div>
-                                                    <div className="text-xs text-gray-500">{student.studentNumber}</div>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
+                                        <tr key={student.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <td className="p-3">{index + 1}</td>
+                                            <td className="p-3 font-medium">{student.fullName}</td>
+                                            <td className="p-3 text-center">
+                                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                    {firstPeriod}
+                                                </span>
+                                            </td>
+                                            <td className="p-3 text-center">
+                                                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                                                    {secondPeriod}
+                                                </span>
+                                            </td>
+                                            <td className="p-3 text-center">
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    max="100"
+                                                    value={grades[student.id] || ''}
+                                                    onChange={(e) => setGrades(prev => ({
+                                                        ...prev,
+                                                        [student.id]: Number(e.target.value)
+                                                    }))}
+                                                    className="w-20 text-center"
+                                                    placeholder="0"
+                                                />
+                                            </td>
+                                            <td className="p-3 text-center">
+                                                <span className={`px-3 py-1 rounded font-bold ${passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                    }`}>
+                                                    {finalTotal}
+                                                </span>
+                                            </td>
+                                            <td className="p-3 text-center">
+                                                <span className={`px-3 py-1 rounded font-bold text-white ${passed ? 'bg-green-500' : 'bg-red-500'
+                                                    }`}>
+                                                    {passed ? 'ناجح' : 'راسب'}
+                                                </span>
+                                            </td>
+                                        </tr>
                                     )
                                 })}
-                            </TableBody>
-                        </Table>
+                            </tbody>
+                        </table>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* أزرار الحفظ */}
-            <div className="flex justify-end gap-4">
+            {/* أزرار الإجراءات */}
+            <div className="flex gap-4 justify-center">
+                <Button variant="outline" className="flex items-center gap-2">
+                    <FileDown className="w-4 h-4" />
+                    تصدير النتائج
+                </Button>
                 <Button
-                    onClick={saveGrades}
+                    onClick={handleSaveGrades}
                     disabled={loading}
-                    className="bg-gradient-to-l from-lama-sky to-lama-yellow text-white px-8 py-3"
+                    className="bg-gradient-to-r from-lama-sky to-lama-yellow text-white"
                 >
                     <Save className="w-4 h-4 mr-2" />
                     {loading ? 'جاري الحفظ...' : 'حفظ جميع الدرجات'}
@@ -430,874 +275,4 @@ export default function ThirdPeriodManagerFixed({
     )
 }
 
-<Card className="modern-card">
-
-    <CardContent className="p-8 text-center">
-
-        <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-
-        <h3 className="text-xl font-bold text-gray-800 mb-2">مطلوب اختيار المادة</h3>
-
-        <p className="text-gray-600">يرجى اختيار المادة الدراسية من الفلاتر أعلاه لعرض نظام الفترة الثالثة</p>
-
-    </CardContent>
-
-</Card>
-
-        )
-
-    }
-
-
-
-return (
-
-    <div className="space-y-6" dir="rtl">
-
-        {/* رأس النظام */}
-
-        <Card className="modern-card">
-
-            <CardHeader className="bg-gradient-to-l from-lama-sky to-lama-yellow text-white rounded-t-3xl">
-
-                <CardTitle className="flex items-center gap-3 text-2xl">
-
-                    <Calculator className="w-6 h-6" />
-
-                    الفترة الثالثة - النتائج النهائية
-
-                </CardTitle>
-
-                <div className="text-lama-purple-light">
-
-                    <p className="text-lg font-semibold">المجموع النهائي = مجموع الفترة الأولى + مجموع الفترة الثانية + درجة الفترة الثالثة</p>
-
-                    <p className="text-sm mt-2">• المجاميع السابقة محفوظة ولا يمكن تعديلها من هنا</p>
-
-                    <p className="text-sm">• فقط درجة امتحان الفترة الثالثة قابلة للإدخال</p>
-
-                </div>
-
-            </CardHeader>
-
-        </Card>
-
-
-
-        {/* إحصائيات سريعة */}
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-            <Card className="modern-card text-center p-4">
-
-                <Users className="w-8 h-8 text-lama-sky mx-auto mb-2" />
-
-                <div className="text-2xl font-bold text-gray-800">{students.length}</div>
-
-                <div className="text-sm text-gray-600">إجمالي الطلاب</div>
-
-            </Card>
-
-
-
-            <Card className="modern-card text-center p-4">
-
-                <Calculator className="w-8 h-8 text-lama-yellow mx-auto mb-2" />
-
-                <div className="text-2xl font-bold text-gray-800">
-
-                    {Object.values(studentGrades).filter(g => g.thirdPeriodExam !== null).length}
-
-                </div>
-
-                <div className="text-sm text-gray-600">درجات مدخلة</div>
-
-            </Card>
-
-
-
-            <Card className="modern-card text-center p-4">
-
-                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold">✓</div>
-
-                <div className="text-2xl font-bold text-gray-800">
-
-                    {Object.values(studentGrades).filter(g => g.status === 'نجح').length}
-
-                </div>
-
-                <div className="text-sm text-gray-600">ناجحين</div>
-
-            </Card>
-
-
-
-            <Card className="modern-card text-center p-4">
-
-                <div className="w-8 h-8 bg-red-500 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold">✗</div>
-
-                <div className="text-2xl font-bold text-gray-800">
-
-                    {Object.values(studentGrades).filter(g => g.status === 'راسب').length}
-
-                </div>
-
-                <div className="text-sm text-gray-600">راسبين</div>
-
-            </Card>
-
-        </div>
-
-
-
-        {/* الجدول الرئيسي */}
-
-        <Card className="modern-card">
-
-            <CardHeader className="bg-gradient-to-l from-lama-yellow to-lama-sky text-white rounded-t-3xl">
-
-                <CardTitle className="flex items-center gap-3 text-xl">
-
-                    <Calculator className="w-5 h-5" />
-
-                    جدول النتائج النهائية - {selectedSubject?.name || 'غير محدد'}
-
-                </CardTitle>
-
-            </CardHeader>
-
-            <CardContent className="p-0">
-
-                <div className="overflow-x-auto">
-
-                    <Table>
-
-                        <TableHeader>
-
-                            <TableRow className="bg-gray-50">
-
-                                <TableHead className="text-center font-bold">الطالب</TableHead>
-
-                                <TableHead className="text-center font-bold">
-
-                                    <div className="flex items-center justify-center gap-2">
-
-                                        <Lock className="w-4 h-4 text-blue-600" />
-
-                                        <span>مجموع الفترة الأولى</span>
-
-                                    </div>
-
-                                    <div className="text-xs text-gray-500">(محفوظ من النظام)</div>
-
-                                </TableHead>
-
-                                <TableHead className="text-center font-bold">
-
-                                    <div className="flex items-center justify-center gap-2">
-
-                                        <Lock className="w-4 h-4 text-green-600" />
-
-                                        <span>مجموع الفترة الثانية</span>
-
-                                    </div>
-
-                                    <div className="text-xs text-gray-500">(محفوظ من النظام)</div>
-
-                                </TableHead>
-
-                                <TableHead className="text-center font-bold">
-
-                                    <div className="flex items-center justify-center gap-2">
-
-                                        <Calculator className="w-4 h-4 text-lama-sky" />
-
-                                        <span>درجة الفترة الثالثة</span>
-
-                                    </div>
-
-                                    <div className="text-xs text-gray-500">(للإدخال - من 48)</div>
-
-                                </TableHead>
-
-                                <TableHead className="text-center font-bold">المجموع النهائي</TableHead>
-
-                                <TableHead className="text-center font-bold">النسبة %</TableHead>
-
-                                <TableHead className="text-center font-bold">التقدير</TableHead>
-
-                                <TableHead className="text-center font-bold">النتيجة</TableHead>
-
-                            </TableRow>
-
-                        </TableHeader>
-
-                        <TableBody>
-
-                            {students.map((student) => {
-
-                                const grades = studentGrades[student.id]
-
-                                const error = errors[student.id]
-
-
-
-                                return (
-
-                                    <TableRow key={student.id} className="hover:bg-gray-50">
-
-                                        {/* اسم الطالب */}
-
-                                        <TableCell className="text-center">
-
-                                            <div>
-
-                                                <div className="font-semibold">{student.studentName}</div>
-
-                                                <div className="text-xs text-gray-500">{student.studentNumber}</div>
-
-                                            </div>
-
-                                        </TableCell>
-
-
-
-                                        {/* مجموع الفترة الأولى (محفوظ) */}
-
-                                        <TableCell className="text-center">
-
-                                            <div className="flex items-center justify-center gap-2">
-
-                                                <Lock className="w-3 h-3 text-blue-500" />
-
-                                                <Badge variant="secondary" className="bg-blue-100 text-blue-800 font-bold">
-
-                                                    {grades?.firstPeriodTotal || 0}
-
-                                                </Badge>
-
-                                            </div>
-
-                                            <div className="text-xs text-gray-500 mt-1">لا يمكن التعديل</div>
-
-                                        </TableCell>
-
-
-
-                                        {/* مجموع الفترة الثانية (محفوظ) */}
-
-                                        <TableCell className="text-center">
-
-                                            <div className="flex items-center justify-center gap-2">
-
-                                                <Lock className="w-3 h-3 text-green-500" />
-
-                                                <Badge variant="secondary" className="bg-green-100 text-green-800 font-bold">
-
-                                                    {grades?.secondPeriodTotal || 0}
-
-                                                </Badge>
-
-                                            </div>
-
-                                            <div className="text-xs text-gray-500 mt-1">لا يمكن التعديل</div>
-
-                                        </TableCell>
-
-
-
-                                        {/* درجة الفترة الثالثة (للإدخال) */}
-
-                                        <TableCell className="text-center">
-
-                                            <div className="space-y-2">
-
-                                                <Input
-
-                                                    type="number"
-
-                                                    placeholder="0"
-
-                                                    min="0"
-
-                                                    max="48"
-
-                                                    step="0.5"
-
-                                                    value={grades?.thirdPeriodExam || ''}
-
-                                                    onChange={(e) => handleThirdPeriodInput(student.id, e.target.value)}
-
-                                                    className="w-20 mx-auto text-center font-bold"
-
-                                                    disabled={loading}
-
-                                                />
-
-                                                {error && (
-
-                                                    <div className="text-xs text-red-500">{error}</div>
-
-                                                )}
-
-                                            </div>
-
-                                        </TableCell>
-
-
-
-                                        {/* المجموع النهائي */}
-
-                                        <TableCell className="text-center">
-
-                                            <Badge className="font-bold text-lg bg-lama-yellow text-white">
-
-                                                {grades?.finalTotal || 0}
-
-                                            </Badge>
-
-                                            <div className="text-xs text-gray-500 mt-1">
-
-                                                {grades?.firstPeriodTotal || 0} + {grades?.secondPeriodTotal || 0} + {grades?.thirdPeriodExam || 0}
-
-                                            </div>
-
-                                        </TableCell>
-
-
-
-                                        {/* النسبة المئوية */}
-
-                                        <TableCell className="text-center">
-
-                                            <Badge variant="outline" className="font-bold">
-
-                                                {grades?.percentage || 0}%
-
-                                            </Badge>
-
-                                        </TableCell>
-
-
-
-                                        {/* التقدير */}
-
-                                        <TableCell className="text-center">
-
-                                            <Badge
-
-                                                variant={grades?.status === 'نجح' ? "default" : "destructive"}
-
-                                                className="font-bold"
-
-                                            >
-
-                                                {grades?.grade || 'غير مكتمل'}
-
-                                            </Badge>
-
-                                        </TableCell>
-
-
-
-                                        {/* النتيجة النهائية */}
-
-                                        <TableCell className="text-center">
-
-                                            <Badge
-
-                                                variant={grades?.status === 'نجح' ? "default" : "destructive"}
-
-                                                className="font-bold"
-
-                                            >
-
-                                                {grades?.status || 'غير مكتمل'}
-
-                                            </Badge>
-
-                                        </TableCell>
-
-                                    </TableRow>
-
-                                )
-
-                            })}
-
-                        </TableBody>
-
-                    </Table>
-
-                </div>
-
-            </CardContent>
-
-        </Card>
-
-
-
-        {/* أزرار الحفظ */}
-
-        <div className="flex justify-end gap-4">
-
-            <Button
-
-                onClick={saveGrades}
-
-                disabled={loading}
-
-                className="bg-gradient-to-l from-lama-sky to-lama-yellow text-white px-8 py-3"
-
-            >
-
-                <Save className="w-4 h-4 mr-2" />
-
-                {loading ? 'جاري الحفظ...' : 'حفظ جميع الدرجات'}
-
-            </Button>
-
-        </div>
-
-    </div>
-
-)
-
-}
-
-
-
-<Card className="modern-card">
-
-    <CardContent className="p-8 text-center">
-
-        <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-
-        <h3 className="text-xl font-bold text-gray-800 mb-2">مطلوب اختيار المادة</h3>
-
-        <p className="text-gray-600">يرجى اختيار المادة الدراسية من الفلاتر أعلاه لعرض نظام الفترة الثالثة</p>
-
-    </CardContent>
-
-</Card>
-
-        )
-
-    }
-
-
-
-return (
-
-    <div className="space-y-6" dir="rtl">
-
-        {/* رأس النظام */}
-
-        <Card className="modern-card">
-
-            <CardHeader className="bg-gradient-to-l from-lama-sky to-lama-yellow text-white rounded-t-3xl">
-
-                <CardTitle className="flex items-center gap-3 text-2xl">
-
-                    <Calculator className="w-6 h-6" />
-
-                    الفترة الثالثة - النتائج النهائية
-
-                </CardTitle>
-
-                <div className="text-lama-purple-light">
-
-                    <p className="text-lg font-semibold">المجموع النهائي = مجموع الفترة الأولى + مجموع الفترة الثانية + درجة الفترة الثالثة</p>
-
-                    <p className="text-sm mt-2">• المجاميع السابقة محفوظة ولا يمكن تعديلها من هنا</p>
-
-                    <p className="text-sm">• فقط درجة امتحان الفترة الثالثة قابلة للإدخال</p>
-
-                </div>
-
-            </CardHeader>
-
-        </Card>
-
-
-
-        {/* إحصائيات سريعة */}
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-            <Card className="modern-card text-center p-4">
-
-                <Users className="w-8 h-8 text-lama-sky mx-auto mb-2" />
-
-                <div className="text-2xl font-bold text-gray-800">{students.length}</div>
-
-                <div className="text-sm text-gray-600">إجمالي الطلاب</div>
-
-            </Card>
-
-
-
-            <Card className="modern-card text-center p-4">
-
-                <Calculator className="w-8 h-8 text-lama-yellow mx-auto mb-2" />
-
-                <div className="text-2xl font-bold text-gray-800">
-
-                    {Object.values(studentGrades).filter(g => g.thirdPeriodExam !== null).length}
-
-                </div>
-
-                <div className="text-sm text-gray-600">درجات مدخلة</div>
-
-            </Card>
-
-
-
-            <Card className="modern-card text-center p-4">
-
-                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold">✓</div>
-
-                <div className="text-2xl font-bold text-gray-800">
-
-                    {Object.values(studentGrades).filter(g => g.status === 'نجح').length}
-
-                </div>
-
-                <div className="text-sm text-gray-600">ناجحين</div>
-
-            </Card>
-
-
-
-            <Card className="modern-card text-center p-4">
-
-                <div className="w-8 h-8 bg-red-500 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold">✗</div>
-
-                <div className="text-2xl font-bold text-gray-800">
-
-                    {Object.values(studentGrades).filter(g => g.status === 'راسب').length}
-
-                </div>
-
-                <div className="text-sm text-gray-600">راسبين</div>
-
-            </Card>
-
-        </div>
-
-
-
-        {/* الجدول الرئيسي */}
-
-        <Card className="modern-card">
-
-            <CardHeader className="bg-gradient-to-l from-lama-yellow to-lama-sky text-white rounded-t-3xl">
-
-                <CardTitle className="flex items-center gap-3 text-xl">
-
-                    <Calculator className="w-5 h-5" />
-
-                    جدول النتائج النهائية - {selectedSubject?.name || 'غير محدد'}
-
-                </CardTitle>
-
-            </CardHeader>
-
-            <CardContent className="p-0">
-
-                <div className="overflow-x-auto">
-
-                    <Table>
-
-                        <TableHeader>
-
-                            <TableRow className="bg-gray-50">
-
-                                <TableHead className="text-center font-bold">الطالب</TableHead>
-
-                                <TableHead className="text-center font-bold">
-
-                                    <div className="flex items-center justify-center gap-2">
-
-                                        <Lock className="w-4 h-4 text-blue-600" />
-
-                                        <span>مجموع الفترة الأولى</span>
-
-                                    </div>
-
-                                    <div className="text-xs text-gray-500">(محفوظ من النظام)</div>
-
-                                </TableHead>
-
-                                <TableHead className="text-center font-bold">
-
-                                    <div className="flex items-center justify-center gap-2">
-
-                                        <Lock className="w-4 h-4 text-green-600" />
-
-                                        <span>مجموع الفترة الثانية</span>
-
-                                    </div>
-
-                                    <div className="text-xs text-gray-500">(محفوظ من النظام)</div>
-
-                                </TableHead>
-
-                                <TableHead className="text-center font-bold">
-
-                                    <div className="flex items-center justify-center gap-2">
-
-                                        <Calculator className="w-4 h-4 text-lama-sky" />
-
-                                        <span>درجة الفترة الثالثة</span>
-
-                                    </div>
-
-                                    <div className="text-xs text-gray-500">(للإدخال - من 48)</div>
-
-                                </TableHead>
-
-                                <TableHead className="text-center font-bold">المجموع النهائي</TableHead>
-
-                                <TableHead className="text-center font-bold">النسبة %</TableHead>
-
-                                <TableHead className="text-center font-bold">التقدير</TableHead>
-
-                                <TableHead className="text-center font-bold">النتيجة</TableHead>
-
-                            </TableRow>
-
-                        </TableHeader>
-
-                        <TableBody>
-
-                            {students.map((student) => {
-
-                                const grades = studentGrades[student.id]
-
-                                const error = errors[student.id]
-
-
-
-                                return (
-
-                                    <TableRow key={student.id} className="hover:bg-gray-50">
-
-                                        {/* اسم الطالب */}
-
-                                        <TableCell className="text-center">
-
-                                            <div>
-
-                                                <div className="font-semibold">{student.studentName}</div>
-
-                                                <div className="text-xs text-gray-500">{student.studentNumber}</div>
-
-                                            </div>
-
-                                        </TableCell>
-
-
-
-                                        {/* مجموع الفترة الأولى (محفوظ) */}
-
-                                        <TableCell className="text-center">
-
-                                            <div className="flex items-center justify-center gap-2">
-
-                                                <Lock className="w-3 h-3 text-blue-500" />
-
-                                                <Badge variant="secondary" className="bg-blue-100 text-blue-800 font-bold">
-
-                                                    {grades?.firstPeriodTotal || 0}
-
-                                                </Badge>
-
-                                            </div>
-
-                                            <div className="text-xs text-gray-500 mt-1">لا يمكن التعديل</div>
-
-                                        </TableCell>
-
-
-
-                                        {/* مجموع الفترة الثانية (محفوظ) */}
-
-                                        <TableCell className="text-center">
-
-                                            <div className="flex items-center justify-center gap-2">
-
-                                                <Lock className="w-3 h-3 text-green-500" />
-
-                                                <Badge variant="secondary" className="bg-green-100 text-green-800 font-bold">
-
-                                                    {grades?.secondPeriodTotal || 0}
-
-                                                </Badge>
-
-                                            </div>
-
-                                            <div className="text-xs text-gray-500 mt-1">لا يمكن التعديل</div>
-
-                                        </TableCell>
-
-
-
-                                        {/* درجة الفترة الثالثة (للإدخال) */}
-
-                                        <TableCell className="text-center">
-
-                                            <div className="space-y-2">
-
-                                                <Input
-
-                                                    type="number"
-
-                                                    placeholder="0"
-
-                                                    min="0"
-
-                                                    max="48"
-
-                                                    step="0.5"
-
-                                                    value={grades?.thirdPeriodExam || ''}
-
-                                                    onChange={(e) => handleThirdPeriodInput(student.id, e.target.value)}
-
-                                                    className="w-20 mx-auto text-center font-bold"
-
-                                                    disabled={loading}
-
-                                                />
-
-                                                {error && (
-
-                                                    <div className="text-xs text-red-500">{error}</div>
-
-                                                )}
-
-                                            </div>
-
-                                        </TableCell>
-
-
-
-                                        {/* المجموع النهائي */}
-
-                                        <TableCell className="text-center">
-
-                                            <Badge className="font-bold text-lg bg-lama-yellow text-white">
-
-                                                {grades?.finalTotal || 0}
-
-                                            </Badge>
-
-                                            <div className="text-xs text-gray-500 mt-1">
-
-                                                {grades?.firstPeriodTotal || 0} + {grades?.secondPeriodTotal || 0} + {grades?.thirdPeriodExam || 0}
-
-                                            </div>
-
-                                        </TableCell>
-
-
-
-                                        {/* النسبة المئوية */}
-
-                                        <TableCell className="text-center">
-
-                                            <Badge variant="outline" className="font-bold">
-
-                                                {grades?.percentage || 0}%
-
-                                            </Badge>
-
-                                        </TableCell>
-
-
-
-                                        {/* التقدير */}
-
-                                        <TableCell className="text-center">
-
-                                            <Badge
-
-                                                variant={grades?.status === 'نجح' ? "default" : "destructive"}
-
-                                                className="font-bold"
-
-                                            >
-
-                                                {grades?.grade || 'غير مكتمل'}
-
-                                            </Badge>
-
-                                        </TableCell>
-
-
-
-                                        {/* النتيجة النهائية */}
-
-                                        <TableCell className="text-center">
-
-                                            <Badge
-
-                                                variant={grades?.status === 'نجح' ? "default" : "destructive"}
-
-                                                className="font-bold"
-
-                                            >
-
-                                                {grades?.status || 'غير مكتمل'}
-
-                                            </Badge>
-
-                                        </TableCell>
-
-                                    </TableRow>
-
-                                )
-
-                            })}
-
-                        </TableBody>
-
-                    </Table>
-
-                </div>
-
-            </CardContent>
-
-        </Card>
-
-
-
-        {/* أزرار الحفظ */}
-
-        <div className="flex justify-end gap-4">
-
-            <Button
-
-                onClick={saveGrades}
-
-                disabled={loading}
-
-                className="bg-gradient-to-l from-lama-sky to-lama-yellow text-white px-8 py-3"
-
-            >
-
-                <Save className="w-4 h-4 mr-2" />
-
-                {loading ? 'جاري الحفظ...' : 'حفظ جميع الدرجات'}
-
-            </Button>
-
-        </div>
-
-    </div>
-
-)
-
-}
-
-
+export default ThirdPeriodManagerFixed
