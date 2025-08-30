@@ -44,12 +44,15 @@ export async function POST(request: NextRequest) {
                 let periodEnum: "FIRST" | "SECOND" | "THIRD";
                 switch (gradeData.period) {
                     case "FIRST":
+                    case "الفترة الأولى":
                         periodEnum = "FIRST";
                         break;
                     case "SECOND":
+                    case "الفترة الثانية":
                         periodEnum = "SECOND";
                         break;
                     case "THIRD":
+                    case "الفترة الثالثة":
                         periodEnum = "THIRD";
                         break;
                     default:

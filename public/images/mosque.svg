@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" style="background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 100%);">
+  <!-- Mosque Interior -->
+  <rect x="0" y="0" width="600" height="400" fill="url(#mosqueGradient)"/>
+  
+  <!-- Floor with prayer mat pattern -->
+  <rect x="0" y="300" width="600" height="100" fill="#8B0000"/>
+  
+  <!-- Prayer mats -->
+  <rect x="50" y="320" width="80" height="50" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+  <rect x="150" y="320" width="80" height="50" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+  <rect x="250" y="320" width="80" height="50" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+  <rect x="350" y="320" width="80" height="50" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+  <rect x="450" y="320" width="80" height="50" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+  
+  <!-- Prayer mat patterns -->
+  <circle cx="90" cy="345" r="8" fill="none" stroke="#FFD700" stroke-width="1"/>
+  <circle cx="190" cy="345" r="8" fill="none" stroke="#FFD700" stroke-width="1"/>
+  <circle cx="290" cy="345" r="8" fill="none" stroke="#FFD700" stroke-width="1"/>
+  <circle cx="390" cy="345" r="8" fill="none" stroke="#FFD700" stroke-width="1"/>
+  <circle cx="490" cy="345" r="8" fill="none" stroke="#FFD700" stroke-width="1"/>
+  
+  <!-- Mihrab (prayer niche) -->
+  <path d="M250 50 Q300 20 350 50 L350 200 Q300 220 250 200 Z" fill="#D2B48C" stroke="#B8956A" stroke-width="3"/>
+  <path d="M260 60 Q300 40 340 60 L340 190 Q300 200 260 190 Z" fill="#F0E6D6"/>
+  
+  <!-- Mihrab decoration -->
+  <text x="300" y="90" text-anchor="middle" fill="#B8956A" font-family="serif" font-size="16" font-weight="bold">لا إله إلا الله</text>
+  <text x="300" y="115" text-anchor="middle" fill="#B8956A" font-family="serif" font-size="14">محمد رسول الله</text>
+  <text x="300" y="140" text-anchor="middle" fill="#B8956A" font-family="serif" font-size="12">الله أكبر</text>
+  
+  <!-- Minbar (pulpit) -->
+  <rect x="380" y="150" width="40" height="100" fill="#8B4513"/>
+  <rect x="375" y="145" width="50" height="8" fill="#D2B48C"/>
+  <rect x="385" y="130" width="30" height="20" fill="#8B4513"/>
+  <rect x="380" y="125" width="40" height="8" fill="#D2B48C"/>
+  
+  <!-- Steps to minbar -->
+  <rect x="375" y="240" width="50" height="10" fill="#D2B48C"/>
+  <rect x="378" y="225" width="44" height="10" fill="#D2B48C"/>
+  <rect x="381" y="210" width="38" height="10" fill="#D2B48C"/>
+  
+  <!-- Columns -->
+  <ellipse cx="100" cy="200" rx="15" ry="100" fill="#F7F3EE" stroke="#D2B48C" stroke-width="2"/>
+  <ellipse cx="500" cy="200" rx="15" ry="100" fill="#F7F3EE" stroke="#D2B48C" stroke-width="2"/>
+  
+  <!-- Column capitals -->
+  <ellipse cx="100" cy="100" rx="25" ry="15" fill="#B8956A"/>
+  <ellipse cx="500" cy="100" rx="25" ry="15" fill="#B8956A"/>
+  
+  <!-- Arches -->
+  <path d="M75 100 Q150 80 225 100" fill="none" stroke="#D2B48C" stroke-width="4"/>
+  <path d="M375 100 Q450 80 525 100" fill="none" stroke="#D2B48C" stroke-width="4"/>
+  
+  <!-- Dome interior -->
+  <ellipse cx="300" cy="150" rx="120" ry="80" fill="none" stroke="#B8956A" stroke-width="3"/>
+  <ellipse cx="300" cy="150" rx="100" ry="65" fill="none" stroke="#D2B48C" stroke-width="2"/>
+  <ellipse cx="300" cy="150" rx="80" ry="50" fill="none" stroke="#F0E6D6" stroke-width="1"/>
+  
+  <!-- Dome pattern -->
+  <circle cx="300" cy="150" r="30" fill="none" stroke="#B8956A" stroke-width="2"/>
+  <circle cx="300" cy="150" r="20" fill="none" stroke="#D2B48C" stroke-width="1"/>
+  <circle cx="300" cy="150" r="10" fill="#B8956A"/>
+  <text x="300" y="155" text-anchor="middle" fill="white" font-size="8">★</text>
+  
+  <!-- Chandeliers -->
+  <circle cx="200" cy="120" r="15" fill="#FFD700" stroke="#B8956A" stroke-width="2"/>
+  <circle cx="200" cy="120" r="8" fill="#FFF8DC"/>
+  <line x1="200" y1="90" x2="200" y2="105" stroke="#8B4513" stroke-width="2"/>
+  
+  <circle cx="400" cy="120" r="15" fill="#FFD700" stroke="#B8956A" stroke-width="2"/>
+  <circle cx="400" cy="120" r="8" fill="#FFF8DC"/>
+  <line x1="400" y1="90" x2="400" y2="105" stroke="#8B4513" stroke-width="2"/>
+  
+  <!-- Worshippers -->
+  <!-- Standing in prayer -->
+  <rect x="80" y="260" width="10" height="40" fill="#2C3E50"/>
+  <circle cx="85" cy="250" r="8" fill="#FDBCB4"/>
+  
+  <rect x="180" y="260" width="10" height="40" fill="#8B4513"/>
+  <circle cx="185" cy="250" r="8" fill="#FDBCB4"/>
+  
+  <rect x="280" y="260" width="10" height="40" fill="#2C3E50"/>
+  <circle cx="285" cy="250" r="8" fill="#FDBCB4"/>
+  
+  <rect x="380" y="260" width="10" height="40" fill="#654321"/>
+  <circle cx="385" cy="250" r="8" fill="#FDBCB4"/>
+  
+  <rect x="480" y="260" width="10" height="40" fill="#2C3E50"/>
+  <circle cx="485" cy="250" r="8" fill="#FDBCB4"/>
+  
+  <!-- Windows with Islamic patterns -->
+  <rect x="20" y="80" width="40" height="80" fill="#87CEEB" stroke="#B8956A" stroke-width="3"/>
+  <circle cx="40" cy="120" r="15" fill="none" stroke="#D2B48C" stroke-width="2"/>
+  <circle cx="40" cy="120" r="8" fill="none" stroke="#B8956A" stroke-width="1"/>
+  
+  <rect x="540" y="80" width="40" height="80" fill="#87CEEB" stroke="#B8956A" stroke-width="3"/>
+  <circle cx="560" cy="120" r="15" fill="none" stroke="#D2B48C" stroke-width="2"/>
+  <circle cx="560" cy="120" r="8" fill="none" stroke="#B8956A" stroke-width="1"/>
+  
+  <!-- Quranic verse on wall -->
+  <text x="300" y="40" text-anchor="middle" fill="#B8956A" font-family="serif" font-size="18" font-weight="bold">مسجد المعهد</text>
+  <text x="300" y="280" text-anchor="middle" fill="#B8956A" font-family="serif" font-size="12">﴿ وَأَنَّ الْمَسَاجِدَ لِلَّهِ ﴾</text>
+  
+  <!-- Prayer time indicator -->
+  <rect x="450" y="50" width="80" height="60" fill="rgba(255,255,255,0.9)" stroke="#B8956A" stroke-width="2"/>
+  <text x="490" y="70" text-anchor="middle" fill="#B8956A" font-size="10" font-weight="bold">أوقات الصلاة</text>
+  <text x="490" y="85" text-anchor="middle" fill="#8B4513" font-size="8">الفجر: 5:30</text>
+  <text x="490" y="95" text-anchor="middle" fill="#8B4513" font-size="8">الظهر: 12:15</text>
+  <text x="490" y="105" text-anchor="middle" fill="#8B4513" font-size="8">المغرب: 6:45</text>
+  
+  <defs>
+    <linearGradient id="mosqueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F7F3EE;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F0E6D6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E2D5C7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

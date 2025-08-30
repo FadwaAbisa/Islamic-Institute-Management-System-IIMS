@@ -38,7 +38,7 @@ import {
     type EvaluationPeriod,
     type GradeDistribution
 } from "@/lib/grade-distributions"
-import ThirdPeriodManager from "./ThirdPeriodManager"
+import ThirdPeriodManagerFixed from "./ThirdPeriodManagerFixed"
 
 interface Student {
     id: string
@@ -194,14 +194,14 @@ export default function EnhancedGradesManager() {
                 period: selectedPeriod as string
             })
 
-                  const res = await fetch(`/api/students/filtered?${params}`)
-      if (res.ok) {
-        const data = await res.json()
-        console.log("✅ تم استلام البيانات:", data)
-        setStudents(data.students || [])
-      } else {
-        console.error("❌ خطأ في الاستعلام:", res.status, await res.text())
-      }
+            const res = await fetch(`/api/students/filtered?${params}`)
+            if (res.ok) {
+                const data = await res.json()
+                console.log("✅ تم استلام البيانات:", data)
+                setStudents(data.students || [])
+            } else {
+                console.error("❌ خطأ في الاستعلام:", res.status, await res.text())
+            }
         } catch (error) {
             console.error("خطأ في تحميل الطلاب:", error)
         } finally {
@@ -1004,7 +1004,7 @@ export default function EnhancedGradesManager() {
                 {isFormEnabled && students.length > 0 && (
                     <>
                         {selectedPeriod === "الفترة الثالثة" ? (
-                            <ThirdPeriodManager
+                            <ThirdPeriodManagerFixed
                                 selectedYear={selectedYear}
                                 selectedLevel={selectedLevel}
                                 selectedSystem={selectedSystem}
@@ -1030,7 +1030,7 @@ export default function EnhancedGradesManager() {
                                             <p>حالياً متاح فقط نظام الفترة الثالثة المتطور. باقي الفترات قيد التطوير.</p>
                                         </AlertDescription>
                                     </Alert>
-                                    
+
                                     <div className="text-center py-8">
                                         <div className="text-6xl mb-4">⚙️</div>
                                         <h3 className="text-2xl font-bold text-gray-800 mb-2">قيد التطوير</h3>

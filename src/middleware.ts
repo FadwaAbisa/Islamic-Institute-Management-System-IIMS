@@ -19,11 +19,18 @@ const isProtectedRoute = createRouteMatcher([
 // تعريف المسارات العامة (غير محمية)
 const isPublicRoute = createRouteMatcher([
   '/',
+  '/login',
+  '/about/(.*)',
+  '/academic/(.*)',
+  '/regulations',
+  '/media-center',
+  '/contact',
   '/api/auth(.*)',
   '/favicon.ico',
   '/_next(.*)',
   '/images(.*)',
   '/icons(.*)',
+  '/public(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
@@ -38,7 +45,7 @@ export default clerkMiddleware(async (auth, req) => {
       const { userId, sessionClaims } = await auth();
 
       if (!userId) {
-        const signInUrl = new URL('/', req.url);
+        const signInUrl = new URL('/login', req.url);
         signInUrl.searchParams.set('redirect_url', req.url);
         return NextResponse.redirect(signInUrl);
       }
@@ -65,7 +72,7 @@ export default clerkMiddleware(async (auth, req) => {
 
       if (!userRole) {
         console.log('No role found, redirecting to no_role error');
-        return NextResponse.redirect(new URL('/?error=no_role', req.url));
+        return NextResponse.redirect(new URL('/login?error=no_role', req.url));
       }
 
       if (!canAccessRoute(userRole as any, pathname)) {
@@ -77,7 +84,7 @@ export default clerkMiddleware(async (auth, req) => {
 
     } catch (error) {
       console.error('خطأ في middleware:', error);
-      const signInUrl = new URL('/', req.url);
+      const signInUrl = new URL('/login', req.url);
       signInUrl.searchParams.set('error', 'system_error');
       return NextResponse.redirect(signInUrl);
     }

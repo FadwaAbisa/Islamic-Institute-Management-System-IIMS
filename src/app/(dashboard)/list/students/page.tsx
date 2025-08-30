@@ -42,7 +42,7 @@ export default function StudentsPage() {
   // التحقق من تسجيل الدخول
   useEffect(() => {
     if (isLoaded && !user) {
-      router.push('/sign-in');
+      router.push('/login');
       return;
     }
   }, [isLoaded, user, router]);

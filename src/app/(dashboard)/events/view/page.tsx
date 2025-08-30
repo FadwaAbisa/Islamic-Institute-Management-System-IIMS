@@ -5,3 +5,5 @@ const EventsViewPage = () => {
 };
 
 export default EventsViewPage;
+
+

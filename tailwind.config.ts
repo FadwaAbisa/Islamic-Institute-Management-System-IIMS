@@ -78,6 +78,9 @@ const config: Config = {
         lamaPurpleLight: "#FCFAF8",
         lamaYellow: "#B8956A",
         lamaYellowLight: "#E2D5C7",
+        lamaBlack: "#2c2c2c",
+        lamaDarkGray: "#404040",
+        lamaLightGray: "#f5f5f5",
         // إضافة الألوان بأسماء مختلفة للتوافق
         "lama-sky": "#D2B48C",
         "lama-sky-light": "#F0E6D6",
@@ -85,6 +88,9 @@ const config: Config = {
         "lama-purple-light": "#FCFAF8",
         "lama-yellow": "#B8956A",
         "lama-yellow-light": "#E2D5C7",
+        "lama-black": "#2c2c2c",
+        "lama-dark-gray": "#404040",
+        "lama-light-gray": "#f5f5f5",
       },
       borderRadius: {
         lg: "var(--radius)",

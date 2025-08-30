@@ -256,6 +256,9 @@ input[type="file"] {
   --lama-purple-light: #fcfaf8;
   --lama-yellow: #b8956a;
   --lama-yellow-light: #e2d5c7;
+  --lama-black: #2c2c2c;
+  --lama-dark-gray: #404040;
+  --lama-light-gray: #f5f5f5;
 }
 
 .bg-lama-sky {
@@ -328,4 +331,36 @@ input[type="file"] {
 
 .border-lama-yellow-light {
   border-color: var(--lama-yellow-light);
+}
+
+.bg-lama-black {
+  background-color: var(--lama-black);
+}
+
+.bg-lama-dark-gray {
+  background-color: var(--lama-dark-gray);
+}
+
+.bg-lama-light-gray {
+  background-color: var(--lama-light-gray);
+}
+
+.text-lama-black {
+  color: var(--lama-black);
+}
+
+.text-lama-dark-gray {
+  color: var(--lama-dark-gray);
+}
+
+.text-lama-light-gray {
+  color: var(--lama-light-gray);
+}
+
+.border-lama-black {
+  border-color: var(--lama-black);
+}
+
+.border-lama-dark-gray {
+  border-color: var(--lama-dark-gray);
 }

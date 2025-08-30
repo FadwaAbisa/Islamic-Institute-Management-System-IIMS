@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" style="background: linear-gradient(135deg, #F7F3EE 0%, #E2D5C7 100%);">
+  <!-- Library Interior -->
+  <rect x="0" y="0" width="600" height="400" fill="#F7F3EE"/>
+  
+  <!-- Floor -->
+  <rect x="0" y="350" width="600" height="50" fill="#DEB887"/>
+  
+  <!-- Bookshelves -->
+  <rect x="50" y="100" width="30" height="250" fill="#8B4513"/>
+  <rect x="150" y="100" width="30" height="250" fill="#8B4513"/>
+  <rect x="250" y="100" width="30" height="250" fill="#8B4513"/>
+  <rect x="350" y="100" width="30" height="250" fill="#8B4513"/>
+  <rect x="450" y="100" width="30" height="250" fill="#8B4513"/>
+  <rect x="520" y="100" width="30" height="250" fill="#8B4513"/>
+  
+  <!-- Books on shelves (multiple levels) -->
+  <!-- Shelf 1 -->
+  <rect x="52" y="120" width="6" height="25" fill="#D2B48C"/>
+  <rect x="59" y="120" width="6" height="25" fill="#B8956A"/>
+  <rect x="66" y="120" width="6" height="25" fill="#E2D5C7"/>
+  <rect x="73" y="120" width="6" height="25" fill="#F0E6D6"/>
+  
+  <rect x="52" y="160" width="6" height="25" fill="#B8956A"/>
+  <rect x="59" y="160" width="6" height="25" fill="#D2B48C"/>
+  <rect x="66" y="160" width="6" height="25" fill="#F0E6D6"/>
+  <rect x="73" y="160" width="6" height="25" fill="#E2D5C7"/>
+  
+  <!-- Repeat pattern for other shelves -->
+  <rect x="152" y="120" width="6" height="25" fill="#B8956A"/>
+  <rect x="159" y="120" width="6" height="25" fill="#D2B48C"/>
+  <rect x="166" y="120" width="6" height="25" fill="#E2D5C7"/>
+  <rect x="173" y="120" width="6" height="25" fill="#F0E6D6"/>
+  
+  <rect x="252" y="120" width="6" height="25" fill="#D2B48C"/>
+  <rect x="259" y="120" width="6" height="25" fill="#B8956A"/>
+  <rect x="266" y="120" width="6" height="25" fill="#F0E6D6"/>
+  <rect x="273" y="120" width="6" height="25" fill="#E2D5C7"/>
+  
+  <!-- Reading Tables -->
+  <ellipse cx="300" cy="280" rx="80" ry="40" fill="#8B4513"/>
+  <ellipse cx="150" cy="320" rx="60" ry="30" fill="#8B4513"/>
+  <ellipse cx="450" cy="320" rx="60" ry="30" fill="#8B4513"/>
+  
+  <!-- Students reading -->
+  <!-- Student 1 at main table -->
+  <circle cx="280" cy="250" r="12" fill="#FDBCB4"/>
+  <rect x="272" y="260" width="16" height="25" fill="#2C3E50"/>
+  
+  <!-- Student 2 at main table -->
+  <circle cx="320" cy="250" r="12" fill="#FDBCB4"/>
+  <rect x="312" y="260" width="16" height="25" fill="#8B4513"/>
+  
+  <!-- Books on tables -->
+  <rect x="290" y="275" width="12" height="15" fill="#D2B48C"/>
+  <rect x="305" y="275" width="12" height="15" fill="#B8956A"/>
+  <rect x="140" y="315" width="10" height="12" fill="#E2D5C7"/>
+  <rect x="440" y="315" width="10" height="12" fill="#F0E6D6"/>
+  
+  <!-- Hanging Lamp -->
+  <circle cx="300" cy="80" r="20" fill="#FFD700" stroke="#B8956A" stroke-width="3"/>
+  <line x1="300" y1="40" x2="300" y2="60" stroke="#8B4513" stroke-width="3"/>
+  <circle cx="300" cy="80" r="10" fill="#FFF8DC"/>
+  
+  <!-- Islamic Calligraphy on wall -->
+  <text x="300" y="50" text-anchor="middle" fill="#B8956A" font-family="serif" font-size="18" font-weight="bold">مكتبة المعهد</text>
+  <text x="500" y="180" text-anchor="middle" fill="#B8956A" font-family="serif" font-size="14" transform="rotate(90 500 180)">اقرأ باسم ربك</text>
+  
+  <!-- Windows with Islamic pattern -->
+  <rect x="20" y="120" width="50" height="80" fill="#87CEEB" stroke="#B8956A" stroke-width="3"/>
+  <circle cx="45" cy="160" r="15" fill="none" stroke="#D2B48C" stroke-width="2"/>
+  <circle cx="45" cy="160" r="8" fill="none" stroke="#B8956A" stroke-width="1"/>
+  
+  <!-- Bookshelf labels in Arabic -->
+  <text x="65" y="110" text-anchor="middle" fill="#8B4513" font-size="8">القرآن</text>
+  <text x="165" y="110" text-anchor="middle" fill="#8B4513" font-size="8">الحديث</text>
+  <text x="265" y="110" text-anchor="middle" fill="#8B4513" font-size="8">الفقه</text>
+  <text x="365" y="110" text-anchor="middle" fill="#8B4513" font-size="8">التاريخ</text>
+  <text x="465" y="110" text-anchor="middle" fill="#8B4513" font-size="8">اللغة</text>
+  
+  <!-- Decorative carpet -->
+  <ellipse cx="300" cy="330" rx="120" ry="20" fill="#8B0000" opacity="0.7"/>
+  <ellipse cx="300" cy="330" rx="100" ry="15" fill="#DC143C" opacity="0.8"/>
+</svg>
