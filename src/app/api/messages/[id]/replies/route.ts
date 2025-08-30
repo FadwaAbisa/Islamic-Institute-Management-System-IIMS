@@ -1,14 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-// Schema للتحقق من البيانات
-const createReplySchema = z.object({
-  content: z.string().min(1, "محتوى الرد مطلوب"),
-});
+// الحصول على ردود رسالة محددة
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const messageId = parseInt(params.id);
+    
+    const replies = await prisma.reply.findMany({
+      where: { messageId },
+      orderBy: {
+        createdAt: 'asc'
+      }
+    });
 
-// POST - إنشاء رد على رسالة
+    return NextResponse.json(replies);
+  } catch (error) {
+    console.error('Error fetching replies:', error);
+    return NextResponse.json(
+      { error: 'فشل في جلب الردود' },
+      { status: 500 }
+    );
+  }
+}
+
+// إضافة رد جديد
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
