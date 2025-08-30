@@ -18,10 +18,11 @@ export async function GET(request: NextRequest) {
     }
 
     // مستخدمون تجريبيون حسب نوع المستخدم
+    // القواعد: طالب ↔ معلم، معلم ↔ موظف إداري، موظف إداري ↔ مدير النظام
     let availableUsers: any[] = [];
 
     if (userType === "STUDENT") {
-      // الطلاب يمكنهم مراسلة المعلمين فقط
+      // الطلاب يستطيعون الدردشة مع المعلمين فقط
       availableUsers = [
         {
           id: "teacher_1",
@@ -34,22 +35,34 @@ export async function GET(request: NextRequest) {
           fullName: "الأستاذة فاطمة علي",
           type: "TEACHER",
           avatar: null,
+        },
+        {
+          id: "teacher_3",
+          fullName: "الأستاذ محمد خالد",
+          type: "TEACHER", 
+          avatar: null,
         }
       ];
     } 
     else if (userType === "TEACHER") {
-      // المعلمون يمكنهم مراسلة الطلاب والموظفين
+      // المعلمون يستطيعون الدردشة مع الطلاب والموظفين الإداريين
       availableUsers = [
         {
           id: "student_1",
-          fullName: "محمد أحمد",
+          fullName: "محمد أحمد إبراهيم",
           type: "STUDENT",
           avatar: null,
         },
         {
           id: "student_2",
-          fullName: "فاطمة محمد",
+          fullName: "فاطمة محمد علي",
           type: "STUDENT", 
+          avatar: null,
+        },
+        {
+          id: "student_3",
+          fullName: "عبدالله سالم",
+          type: "STUDENT",
           avatar: null,
         },
         {
@@ -57,11 +70,17 @@ export async function GET(request: NextRequest) {
           fullName: "منسق الشؤون الطلابية",
           type: "STAFF",
           avatar: null,
+        },
+        {
+          id: "staff_2",
+          fullName: "مسؤول الامتحانات",
+          type: "STAFF",
+          avatar: null,
         }
       ];
     }
     else if (userType === "STAFF") {
-      // الموظفون يمكنهم مراسلة المعلمين والطلاب
+      // الموظفون الإداريون يستطيعون الدردشة مع المعلمين ومدير النظام
       availableUsers = [
         {
           id: "teacher_1",
@@ -70,9 +89,50 @@ export async function GET(request: NextRequest) {
           avatar: null,
         },
         {
-          id: "student_1", 
-          fullName: "محمد أحمد",
-          type: "STUDENT",
+          id: "teacher_2",
+          fullName: "الأستاذة فاطمة علي", 
+          type: "TEACHER",
+          avatar: null,
+        },
+        {
+          id: "admin_1",
+          fullName: "مدير النظام",
+          type: "ADMIN",
+          avatar: null,
+        },
+        {
+          id: "admin_2",
+          fullName: "نائب المدير",
+          type: "ADMIN",
+          avatar: null,
+        }
+      ];
+    }
+    else if (userType === "ADMIN") {
+      // مدير النظام يستطيع الدردشة مع الموظفين الإداريين
+      availableUsers = [
+        {
+          id: "staff_1",
+          fullName: "منسق الشؤون الطلابية",
+          type: "STAFF",
+          avatar: null,
+        },
+        {
+          id: "staff_2",
+          fullName: "مسؤول الامتحانات",
+          type: "STAFF",
+          avatar: null,
+        },
+        {
+          id: "staff_3",
+          fullName: "مسؤول المكتبة",
+          type: "STAFF",
+          avatar: null,
+        },
+        {
+          id: "staff_4",
+          fullName: "منسق الأنشطة",
+          type: "STAFF",
           avatar: null,
         }
       ];

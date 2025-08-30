@@ -21,14 +21,20 @@ export async function GET(request: NextRequest) {
     let availableUsers: any[] = [];
 
     // منطق تحديد المستخدمين المتاحين للمراسلة حسب نوع المستخدم
+    // القواعد: طالب ↔ معلم، معلم ↔ موظف إداري، موظف إداري ↔ مدير النظام
+    
     if (userType === "STUDENT") {
-      // الطلاب يمكنهم مراسلة المعلمين فقط
+      // الطلاب يستطيعون الدردشة مع المعلمين فقط
       const teachers = await prisma.teacher.findMany({
         where: {
           fullName: {
             contains: search,
             mode: "insensitive",
           },
+          // التأكد من أن المعلم لديه بيانات كاملة
+          NOT: {
+            fullName: null
+          }
         },
         select: {
           id: true,
@@ -44,7 +50,7 @@ export async function GET(request: NextRequest) {
       }));
     } 
     else if (userType === "TEACHER") {
-      // المعلمون يمكنهم مراسلة الطلاب والموظفين الإداريين
+      // المعلمون يستطيعون الدردشة مع الطلاب والموظفين الإداريين
       const [students, staff] = await Promise.all([
         prisma.student.findMany({
           where: {
@@ -52,6 +58,10 @@ export async function GET(request: NextRequest) {
               contains: search,
               mode: "insensitive",
             },
+            // فقط الطلاب النشطين
+            studentStatus: {
+              in: ["ACTIVE", null]
+            }
           },
           select: {
             id: true,
@@ -89,34 +99,36 @@ export async function GET(request: NextRequest) {
       ];
     } 
     else if (userType === "STAFF") {
-      // الموظفون الإداريون يمكنهم مراسلة المعلمين والطلاب
-      const [teachers, students] = await Promise.all([
+      // الموظفون الإداريون يستطيعون الدردشة مع المعلمين ومدير النظام
+      const [teachers, admins] = await Promise.all([
         prisma.teacher.findMany({
           where: {
             fullName: {
               contains: search,
               mode: "insensitive",
             },
+            NOT: {
+              fullName: null
+            }
           },
           select: {
             id: true,
             fullName: true,
           },
-          take: 10,
+          take: 15,
         }),
-        prisma.student.findMany({
+        prisma.admin.findMany({
           where: {
-            fullName: {
+            username: {
               contains: search,
               mode: "insensitive",
             },
           },
           select: {
             id: true,
-            fullName: true,
-            studentPhoto: true,
+            username: true,
           },
-          take: 10,
+          take: 5,
         }),
       ]);
 
@@ -126,75 +138,35 @@ export async function GET(request: NextRequest) {
           type: "TEACHER",
           avatar: null,
         })),
-        ...students.map(student => ({
-          ...student,
-          type: "STUDENT",
-          avatar: student.studentPhoto,
+        ...admins.map(admin => ({
+          id: admin.id,
+          fullName: admin.username,
+          type: "ADMIN",
+          avatar: null,
         })),
       ];
     } 
     else if (userType === "ADMIN") {
-      // الإدارة يمكنها مراسلة الجميع
-      const [teachers, students, staff] = await Promise.all([
-        prisma.teacher.findMany({
-          where: {
-            fullName: {
-              contains: search,
-              mode: "insensitive",
-            },
+      // مدير النظام يستطيع الدردشة مع الموظفين الإداريين
+      const staff = await prisma.staff.findMany({
+        where: {
+          fullName: {
+            contains: search,
+            mode: "insensitive",
           },
-          select: {
-            id: true,
-            fullName: true,
-          },
-          take: 7,
-        }),
-        prisma.student.findMany({
-          where: {
-            fullName: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-          select: {
-            id: true,
-            fullName: true,
-            studentPhoto: true,
-          },
-          take: 7,
-        }),
-        prisma.staff.findMany({
-          where: {
-            fullName: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-          select: {
-            id: true,
-            fullName: true,
-          },
-          take: 6,
-        }),
-      ]);
+        },
+        select: {
+          id: true,
+          fullName: true,
+        },
+        take: 20,
+      });
 
-      availableUsers = [
-        ...teachers.map(teacher => ({
-          ...teacher,
-          type: "TEACHER",
-          avatar: null,
-        })),
-        ...students.map(student => ({
-          ...student,
-          type: "STUDENT",
-          avatar: student.studentPhoto,
-        })),
-        ...staff.map(staff => ({
-          ...staff,
-          type: "STAFF",
-          avatar: null,
-        })),
-      ];
+      availableUsers = staff.map(staff => ({
+        ...staff,
+        type: "STAFF",
+        avatar: null,
+      }));
     }
 
     return NextResponse.json(availableUsers);

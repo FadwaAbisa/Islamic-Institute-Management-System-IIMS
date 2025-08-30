@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AdsProvider } from "@/contexts/AdsContext";
+import { MessagesProvider } from "@/contexts/MessagesContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,8 +32,10 @@ export default function RootLayout({
       <html lang="ar" dir="rtl">
         <body className={inter.className}>
           <AdsProvider>
-            {children}
-            <ToastContainer position="bottom-right" theme="dark" />
+            <MessagesProvider>
+              {children}
+              <ToastContainer position="bottom-right" theme="dark" />
+            </MessagesProvider>
           </AdsProvider>
         </body>
       </html>

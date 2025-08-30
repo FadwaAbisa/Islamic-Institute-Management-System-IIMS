@@ -276,21 +276,24 @@ enum RecurrenceType {
 
 // نماذج نظام الرسائل
 model Message {
-  id          String      @id @default(cuid())
-  content     String
-  senderId    String
-  senderType  UserType
-  receiverId  String
-  receiverType UserType
-  readAt      DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id             String        @id @default(cuid())
+  content        String
+  senderId       String
+  senderType     UserType
+  receiverId     String
+  receiverType   UserType
+  conversationId String?       // ربط الرسالة بالمحادثة
+  readAt         DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   
   // العلاقات
-  replies     MessageReply[]
+  replies        MessageReply[]
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   
   @@index([senderId])
   @@index([receiverId])
+  @@index([conversationId])
   @@index([createdAt])
 }
 
@@ -321,7 +324,10 @@ model Conversation {
   lastMessageAt DateTime        @default(now())
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  
+
+  // العلاقات
+  messages      Message[]       // جميع الرسائل في هذه المحادثة
+
   @@unique([participant1Id, participant2Id])
   @@index([participant1Id])
   @@index([participant2Id])

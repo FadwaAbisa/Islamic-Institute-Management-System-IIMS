@@ -25,31 +25,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "نوع المستخدم مطلوب" }, { status: 400 });
     }
 
-    // إرجاع بيانات تجريبية لحين تشغيل Migration
-    const mockConversations = [
-      {
-        id: "1",
-        participant1Id: userId,
-        participant1Type: userType,
-        participant2Id: "teacher_456", 
-        participant2Type: "TEACHER",
-        lastMessageAt: new Date().toISOString(),
-        lastMessage: {
-          content: "مرحباً، كيف يمكنني مساعدتك؟",
-          createdAt: new Date().toISOString(),
-          senderId: "teacher_456"
-        },
-        otherParticipant: {
-          id: "teacher_456",
-          fullName: "الأستاذ أحمد محمد",
-          type: "TEACHER"
-        }
-      }
-    ];
-
-    return NextResponse.json(mockConversations);
-
-    /* الكود الأصلي سيفعل بعد تشغيل Migration:
+    // استخدام قاعدة البيانات الفعلية الآن
     
     const conversations = await prisma.conversation.findMany({
       where: {
@@ -99,22 +75,58 @@ export async function GET(request: NextRequest) {
             ? conversation.participant2Type 
             : conversation.participant1Type;
 
+        // جلب معلومات المشارك الآخر من Clerk أولاً، ثم من قاعدة البيانات المحلية كبديل
         let otherParticipant: any = null;
-        if (otherParticipantType === "STUDENT") {
-          otherParticipant = await prisma.student.findUnique({
-            where: { id: otherParticipantId },
-            select: { id: true, fullName: true, studentPhoto: true },
-          });
-        } else if (otherParticipantType === "TEACHER") {
-          otherParticipant = await prisma.teacher.findUnique({
-            where: { id: otherParticipantId },
-            select: { id: true, fullName: true },
-          });
-        } else if (otherParticipantType === "STAFF") {
-          otherParticipant = await prisma.staff.findUnique({
-            where: { id: otherParticipantId },
-            select: { id: true, fullName: true },
-          });
+        
+        try {
+          // محاولة جلب المستخدم من Clerk أولاً
+          const { clerkClient } = await import("@clerk/nextjs/server");
+          const clerkUser = await clerkClient.users.getUser(otherParticipantId).catch(() => null);
+          
+          if (clerkUser) {
+            // المستخدم موجود في Clerk
+            otherParticipant = {
+              id: clerkUser.id,
+              fullName: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || clerkUser.username || 'مستخدم مجهول',
+              studentPhoto: clerkUser.imageUrl,
+              avatar: clerkUser.imageUrl,
+              type: otherParticipantType,
+            };
+          } else {
+            // البحث في قاعدة البيانات المحلية كبديل
+            if (otherParticipantType === "STUDENT") {
+              otherParticipant = await prisma.student.findUnique({
+                where: { id: otherParticipantId },
+                select: { id: true, fullName: true, studentPhoto: true },
+              });
+            } else if (otherParticipantType === "TEACHER") {
+              otherParticipant = await prisma.teacher.findUnique({
+                where: { id: otherParticipantId },
+                select: { id: true, fullName: true },
+              });
+            } else if (otherParticipantType === "STAFF") {
+              otherParticipant = await prisma.staff.findUnique({
+                where: { id: otherParticipantId },
+                select: { id: true, fullName: true },
+              });
+            } else if (otherParticipantType === "ADMIN") {
+              otherParticipant = await prisma.admin.findUnique({
+                where: { id: otherParticipantId },
+                select: { id: true, username: true },
+              });
+              if (otherParticipant) {
+                otherParticipant.fullName = otherParticipant.username;
+              }
+            }
+          }
+        } catch (error) {
+          console.error("خطأ في جلب معلومات المستخدم:", error);
+          // استخدام معلومات افتراضية
+          otherParticipant = {
+            id: otherParticipantId,
+            fullName: "مستخدم مجهول",
+            type: otherParticipantType,
+          };
         }
 
         return {
@@ -129,7 +141,6 @@ export async function GET(request: NextRequest) {
     );
 
     return NextResponse.json(conversationsWithLastMessage);
-    */
     
   } catch (error) {
     console.error("خطأ في جلب المحادثات:", error);
@@ -156,25 +167,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "نوع المرسل مطلوب" }, { status: 400 });
     }
 
+    console.log("📨 إنشاء رسالة جديدة:", {
+      senderId: userId,
+      senderType,
+      receiverId: body.receiverId,
+      receiverType: body.receiverType,
+      content: body.content?.substring(0, 50) + "..."
+    });
+
     // التحقق من البيانات
     const validatedData = createMessageSchema.parse(body);
 
-    // إرجاع رسالة تجريبية لحين تشغيل Migration
-    const mockMessage = {
-      id: Date.now().toString(),
-      content: validatedData.content,
-      senderId: userId,
-      senderType: senderType,
-      receiverId: validatedData.receiverId,
-      receiverType: validatedData.receiverType,
-      createdAt: new Date().toISOString(),
-      success: true
-    };
-
-    return NextResponse.json(mockMessage, { status: 201 });
-
-    /* الكود الأصلي سيفعل بعد تشغيل Migration:
-    
+    // البحث عن محادثة موجودة
     let conversation = await prisma.conversation.findFirst({
       where: {
         OR: [
@@ -194,7 +198,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // إنشاء محادثة جديدة إذا لم توجد
     if (!conversation) {
+      console.log("🆕 إنشاء محادثة جديدة");
       conversation = await prisma.conversation.create({
         data: {
           participant1Id: userId,
@@ -205,6 +211,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // إنشاء الرسالة مع ربطها بالمحادثة
     const message = await prisma.message.create({
       data: {
         content: validatedData.content,
@@ -212,28 +219,32 @@ export async function POST(request: NextRequest) {
         senderType: senderType as any,
         receiverId: validatedData.receiverId,
         receiverType: validatedData.receiverType,
+        conversationId: conversation.id, // ربط الرسالة بالمحادثة
       },
     });
 
+    // تحديث وقت آخر رسالة في المحادثة
     await prisma.conversation.update({
       where: { id: conversation.id },
       data: { lastMessageAt: new Date() },
     });
 
+    console.log("✅ تم إنشاء الرسالة بنجاح:", message.id);
+
     return NextResponse.json(message, { status: 201 });
-    */
     
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error("❌ خطأ في البيانات:", error.errors);
       return NextResponse.json(
         { error: "بيانات غير صحيحة", details: error.errors },
         { status: 400 }
       );
     }
 
-    console.error("خطأ في إنشاء الرسالة:", error);
+    console.error("❌ خطأ في إنشاء الرسالة:", error);
     return NextResponse.json(
-      { error: "حدث خطأ في الخادم" },
+      { error: "حدث خطأ في الخادم: " + error.message },
       { status: 500 }
     );
   }

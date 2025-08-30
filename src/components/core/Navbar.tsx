@@ -2,6 +2,7 @@ import { UserButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { AnnouncementCounter } from "@/components/ads/AnnouncementCounter";
+import { MessageCounter } from "@/components/MessageCounter";
 
 const Navbar = async () => {
   const user = await currentUser();
@@ -46,19 +47,8 @@ const Navbar = async () => {
 
       {/* الأيقونات والمستخدم */}
       <div className="flex items-center gap-4 justify-end w-full md:w-auto">
-        {/* أيقونة الرسائل */}
-        <div
-          title="الرسائل"
-          className="bg-white rounded-full w-9 h-9 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors duration-200 shadow-sm border border-gray-200"
-        >
-          <Image
-            src="/message.png"
-            alt="رسائل"
-            width={18}
-            height={18}
-            className="opacity-70 hover:opacity-100 transition-opacity"
-          />
-        </div>
+        {/* أيقونة الرسائل مع عداد */}
+        <MessageCounter />
 
         {/* أيقونة الإعلانات مع عداد محسن */}
         <AnnouncementCounter />

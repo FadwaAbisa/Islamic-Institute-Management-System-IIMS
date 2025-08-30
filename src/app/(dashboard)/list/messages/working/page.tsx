@@ -5,6 +5,8 @@ import { useUser } from "@clerk/nextjs";
 import { Search, Plus, MessageCircle, Clock, User, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import NewMessageForm from "@/components/NewMessageForm";
+import { useMessages } from "@/contexts/MessagesContext";
 
 interface Conversation {
   id: string;
@@ -32,27 +34,34 @@ interface AvailableUser {
 const MessagesWorkingPage = () => {
   const { user } = useUser();
   const userId = user?.id;
+  const { unreadCount, markAsRead, fetchUnreadMessages } = useMessages();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [availableUsers, setAvailableUsers] = useState<AvailableUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewMessage, setShowNewMessage] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [userType, setUserType] = useState<string>("STUDENT");
 
-  // تحديد نوع المستخدم الحالي
+  // تحديد نوع المستخدم الحالي من Clerk
   useEffect(() => {
-    const determineUserType = async () => {
+    const determineUserType = () => {
       try {
-        // يمكن تحسين هذا المنطق حسب نظام الأدوار في المشروع
-        const role = localStorage.getItem("userRole") || "STUDENT";
-        setUserType(role.toUpperCase());
+        if (user?.publicMetadata?.role) {
+          const role = (user.publicMetadata.role as string).toUpperCase();
+          console.log(`👤 User role from Clerk: ${role}`);
+          setUserType(role);
+        } else {
+          // استخدام localStorage كبديل
+          const role = localStorage.getItem("userRole") || "STUDENT";
+          console.log(`💾 User role from localStorage: ${role}`);
+          setUserType(role.toUpperCase());
+        }
       } catch (error) {
         console.error("خطأ في تحديد نوع المستخدم:", error);
+        setUserType("STUDENT"); // افتراضي
       }
     };
 
     determineUserType();
-  }, []);
+  }, [user?.publicMetadata?.role]);
 
   // جلب المحادثات
   useEffect(() => {
@@ -60,7 +69,7 @@ const MessagesWorkingPage = () => {
       if (!userId || !userType) return;
 
       try {
-        const response = await fetch(`/api/messages/working?userType=${userType}`);
+        const response = await fetch(`/api/messages?userType=${userType}`);
         if (response.ok) {
           const data = await response.json();
           setConversations(data);
@@ -75,24 +84,16 @@ const MessagesWorkingPage = () => {
     fetchConversations();
   }, [userId, userType]);
 
-  // جلب المستخدمين المتاحين للمراسلة
-  const fetchAvailableUsers = async (search: string = "") => {
-    try {
-      const response = await fetch(`/api/users/working?userType=${userType}&search=${search}`);
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableUsers(data);
-      }
-    } catch (error) {
-      console.error("خطأ في جلب المستخدمين:", error);
+  // إعادة جلب المحادثات بعد إرسال رسالة جديدة
+  const handleMessageSent = () => {
+    // إعادة جلب المحادثات
+    if (userId && userType) {
+      fetch(`/api/messages?userType=${userType}`)
+        .then(response => response.json())
+        .then(data => setConversations(data))
+        .catch(error => console.error("خطأ في جلب المحادثات:", error));
     }
   };
-
-  useEffect(() => {
-    if (showNewMessage) {
-      fetchAvailableUsers(searchTerm);
-    }
-  }, [showNewMessage, searchTerm, userType]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -144,8 +145,20 @@ const MessagesWorkingPage = () => {
                 <MessageCircle className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">الرسائل</h1>
-                <p className="text-gray-600">تواصل مع المعلمين والموظفين</p>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold text-gray-800">الرسائل</h1>
+                  {unreadCount > 0 && (
+                    <div className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full font-medium">
+                      {unreadCount} رسالة جديدة
+                    </div>
+                  )}
+                </div>
+                <p className="text-gray-600">
+                  {userType === "STUDENT" && "تواصل مع المعلمين"}
+                  {userType === "TEACHER" && "تواصل مع الطلاب والموظفين الإداريين"} 
+                  {userType === "STAFF" && "تواصل مع المعلمين ومدير النظام"}
+                  {userType === "ADMIN" && "تواصل مع الموظفين الإداريين"}
+                </p>
                 <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mt-1">
                   النسخة التجريبية ✨
                 </span>
@@ -230,74 +243,13 @@ const MessagesWorkingPage = () => {
         </div>
       </div>
 
-      {/* Modal للرسالة الجديدة */}
-      {showNewMessage && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
-            <div className="bg-gradient-to-r from-lamaSky to-lamaYellow p-6 text-white">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">رسالة جديدة</h2>
-                <button
-                  onClick={() => setShowNewMessage(false)}
-                  className="text-white/80 hover:text-white transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              {/* البحث */}
-              <div className="relative mb-6">
-                <Search className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="ابحث عن شخص..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pr-12 pl-4 py-3 border border-lamaSkyLight rounded-xl focus:outline-none focus:ring-2 focus:ring-lamaSky bg-lamaPurpleLight/30"
-                />
-              </div>
-
-              {/* قائمة المستخدمين */}
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {availableUsers.map((user) => (
-                  <Link
-                    key={user.id}
-                    href={`/list/messages/working/new?receiverId=${user.id}&receiverType=${user.type}&receiverName=${encodeURIComponent(user.fullName)}`}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-lamaPurpleLight/50 transition-all duration-300"
-                    onClick={() => setShowNewMessage(false)}
-                  >
-                    {user.avatar ? (
-                      <Image
-                        src={user.avatar}
-                        alt={user.fullName}
-                        width={40}
-                        height={40}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-gradient-to-br from-lamaSky to-lamaYellow rounded-full flex items-center justify-center">
-                        <User className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-800">{user.fullName}</h4>
-                      <p className="text-sm text-gray-500">{getUserTypeLabel(user.type)}</p>
-                    </div>
-                  </Link>
-                ))}
-                {availableUsers.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <User className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>لا توجد نتائج</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* نموذج الرسالة الجديدة */}
+      <NewMessageForm
+        isOpen={showNewMessage}
+        onClose={() => setShowNewMessage(false)}
+        userType={userType}
+        onMessageSent={handleMessageSent}
+      />
     </div>
   );
 };

@@ -14,59 +14,13 @@ export async function GET(
     }
 
     const conversationId = params.id;
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "50");
 
-    // إرجاع بيانات تجريبية لحين تشغيل Migration
-    const mockMessages = [
-      {
-        id: "1",
-        content: "مرحباً أستاذ، أريد استفساراً حول المنهج",
-        senderId: userId,
-        senderType: "STUDENT",
-        createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-        readAt: null,
-        sender: {
-          id: userId,
-          fullName: "أنت",
-          type: "STUDENT"
-        },
-        replies: []
-      },
-      {
-        id: "2",
-        content: "أهلاً وسهلاً، ما هو استفسارك؟",
-        senderId: "teacher_1",
-        senderType: "TEACHER",
-        createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-        readAt: new Date().toISOString(),
-        sender: {
-          id: "teacher_1",
-          fullName: "الأستاذ أحمد محمد",
-          type: "TEACHER"
-        },
-        replies: []
-      }
-    ];
+    console.log(`🔍 Fetching messages for conversation: ${conversationId}`);
 
-    const mockConversation = {
-      id: conversationId,
-      participant1Id: userId,
-      participant1Type: "STUDENT",
-      participant2Id: "teacher_1",
-      participant2Type: "TEACHER"
-    };
-
-    return NextResponse.json({
-      messages: mockMessages,
-      conversation: mockConversation,
-      pagination: {
-        page: 1,
-        limit: 50,
-        hasMore: false,
-      },
-    });
-
-    /* الكود الأصلي سيفعل بعد تشغيل Migration:
-    
+    // البحث عن المحادثة
     const conversation = await prisma.conversation.findFirst({
       where: {
         id: conversationId,
@@ -81,85 +35,151 @@ export async function GET(
       return NextResponse.json({ error: "المحادثة غير موجودة" }, { status: 404 });
     }
 
+    console.log(`✅ Found conversation: ${conversation.id}`);
+
+    // جلب الرسائل من المحادثة
     const messages = await prisma.message.findMany({
       where: {
-        OR: [
-          {
-            senderId: conversation.participant1Id,
-            receiverId: conversation.participant2Id,
-          },
-          {
-            senderId: conversation.participant2Id,
-            receiverId: conversation.participant1Id,
-          },
-        ],
+        conversationId: conversationId,
       },
       include: {
         replies: {
           orderBy: { createdAt: "asc" },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" }, // ترتيب تصاعدي للرسائل (الأقدم أولاً)
       skip: (page - 1) * limit,
       take: limit,
     });
 
+    console.log(`📝 Found ${messages.length} messages`);
+
     const messagesWithSenders = await Promise.all(
       messages.map(async (message) => {
         let sender: any = null;
-        if (message.senderType === "STUDENT") {
-          sender = await prisma.student.findUnique({
-            where: { id: message.senderId },
-            select: { id: true, fullName: true, studentPhoto: true },
-          });
-        } else if (message.senderType === "TEACHER") {
-          sender = await prisma.teacher.findUnique({
-            where: { id: message.senderId },
-            select: { id: true, fullName: true },
-          });
-        } else if (message.senderType === "STAFF") {
-          sender = await prisma.staff.findUnique({
-            where: { id: message.senderId },
-            select: { id: true, fullName: true },
-          });
+        
+        try {
+          // محاولة جلب معلومات المرسل من Clerk أولاً
+          const { clerkClient } = await import("@clerk/nextjs/server");
+          const clerkUser = await clerkClient.users.getUser(message.senderId).catch(() => null);
+          
+          if (clerkUser) {
+            // استخدام بيانات Clerk
+            sender = {
+              id: clerkUser.id,
+              fullName: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || clerkUser.username || 'مستخدم مجهول',
+              studentPhoto: clerkUser.imageUrl,
+              avatar: clerkUser.imageUrl,
+              type: message.senderType,
+            };
+          } else {
+            // البحث في قاعدة البيانات المحلية كبديل
+            if (message.senderType === "STUDENT") {
+              sender = await prisma.student.findUnique({
+                where: { id: message.senderId },
+                select: { id: true, fullName: true, studentPhoto: true },
+              });
+            } else if (message.senderType === "TEACHER") {
+              sender = await prisma.teacher.findUnique({
+                where: { id: message.senderId },
+                select: { id: true, fullName: true },
+              });
+            } else if (message.senderType === "STAFF") {
+              sender = await prisma.staff.findUnique({
+                where: { id: message.senderId },
+                select: { id: true, fullName: true },
+              });
+            } else if (message.senderType === "ADMIN") {
+              sender = await prisma.admin.findUnique({
+                where: { id: message.senderId },
+                select: { id: true, username: true },
+              });
+              if (sender) {
+                sender.fullName = sender.username;
+              }
+            }
+            
+            if (sender) {
+              sender.type = message.senderType;
+            }
+          }
+        } catch (error) {
+          console.error("خطأ في جلب معلومات المرسل:", error);
+          // استخدام معلومات افتراضية
+          sender = {
+            id: message.senderId,
+            fullName: "مستخدم مجهول",
+            type: message.senderType,
+          };
         }
 
         const repliesWithSenders = await Promise.all(
           message.replies.map(async (reply) => {
             let replySender: any = null;
-            if (reply.senderType === "STUDENT") {
-              replySender = await prisma.student.findUnique({
-                where: { id: reply.senderId },
-                select: { id: true, fullName: true, studentPhoto: true },
-              });
-            } else if (reply.senderType === "TEACHER") {
-              replySender = await prisma.teacher.findUnique({
-                where: { id: reply.senderId },
-                select: { id: true, fullName: true },
-              });
-            } else if (reply.senderType === "STAFF") {
-              replySender = await prisma.staff.findUnique({
-                where: { id: reply.senderId },
-                select: { id: true, fullName: true },
-              });
+            
+            try {
+              // محاولة جلب معلومات مرسل الرد من Clerk أولاً
+              const { clerkClient } = await import("@clerk/nextjs/server");
+              const clerkUser = await clerkClient.users.getUser(reply.senderId).catch(() => null);
+              
+              if (clerkUser) {
+                replySender = {
+                  id: clerkUser.id,
+                  fullName: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || clerkUser.username || 'مستخدم مجهول',
+                  studentPhoto: clerkUser.imageUrl,
+                  avatar: clerkUser.imageUrl,
+                  type: reply.senderType,
+                };
+              } else {
+                // البحث في قاعدة البيانات المحلية كبديل
+                if (reply.senderType === "STUDENT") {
+                  replySender = await prisma.student.findUnique({
+                    where: { id: reply.senderId },
+                    select: { id: true, fullName: true, studentPhoto: true },
+                  });
+                } else if (reply.senderType === "TEACHER") {
+                  replySender = await prisma.teacher.findUnique({
+                    where: { id: reply.senderId },
+                    select: { id: true, fullName: true },
+                  });
+                } else if (reply.senderType === "STAFF") {
+                  replySender = await prisma.staff.findUnique({
+                    where: { id: reply.senderId },
+                    select: { id: true, fullName: true },
+                  });
+                } else if (reply.senderType === "ADMIN") {
+                  replySender = await prisma.admin.findUnique({
+                    where: { id: reply.senderId },
+                    select: { id: true, username: true },
+                  });
+                  if (replySender) {
+                    replySender.fullName = replySender.username;
+                  }
+                }
+                
+                if (replySender) {
+                  replySender.type = reply.senderType;
+                }
+              }
+            } catch (error) {
+              console.error("خطأ في جلب معلومات مرسل الرد:", error);
+              replySender = {
+                id: reply.senderId,
+                fullName: "مستخدم مجهول",
+                type: reply.senderType,
+              };
             }
 
             return {
               ...reply,
-              sender: {
-                ...replySender,
-                type: reply.senderType,
-              },
+              sender: replySender,
             };
           })
         );
 
         return {
           ...message,
-          sender: {
-            ...sender,
-            type: message.senderType,
-          },
+          sender: sender,
           replies: repliesWithSenders,
         };
       })
@@ -174,7 +194,6 @@ export async function GET(
         hasMore: messages.length === limit,
       },
     });
-    */
     
   } catch (error) {
     console.error("خطأ في جلب الرسائل:", error);
@@ -196,12 +215,9 @@ export async function PUT(
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
     }
 
-    // إرجاع نجاح تجريبي لحين تشغيل Migration
-    return NextResponse.json({ success: true });
-
-    /* الكود الأصلي سيفعل بعد تشغيل Migration:
-    
     const conversationId = params.id;
+
+    console.log(`📖 Marking conversation ${conversationId} as read for user ${userId}`);
 
     const conversation = await prisma.conversation.findFirst({
       where: {
@@ -217,19 +233,11 @@ export async function PUT(
       return NextResponse.json({ error: "المحادثة غير موجودة" }, { status: 404 });
     }
 
+    // تحديث حالة قراءة الرسائل في هذه المحادثة
     await prisma.message.updateMany({
       where: {
+        conversationId: conversationId,
         receiverId: userId,
-        OR: [
-          {
-            senderId: conversation.participant1Id,
-            receiverId: conversation.participant2Id,
-          },
-          {
-            senderId: conversation.participant2Id,
-            receiverId: conversation.participant1Id,
-          },
-        ],
         readAt: null,
       },
       data: {
@@ -237,19 +245,11 @@ export async function PUT(
       },
     });
 
+    // تحديث حالة قراءة الردود
     await prisma.messageReply.updateMany({
       where: {
         message: {
-          OR: [
-            {
-              senderId: conversation.participant1Id,
-              receiverId: conversation.participant2Id,
-            },
-            {
-              senderId: conversation.participant2Id,
-              receiverId: conversation.participant1Id,
-            },
-          ],
+          conversationId: conversationId,
         },
         senderId: { not: userId },
         readAt: null,
@@ -259,8 +259,9 @@ export async function PUT(
       },
     });
 
+    console.log(`✅ Marked conversation ${conversationId} as read`);
+
     return NextResponse.json({ success: true });
-    */
     
   } catch (error) {
     console.error("خطأ في تحديث حالة القراءة:", error);

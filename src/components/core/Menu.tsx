@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { ChevronDown, Home, Users, GraduationCap, UserCheck, BookOpen, Calendar, MessageSquare, Bell, User, Settings, LogOut, Plus, FileText, ClipboardCheck, BarChart3 } from "lucide-react";
+import { useMessages } from "@/contexts/MessagesContext";
 
 const menuItems = [
   {
@@ -334,6 +335,7 @@ const menuItems = [
 const Menu = ({ initialUser }: { initialUser: any }) => {
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
   const role = initialUser?.publicMetadata.role as string;
+  const { unreadCount } = useMessages();
 
   const toggleDropdown = (itemLabel: string) => {
     setOpenDropdowns(prev => ({
@@ -433,10 +435,12 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
                             className="transition-all duration-300 group-hover:scale-110"
                           />
 
-                          {/* Notification Badge */}
-                          {item.label === "الرسائل" && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                              <span className="text-xs text-white font-bold">3</span>
+
+
+                          {/* Notification Badge للرسائل */}
+                          {item.label === "الرسائل" && unreadCount > 0 && (
+                            <div className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center bg-red-500 text-white rounded-full text-xs font-medium shadow-sm animate-pulse">
+                              {unreadCount > 9 ? '9+' : unreadCount}
                             </div>
                           )}
                         </div>

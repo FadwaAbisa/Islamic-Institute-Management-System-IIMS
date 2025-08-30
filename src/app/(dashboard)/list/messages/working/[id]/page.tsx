@@ -12,6 +12,7 @@ import {
   CheckCheck,
   Smile
 } from "lucide-react";
+import { useMessages } from "@/contexts/MessagesContext";
 
 interface Message {
   id: string;
@@ -43,6 +44,7 @@ const ConversationWorkingPage = () => {
   const params = useParams();
   const router = useRouter();
   const conversationId = params.id as string;
+  const { markAsRead, addUnreadMessage } = useMessages();
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -75,22 +77,56 @@ const ConversationWorkingPage = () => {
       if (!conversationId || !userId) return;
 
       try {
-        const response = await fetch(`/api/messages/working/${conversationId}`);
+        const response = await fetch(`/api/messages/${conversationId}?userType=${userType}`);
         if (response.ok) {
           const data = await response.json();
           setMessages(data.messages);
           setConversation(data.conversation);
           
-          // تحديد المشارك الآخر بناءً على البيانات التجريبية
+          // تحديد المشارك الآخر من بيانات المحادثة
+          const otherParticipantId = 
+            data.conversation.participant1Id === userId 
+              ? data.conversation.participant2Id 
+              : data.conversation.participant1Id;
+          
+          const otherParticipantType = 
+            data.conversation.participant1Id === userId 
+              ? data.conversation.participant2Type 
+              : data.conversation.participant1Type;
+
+          // تحديد اسم المشارك الآخر بناءً على نوعه
+          let otherParticipantName = "مستخدم";
+          switch (otherParticipantType) {
+            case "TEACHER":
+              if (otherParticipantId === "teacher_456") otherParticipantName = "الأستاذ أحمد محمد";
+              else if (otherParticipantId === "teacher_321") otherParticipantName = "الأستاذ محمد خالد";
+              else otherParticipantName = "معلم";
+              break;
+            case "STUDENT":
+              if (otherParticipantId === "student_123") otherParticipantName = "محمد أحمد إبراهيم";
+              else otherParticipantName = "طالب";
+              break;
+            case "STAFF":
+              if (otherParticipantId === "staff_456") otherParticipantName = "منسق الشؤون الطلابية";
+              else if (otherParticipantId === "staff_111") otherParticipantName = "مسؤول الامتحانات";
+              else otherParticipantName = "موظف إداري";
+              break;
+            case "ADMIN":
+              if (otherParticipantId === "admin_123") otherParticipantName = "مدير النظام";
+              else otherParticipantName = "إدارة";
+              break;
+          }
+
           const otherParticipantData = {
-            id: "teacher_1",
-            fullName: "الأستاذ أحمد محمد",
-            type: "TEACHER"
+            id: otherParticipantId,
+            fullName: otherParticipantName,
+            type: otherParticipantType
           };
           setOtherParticipant(otherParticipantData);
           
-          // تحديث حالة القراءة
-          await markAsRead();
+          // تحديث حالة القراءة في النظام المحلي والخادم
+          markAsRead(conversationId);
+          await markAsReadOnServer();
         } else {
           router.push("/list/messages/working");
         }
@@ -104,11 +140,19 @@ const ConversationWorkingPage = () => {
     fetchMessages();
   }, [conversationId, userId, router]);
 
-  // تحديث حالة القراءة
-  const markAsRead = async () => {
+  // تحديث حالة القراءة على الخادم
+  const markAsReadOnServer = async () => {
     try {
-      await fetch(`/api/messages/working/${conversationId}`, {
+      await fetch(`/api/messages/${conversationId}`, {
         method: "PUT",
+      });
+      // إشعار الخادم بتعيين المحادثة كمقروءة
+      await fetch('/api/messages/unread', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ conversationId }),
       });
     } catch (error) {
       console.error("خطأ في تحديث حالة القراءة:", error);
@@ -131,7 +175,7 @@ const ConversationWorkingPage = () => {
           ? conversation.participant2Type 
           : conversation.participant1Type;
 
-      const response = await fetch(`/api/messages/working?senderType=${userType}`, {
+      const response = await fetch(`/api/messages?senderType=${userType}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
