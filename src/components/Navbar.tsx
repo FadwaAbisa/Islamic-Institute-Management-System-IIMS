@@ -4,42 +4,35 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState('');
-  const [currentDate, setCurrentDate] = useState('');
+  const [pathname, setPathname] = useState('/');
+
   const { isSignedIn, user } = useUser();
   const router = useRouter();
-  const pathname = usePathname();
-
-  // تحديث الوقت والتاريخ
+  
+  // الحصول على pathname بشكل آمن
   useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-
-      const timeOptions: Intl.DateTimeFormatOptions = {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
+    try {
+      const currentPathname = window.location.pathname;
+      setPathname(currentPathname);
+      
+      // مراقبة تغيير الصفحة
+      const handleRouteChange = () => {
+        setPathname(window.location.pathname);
       };
-
-      const dateOptions: Intl.DateTimeFormatOptions = {
-        month: 'short',
-        day: 'numeric'
-      };
-
-      setCurrentTime(now.toLocaleTimeString('ar-SA', timeOptions));
-      setCurrentDate(now.toLocaleDateString('ar-SA', dateOptions));
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 1000);
-
-    return () => clearInterval(interval);
+      
+      window.addEventListener('popstate', handleRouteChange);
+      return () => window.removeEventListener('popstate', handleRouteChange);
+    } catch (error) {
+      console.warn('Error getting pathname:', error);
+    }
   }, []);
+
+
 
   // مراقبة التمرير
   useEffect(() => {
@@ -88,9 +81,10 @@ const Navbar = () => {
       href: '#',
       dropdown: 'academicPortal',
       submenu: [
-        { name: 'التعريف بالبوابة العلمية', href: '/academic/introduction' },
+        { name: 'التعريف بالبوابة العلمية', href: '/academic/portal' },
         { name: 'البرامج الدراسية', href: '/academic/programs' },
-        { name: 'التقويم الدراسي', href: '/academic/calendar' }
+        { name: 'التقويم الدراسي', href: '/academic/calendar' },
+        { name: 'التسجيل بالمعهد', href: '/academic/register' }
       ]
     },
     { name: 'اللوائح والنظم', href: '/regulations' },
@@ -101,10 +95,21 @@ const Navbar = () => {
 
   // إدارة القوائم المنسدلة
   const toggleDropdown = (dropdownName: string) => {
-    setDropdownStates(prev => ({
-      ...prev,
-      [dropdownName]: !prev[dropdownName as keyof typeof prev]
-    }));
+    setDropdownStates(prev => {
+      // إذا كانت القائمة المطلوبة مفتوحة، أغلقها
+      if (prev[dropdownName as keyof typeof prev]) {
+        return {
+          ...prev,
+          [dropdownName]: false
+        };
+      }
+      
+      // إذا كانت القائمة المطلوبة مغلقة، أغلق جميع القوائم الأخرى وافتح هذه
+      return {
+        aboutInstitute: dropdownName === 'aboutInstitute',
+        academicPortal: dropdownName === 'academicPortal'
+      };
+    });
   };
 
   const closeAllDropdowns = () => {
@@ -169,8 +174,8 @@ const Navbar = () => {
             </div>
 
             <div className="hidden sm:block">
-              <h1 className={`font-bold text-lama-yellow transition-all duration-300 ${isScrolled ? 'text-base lg:text-lg' : 'text-lg lg:text-xl'
-                }`}>
+              <h1 className={`font-bold transition-all duration-300 ${isScrolled ? 'text-base lg:text-lg' : 'text-lg lg:text-xl'
+                }`} style={{ color: '#371E13' }}>
                 المعهد المتوسط للدراسات الإسلامية
               </h1>
             </div>
@@ -192,7 +197,7 @@ const Navbar = () => {
                           : 'transparent'
                       }}
                     >
-                      <span className="text-lama-yellow hover:text-lama-sky transition-colors font-medium text-sm">
+                      <span style={{ color: '#371E13' }} className="hover:text-lama-sky transition-colors font-medium text-sm">
                         {item.name}
                       </span>
                       <svg
@@ -258,7 +263,7 @@ const Navbar = () => {
                       background: pathname === item.href ? 'linear-gradient(135deg, rgba(210, 180, 140, 0.2), rgba(184, 149, 106, 0.2))' : 'transparent'
                     }}
                   >
-                    <span className="text-lama-yellow hover:text-lama-sky transition-colors font-medium text-sm">
+                    <span style={{ color: '#371E13' }} className="hover:text-lama-sky transition-colors font-medium text-sm">
                       {item.name}
                     </span>
                   </Link>
@@ -277,12 +282,7 @@ const Navbar = () => {
               </svg>
             </button>
 
-            {/* الوقت والتاريخ - للشاشات الكبيرة */}
-            <div className="hidden xl:flex flex-col items-center px-4 py-2 rounded-xl"
-              style={{ background: 'linear-gradient(135deg, rgba(240, 230, 214, 0.6), rgba(226, 213, 199, 0.4))' }}>
-              <div className="text-lg font-bold text-lama-yellow">{currentTime}</div>
-              <div className="text-xs text-lama-sky">{currentDate}</div>
-            </div>
+
 
             {/* أزرار التحكم */}
             {isSignedIn ? (
@@ -391,7 +391,7 @@ const Navbar = () => {
                         }}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-lama-yellow font-medium">{item.name}</span>
+                          <span style={{ color: '#371E13' }} className="font-medium">{item.name}</span>
                         </div>
                         <svg
                           className={`w-5 h-5 text-lama-yellow transition-transform duration-300 ${dropdownStates[item.dropdown as keyof typeof dropdownStates] ? 'rotate-180' : ''
@@ -456,19 +456,14 @@ const Navbar = () => {
                         background: pathname === item.href ? 'linear-gradient(135deg, rgba(210, 180, 140, 0.2), rgba(184, 149, 106, 0.2))' : 'transparent'
                       }}
                     >
-                      <span className="text-lama-yellow font-medium">{item.name}</span>
+                      <span style={{ color: '#371E13' }} className="font-medium">{item.name}</span>
                     </Link>
                   )}
                 </div>
               ))}
             </div>
 
-            {/* الوقت والتاريخ في القائمة المحمولة */}
-            <div className="xl:hidden text-center py-3 rounded-xl mb-4"
-              style={{ background: 'linear-gradient(135deg, rgba(240, 230, 214, 0.6), rgba(226, 213, 199, 0.4))' }}>
-              <div className="text-2xl font-bold text-lama-yellow">{currentTime}</div>
-              <div className="text-sm text-lama-sky">{currentDate}</div>
-            </div>
+
 
             {/* معلومات المستخدم في القائمة المحمولة */}
             {isSignedIn && (

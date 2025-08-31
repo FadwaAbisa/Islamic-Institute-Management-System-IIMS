@@ -8,6 +8,36 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 
 const HomePage = () => {
+    // إضافة الحركات المخصصة
+    const customStyles = `
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(1deg); }
+            50% { transform: translateY(-5px) rotate(0deg); }
+            75% { transform: translateY(-15px) rotate(-1deg); }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) skewX(-15deg); }
+            100% { transform: translateX(100%) skewX(-15deg); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(210, 180, 140, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(210, 180, 140, 0.6), 0 0 60px rgba(210, 180, 140, 0.4); }
+        }
+    `;
+    
+    // إضافة الستايل إلى الصفحة
+    if (typeof document !== 'undefined') {
+        const existingStyle = document.getElementById('custom-button-styles');
+        if (!existingStyle) {
+            const style = document.createElement('style');
+            style.id = 'custom-button-styles';
+            style.textContent = customStyles;
+            document.head.appendChild(style);
+        }
+    }
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [statistics, setStatistics] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -295,17 +325,47 @@ const HomePage = () => {
                                     </p>
 
                                     {/* الأزرار */}
-                                    <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                                        <button className="group px-8 py-4 rounded-2xl font-bold text-white shadow-xl transition-all duration-500 transform hover:scale-105 hover:shadow-2xl relative overflow-hidden"
-                                            style={{ background: 'linear-gradient(135deg, #D2B48C, #B8956A)' }}>
-                                            <span className="relative z-10">تعرف أكثر</span>
-                                            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                                        </button>
-
-                                        <button className="px-8 py-4 rounded-2xl font-bold border-2 transition-all duration-300 transform hover:scale-105 bg-white/80 backdrop-blur-sm hover:bg-white/90"
-                                            style={{ borderColor: '#D2B48C', color: '#371E13' }}>
-                                            التقديم الدراسي
-                                        </button>
+                                    <div className="flex justify-center lg:justify-start">
+                                        <Link href="/about/introduction" className="group relative px-10 py-5 rounded-2xl font-bold text-white shadow-2xl transition-all duration-700 transform hover:scale-110 hover:shadow-3xl overflow-hidden hover:animate-none"
+                                            style={{ 
+                                                background: 'linear-gradient(135deg, #D2B48C, #B8956A)',
+                                                animation: 'float 3s ease-in-out infinite, glow 2s ease-in-out infinite alternate',
+                                                boxShadow: '0 10px 30px rgba(210, 180, 140, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                                            }}>
+                                            
+                                            {/* الخلفية المتحركة */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                                            
+                                            {/* حلقات متحركة */}
+                                            <div className="absolute -inset-1 bg-gradient-to-r from-lama-sky to-lama-yellow rounded-2xl opacity-30 group-hover:opacity-70 transition-opacity duration-500 animate-pulse"></div>
+                                            
+                                            {/* حلقة خارجية متحركة */}
+                                            <div className="absolute -inset-2 bg-gradient-to-r from-lama-sky via-transparent to-lama-yellow rounded-2xl opacity-0 group-hover:opacity-50 transition-all duration-700 animate-spin" style={{ animationDuration: '8s' }}></div>
+                                            
+                                            {/* شعاع ضوئي */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform rotate-45 -translate-x-full group-hover:translate-x-full transition-transform duration-1200 delay-200"></div>
+                                            
+                                            {/* موجة متحركة */}
+                                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-2000" style={{ animationDelay: '0.5s' }}></div>
+                                            </div>
+                                            
+                                            {/* النص */}
+                                            <span className="relative z-20 flex items-center gap-2 group-hover:tracking-wider transition-all duration-300 group-hover:text-shadow-lg">
+                                                <span className="transform group-hover:scale-105 transition-transform duration-300">تعرف أكثر</span>
+                                                <svg className="w-5 h-5 transform group-hover:-translate-x-2 group-hover:scale-125 group-hover:-rotate-12 transition-all duration-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd"></path>
+                                                </svg>
+                                            </span>
+                                            
+                                            {/* تأثير الجسيمات */}
+                                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                                <div className="absolute top-2 left-4 w-1 h-1 bg-white rounded-full animate-ping" style={{ animationDelay: '0s' }}></div>
+                                                <div className="absolute top-4 right-6 w-1 h-1 bg-white rounded-full animate-ping" style={{ animationDelay: '0.2s' }}></div>
+                                                <div className="absolute bottom-3 left-8 w-1 h-1 bg-white rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
+                                                <div className="absolute bottom-2 right-4 w-1 h-1 bg-white rounded-full animate-ping" style={{ animationDelay: '0.6s' }}></div>
+                                            </div>
+                                        </Link>
                                     </div>
 
 
@@ -1053,7 +1113,7 @@ const HomePage = () => {
             </main>
 
             {/* الفوتر */}
-            <footer className="relative z-10 bg-white/90 backdrop-blur-xl border-t border-lama-sky/20 mt-20">
+            <footer id="contact" className="relative z-10 bg-white/90 backdrop-blur-xl border-t border-lama-sky/20 mt-20">
                 <div className="container mx-auto px-6 py-12">
                     {/* عنوان الفوتر */}
                     <div className="text-center mb-12">
