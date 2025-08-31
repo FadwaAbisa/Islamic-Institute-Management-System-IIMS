@@ -3,26 +3,14 @@ import prisma from '@/lib/prisma';
 
 export async function GET() {
     try {
-        // جلب إحصائيات الطلاب
-        const studentsCount = await prisma.student.count({
-            where: {
-                studentStatus: {
-                    in: ['ACTIVE'] // الطلاب النشطين فقط
-                }
-            }
-        });
+        // جلب إحصائيات الطلاب (جميع الطلاب)
+        const studentsCount = await prisma.student.count();
 
         // جلب إحصائيات الموظفين
         const staffCount = await prisma.staff.count();
 
-        // جلب إحصائيات المعلمين
-        const teachersCount = await prisma.teacher.count({
-            where: {
-                employmentStatus: {
-                    in: ['APPOINTMENT', 'CONTRACT', 'SECONDMENT'] // المعلمين النشطين
-                }
-            }
-        });
+        // جلب إحصائيات المعلمين (جميع المعلمين)
+        const teachersCount = await prisma.teacher.count();
 
         // إحصائيات إضافية
         const totalEvents = await prisma.event.count({
@@ -67,6 +55,13 @@ export async function GET() {
             }
         });
 
+        console.log('Statistics fetched:', {
+            students: studentsCount,
+            teachers: teachersCount,
+            staff: staffCount,
+            subjects: totalSubjects
+        });
+
         return NextResponse.json({
             students: studentsCount,
             staff: staffCount,
@@ -86,9 +81,18 @@ export async function GET() {
 
     } catch (error) {
         console.error('Error fetching statistics:', error);
-        return NextResponse.json(
-            { error: 'فشل في جلب الإحصائيات' },
-            { status: 500 }
-        );
+        
+        // إرجاع بيانات افتراضية في حالة الخطأ
+        return NextResponse.json({
+            students: 0,
+            staff: 0,
+            teachers: 0,
+            events: 0,
+            announcements: 0,
+            subjects: 0,
+            studyLevelBreakdown: [],
+            studyModeBreakdown: [],
+            error: 'فشل في جلب الإحصائيات من قاعدة البيانات'
+        }, { status: 200 }); // إرجاع 200 مع بيانات افتراضية بدلاً من 500
     }
 }
