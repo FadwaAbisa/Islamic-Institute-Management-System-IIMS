@@ -245,6 +245,7 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
     permissions: ALL_PERMISSIONS, // جميع الصلاحيات
     allowedRoutes: [
       '/admin',
+      '/profile',
       '/list/teachers',
       '/list/students', 
       '/list/parents',
@@ -281,6 +282,7 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
     ].includes(p.id)),
     allowedRoutes: [
       '/staff',
+      '/profile',
       '/list/students',
       '/list/staff',
       '/list/attendance',
@@ -317,6 +319,7 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
     ].includes(p.id)),
     allowedRoutes: [
       '/teacher',
+      '/profile',
       '/list/students',
       '/list/attendance',
       '/grades',
@@ -351,6 +354,7 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
     ].includes(p.id)),
     allowedRoutes: [
       '/student',
+      '/profile',
       '/list/attendance',
       '/grades',
       '/list/assignments',
@@ -388,6 +392,7 @@ export const ROLE_PERMISSIONS: RolePermissions[] = [
     ].includes(p.id)),
     allowedRoutes: [
       '/parent',
+      '/profile',
       '/list/attendance',
       '/grades',
       '/list/assignments',

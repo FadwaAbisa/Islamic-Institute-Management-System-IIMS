@@ -145,11 +145,32 @@ export function AttendanceManagement() {
     const fetchStudents = async () => {
         try {
             setLoading(true)
-            const response = await fetch('/api/students')
-            if (response.ok) {
-                const students = await response.json()
-                setAllStudents(students || [])
-            }
+
+            // جلب كل الصفحات من API (التي تُرجِع 10 عناصر افتراضياً)
+            let page = 1
+            const limit = 200 // رقم كبير لتقليل عدد الطلبات
+            let totalPages = 1
+            const aggregated: Student[] = []
+
+            do {
+                const response = await fetch(`/api/students?page=${page}&limit=${limit}&sortBy=fullName&sortOrder=asc`)
+                if (!response.ok) break
+
+                const data = await response.json()
+
+                if (Array.isArray(data)) {
+                    // fallback في حال أعاد الـ API مصفوفة مباشرة
+                    aggregated.push(...(data as Student[]))
+                    totalPages = 1
+                } else {
+                    aggregated.push(...((data?.students ?? []) as Student[]))
+                    totalPages = typeof data?.totalPages === 'number' ? data.totalPages : 1
+                }
+
+                page += 1
+            } while (page <= totalPages)
+
+            setAllStudents(aggregated)
         } catch (error) {
             console.error('خطأ في جلب الطلاب:', error)
             setAllStudents([])
@@ -174,6 +195,24 @@ export function AttendanceManagement() {
         }
     }
 
+    // أداة مساعدة لتنسيق التاريخ إلى YYYY-MM-DD
+    const toIsoDateOnly = (date: Date) => date.toISOString().split('T')[0]
+
+    // جلب سجلات الحضور المحفوظة لليوم/المادة المحددين
+    const fetchSavedAttendance = async (date: Date, subjectId: string) => {
+        try {
+            if (!subjectId) return [] as any[]
+            const dateStr = toIsoDateOnly(date)
+            const response = await fetch(`/api/attendance?date=${encodeURIComponent(dateStr)}&subjectId=${encodeURIComponent(subjectId)}`)
+            if (!response.ok) return []
+            const saved = await response.json()
+            return Array.isArray(saved) ? saved : []
+        } catch (e) {
+            console.error('خطأ في جلب سجلات الحضور المحفوظة:', e)
+            return []
+        }
+    }
+
     // تحديث الطلاب عند تغيير الفصل
     useEffect(() => {
         if (selectedClass) {
@@ -186,20 +225,40 @@ export function AttendanceManagement() {
         }
     }, [selectedClass, allStudents])
 
-    // تحديث سجلات الحضور
+    // تحديث سجلات الحضور (دمج المحفوظ مع الافتراضي)
     useEffect(() => {
-        const records = filteredStudents.map(student => ({
-            id: `${student.id}-${selectedDate.toISOString().split('T')[0]}`,
-            studentId: student.id,
-            date: selectedDate.toISOString().split('T')[0],
-            status: "حاضر" as const,
-            time: "08:00",
-            notes: "",
-            markedBy: "أ. المعلم",
-            markedAt: new Date().toISOString()
-        }))
-        setAttendanceRecords(records)
-    }, [filteredStudents, selectedDate])
+        const load = async () => {
+            if (!selectedSubject) {
+                setAttendanceRecords([])
+                return
+            }
+
+            const saved = await fetchSavedAttendance(selectedDate, selectedSubject)
+            const savedByStudent = new Map<string, any>(saved.map((r: any) => [r.studentId, r]))
+
+            const records = filteredStudents.map(student => {
+                const savedRecord = savedByStudent.get(student.id)
+                const status = savedRecord ? (savedRecord.present ? "حاضر" : "غائب") : ("حاضر" as const)
+                return {
+                    id: `${student.id}-${toIsoDateOnly(selectedDate)}`,
+                    studentId: student.id,
+                    date: toIsoDateOnly(selectedDate),
+                    status,
+                    time: savedRecord ? (savedRecord.time || "08:00") : "08:00",
+                    notes: savedRecord?.notes || "",
+                    markedBy: "أ. المعلم",
+                    markedAt: new Date().toISOString()
+                }
+            })
+            setAttendanceRecords(records)
+        }
+
+        if (filteredStudents.length) {
+            load()
+        } else {
+            setAttendanceRecords([])
+        }
+    }, [filteredStudents, selectedDate, selectedSubject])
 
     // تحديث حالة الحضور
     const updateAttendanceStatus = (studentId: string, status: "حاضر" | "غائب" | "متأخر" | "إجازة") => {
@@ -224,6 +283,13 @@ export function AttendanceManagement() {
         setSelectedStudents(new Set())
     }
 
+    // تحويل الحالة إلى قيمة الحضور (present)
+    const mapStatusToPresent = (status: "حاضر" | "غائب" | "متأخر" | "إجازة") => {
+        // نعتبر "متأخر" حاضرًا (يمكن تعديلها حسب سياساتك)
+        if (status === "حاضر" || status === "متأخر") return true
+        return false
+    }
+
     // حفظ سجلات الحضور
     const saveAttendance = async () => {
         try {
@@ -232,10 +298,16 @@ export function AttendanceManagement() {
             // تحويل البيانات إلى التنسيق المطلوب لقاعدة البيانات
             const attendanceData = attendanceRecords.map(record => ({
                 studentId: record.studentId,
-                lessonId: parseInt(selectedSubject),
-                present: record.status === "حاضر",
+                lessonId: Number(selectedSubject),
+                present: mapStatusToPresent(record.status),
                 date: record.date
             }))
+
+            // التحقق من lessonId صالح
+            if (!attendanceData.every(r => Number.isFinite(r.lessonId))) {
+                console.error('lessonId غير صالح، يرجى اختيار مادة دراسية صحيحة')
+                return
+            }
 
             // حفظ كل سجل حضور
             for (const record of attendanceData) {
@@ -251,8 +323,13 @@ export function AttendanceManagement() {
             console.log("تم حفظ سجلات الحضور بنجاح")
             setIsMarkingAttendance(false)
 
-            // إعادة تحميل البيانات
-            fetchStudents()
+            // إعادة تحميل سجلات الحضور من الخادم لتعكس الحالات (حاضر/غائب)
+            const saved = await fetchSavedAttendance(selectedDate, selectedSubject)
+            const savedByStudent = new Map<string, any>(saved.map((r: any) => [r.studentId, r]))
+            setAttendanceRecords(prev => prev.map(r => ({
+                ...r,
+                status: savedByStudent.get(r.studentId)?.present ? "حاضر" : "غائب"
+            })))
         } catch (error) {
             console.error('خطأ في حفظ الحضور:', error)
         } finally {
@@ -389,7 +466,7 @@ export function AttendanceManagement() {
                                     <SelectContent>
                                         {mockClasses.map((cls) => (
                                             <SelectItem key={cls.id} value={cls.id}>
-                                                {cls.name} - {cls.teacher}
+                                                {cls.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -417,7 +494,7 @@ export function AttendanceManagement() {
                                     <SelectContent>
                                         {(allSubjects || []).map((subject) => (
                                             <SelectItem key={subject.id} value={subject.id}>
-                                                {subject.name} - {subject.teachers[0]?.name || 'غير محدد'}
+                                                {subject.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

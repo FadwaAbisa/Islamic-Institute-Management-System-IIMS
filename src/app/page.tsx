@@ -163,15 +163,15 @@ const HomePage = () => {
         fetchEvents();
     }, []);
 
-    // إعادة توجيه المستخدمين المسجلين
-    useEffect(() => {
-        if (isSignedIn && user) {
-            const role = user.publicMetadata?.role;
-            if (role) {
-                router.push(`/${role}`);
-            }
-        }
-    }, [isSignedIn, user, router]);
+    // إعادة توجيه المستخدمين المسجلين (معطل للسماح بزيارة الصفحة الرئيسية)
+    // useEffect(() => {
+    //     if (isSignedIn && user) {
+    //         const role = user.publicMetadata?.role;
+    //         if (role) {
+    //             router.push(`/${role}`);
+    //         }
+    //     }
+    // }, [isSignedIn, user, router]);
 
     // بناء بيانات الإحصائيات من البيانات المجلبة
     const stats = statistics ? [
@@ -326,7 +326,7 @@ const HomePage = () => {
 
                                     {/* الأزرار */}
                                     <div className="flex justify-center lg:justify-start">
-                                        <Link href="/about/introduction" className="group relative px-10 py-5 rounded-2xl font-bold text-white shadow-2xl transition-all duration-700 transform hover:scale-110 hover:shadow-3xl overflow-hidden hover:animate-none"
+                                        <Link href="/about/introduction" className="group relative px-10 py-5 rounded-2xl font-bold text-white shadow-2xl transition-all duration-700 transform hover:scale-110 hover:shadow-3xl overflow-hidden hover:animate-none focus:outline-none focus-visible:outline-none focus:ring-4 focus:ring-lama-yellow/50 hover:ring-4 hover:ring-lama-sky/40"
                                             style={{ 
                                                 background: 'linear-gradient(135deg, #D2B48C, #B8956A)',
                                                 animation: 'float 3s ease-in-out infinite, glow 2s ease-in-out infinite alternate',

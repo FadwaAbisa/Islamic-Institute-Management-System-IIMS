@@ -288,30 +288,44 @@ const Navbar = () => {
             {isSignedIn ? (
               <div className="flex items-center gap-2">
                 {/* معلومات المستخدم */}
-                <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-xl"
-                  style={{ background: 'linear-gradient(135deg, rgba(240, 230, 214, 0.6), rgba(226, 213, 199, 0.4))' }}>
-                  <div className="w-8 h-8 rounded-full overflow-hidden"
-                    style={{ background: 'linear-gradient(135deg, #D2B48C, #B8956A)' }}>
-                    {user?.imageUrl ? (
-                      <Image
-                        src={user.imageUrl}
-                        alt="صورة المستخدم"
-                        width={32}
-                        height={32}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                        {user?.firstName?.charAt(0) || 'م'}
-                      </div>
-                    )}
+                <div className="hidden md:flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
+                  style={{ 
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 245, 242, 0.9))',
+                    border: '1px solid rgba(210, 180, 140, 0.3)',
+                    backdropFilter: 'blur(10px)'
+                  }}>
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full overflow-hidden shadow-lg ring-2 ring-white/50"
+                      style={{ background: 'linear-gradient(135deg, #D2B48C, #B8956A)' }}>
+                      {user?.imageUrl ? (
+                        <Image
+                          src={user.imageUrl}
+                          alt="صورة المستخدم"
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
+                          {user?.firstName?.charAt(0) || 'م'}
+                        </div>
+                      )}
+                    </div>
+                    {/* مؤشر الحالة النشطة */}
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
                   </div>
-                  <div>
-                    <div className="text-sm font-medium text-lama-yellow">
+                  <div className="flex flex-col">
+                    <div className="text-sm font-semibold text-lama-yellow flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
                       {user?.firstName || 'مستخدم'}
                     </div>
-                    <div className="text-xs text-lama-sky">
-                      {user?.publicMetadata?.role as string || 'ضيف'}
+                    <div className="text-xs text-lama-sky font-medium flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {(user?.publicMetadata?.role as string) || 'ضيف'}
                     </div>
                   </div>
                 </div>
@@ -322,7 +336,7 @@ const Navbar = () => {
                   className="px-4 py-2 rounded-xl font-semibold text-white shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
                   style={{ background: 'linear-gradient(135deg, #D2B48C, #B8956A)' }}
                 >
-                  الداشبورد
+                  لوحة التحكم
                 </button>
 
                 {/* زر تسجيل الخروج */}
@@ -467,29 +481,43 @@ const Navbar = () => {
 
             {/* معلومات المستخدم في القائمة المحمولة */}
             {isSignedIn && (
-              <div className="md:hidden flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
-                style={{ background: 'linear-gradient(135deg, rgba(240, 230, 214, 0.6), rgba(226, 213, 199, 0.4))' }}>
-                <div className="w-12 h-12 rounded-full overflow-hidden"
-                  style={{ background: 'linear-gradient(135deg, #D2B48C, #B8956A)' }}>
-                  {user?.imageUrl ? (
-                    <Image
-                      src={user.imageUrl}
-                      alt="صورة المستخدم"
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
-                      {user?.firstName?.charAt(0) || 'م'}
-                    </div>
-                  )}
+              <div className="md:hidden flex items-center gap-3 px-4 py-4 rounded-2xl mb-4 shadow-lg"
+                style={{ 
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 245, 242, 0.9))',
+                  border: '1px solid rgba(210, 180, 140, 0.3)',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-full overflow-hidden shadow-lg ring-2 ring-white/50"
+                    style={{ background: 'linear-gradient(135deg, #D2B48C, #B8956A)' }}>
+                    {user?.imageUrl ? (
+                      <Image
+                        src={user.imageUrl}
+                        alt="صورة المستخدم"
+                        width={56}
+                        height={56}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white font-bold text-2xl">
+                        {user?.firstName?.charAt(0) || 'م'}
+                      </div>
+                    )}
+                  </div>
+                  {/* مؤشر الحالة النشطة */}
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
                 </div>
-                <div>
-                  <div className="text-lg font-bold text-lama-yellow">
+                <div className="flex flex-col">
+                  <div className="text-lg font-bold text-lama-yellow flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                     {user?.firstName || 'مستخدم'}
                   </div>
-                  <div className="text-sm text-lama-sky">
+                  <div className="text-sm text-lama-sky font-medium flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     {(user?.publicMetadata?.role as string) || 'ضيف'}
                   </div>
                 </div>
@@ -508,7 +536,7 @@ const Navbar = () => {
                     className="w-full px-4 py-3 rounded-xl font-semibold text-white shadow-lg transition-all duration-300"
                     style={{ background: 'linear-gradient(135deg, #D2B48C, #B8956A)' }}
                   >
-                    الانتقال للداشبورد
+                    الانتقال للوحة التحكم
                   </button>
                   <button
                     onClick={() => {

@@ -5,6 +5,45 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { ChevronDown, Home, Users, GraduationCap, UserCheck, BookOpen, Calendar, MessageSquare, Bell, User, Settings, LogOut, Plus, FileText, ClipboardCheck, BarChart3, Menu as MenuIcon, X } from "lucide-react";
 import { hasPermission, UserRole } from "@/lib/permissions";
+import { useUser } from "@clerk/nextjs";
+
+// مكون عداد الرسائل للمينيو
+function MenuMessageCounter() {
+  const { user } = useUser();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!user?.publicMetadata?.role) return;
+      
+      try {
+        const response = await fetch(`/api/messages/unread?userType=${user.publicMetadata.role}`);
+        if (response.ok) {
+          const messages = await response.json();
+          setUnreadCount(messages.length);
+        }
+      } catch (error) {
+        console.error('خطأ في جلب عدد الرسائل غير المقروءة:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    
+    // تحديث كل 30 ثانية
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user?.publicMetadata?.role]);
+
+  if (unreadCount === 0) return null;
+
+  return (
+    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center shadow-sm border border-white">
+      <span className="text-xs text-white font-bold">
+        {unreadCount > 9 ? '9+' : unreadCount}
+      </span>
+    </div>
+  );
+}
 
 const menuItems = [
   {
@@ -285,6 +324,24 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
     return subItem.visible.includes(role);
   };
 
+  // تحديد رابط صفحة الداشبورد الرئيسية حسب الدور
+  const getDashboardHomePath = (r: string) => {
+    switch (r) {
+      case 'admin':
+        return '/admin';
+      case 'staff':
+        return '/staff';
+      case 'teacher':
+        return '/teacher';
+      case 'student':
+        return '/student';
+      case 'parent':
+        return '/student';
+      default:
+        return '/admin';
+    }
+  };
+
   return (
     <>
       {/* Mobile Menu Button - Only visible on mobile */}
@@ -400,7 +457,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
                         </button>
                       ) : (
                         <Link
-                          href={item.href}
+                          href={item.label === "الرئيسية" ? getDashboardHomePath(role) : item.href}
                           onClick={closeMobileMenu}
                           className="group relative flex items-center gap-4 p-3 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-lamaSkyLight hover:to-transparent hover:shadow-sm hover:scale-[1.02] active:scale-[0.98]"
                         >
@@ -416,9 +473,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
 
                             {/* Notification Badge */}
                             {item.label === "الرسائل" && (
-                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                                <span className="text-xs text-white font-bold">3</span>
-                              </div>
+                              <MenuMessageCounter />
                             )}
                           </div>
 
