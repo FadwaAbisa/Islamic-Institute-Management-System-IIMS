@@ -21,8 +21,8 @@ const AttendanceChart = ({
   const renderLegend = () => {
     return (
       <div style={{ paddingTop: 20, paddingBottom: 40, textAlign: "right", direction: "rtl" }}>
-        <span style={{ marginLeft: 15, color: "#FAE27C", fontWeight: "bold" }}>حاضر</span>
-        <span style={{ marginLeft: 15, color: "#C3EBFA", fontWeight: "bold" }}>غائب</span>
+        <span style={{ marginLeft: 15, color: "#B8956A", fontWeight: "bold" }}>حاضر</span>
+        <span style={{ marginLeft: 15, color: "#D2B48C", fontWeight: "bold" }}>غائب</span>
       </div>
     );
   };
@@ -30,17 +30,28 @@ const AttendanceChart = ({
   return (
     <ResponsiveContainer width="100%" height="90%">
       <BarChart width={500} height={300} data={data} barSize={20}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ddd" />
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0E6D6" />
         <XAxis
           dataKey="name"
           axisLine={false}
-          tick={{ fill: "#d1d5db" }}
+          tick={{ fill: "#B8956A" }}
           tickLine={false}
           reversed={true} // لو تريد المحور X من اليمين لليسار
         />
-        <YAxis axisLine={false} tick={{ fill: "#d1d5db" }} tickLine={false} />
+        <YAxis 
+          axisLine={false} 
+          tick={{ fill: "#B8956A" }} 
+          tickLine={false}
+          tickFormatter={(value) => value.toLocaleString('en-US')}
+        />
         <Tooltip
-          contentStyle={{ borderRadius: "10px", borderColor: "lightgray", direction: "rtl", textAlign: "right" }}
+          contentStyle={{ 
+            borderRadius: "10px", 
+            borderColor: "#E2D5C7", 
+            backgroundColor: "#FCFAF8",
+            direction: "rtl", 
+            textAlign: "right" 
+          }}
           formatter={(value: number, name: string) => {
             // ترجمة نصوص tooltip
             if (name === "present") return [value, "حاضر"];
@@ -51,13 +62,13 @@ const AttendanceChart = ({
         <Legend content={renderLegend} />
         <Bar
           dataKey="present"
-          fill="#FAE27C"
+          fill="#B8956A"
           legendType="circle"
           radius={[10, 10, 0, 0]}
         />
         <Bar
           dataKey="absent"
-          fill="#C3EBFA"
+          fill="#D2B48C"
           legendType="circle"
           radius={[10, 10, 0, 0]}
         />

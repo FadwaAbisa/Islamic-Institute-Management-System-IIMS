@@ -282,7 +282,7 @@ const EventsDisplay: React.FC = () => {
                                         <div>
                                             <p className="text-sm text-gray-600">وقت البداية</p>
                                             <p className="font-semibold">
-                                                {selectedEvent.startTime.toLocaleString("ar-EG")}
+                                                {selectedEvent.startTime.toLocaleString("en-US")}
                                             </p>
                                         </div>
                                     </div>
@@ -292,7 +292,7 @@ const EventsDisplay: React.FC = () => {
                                         <div>
                                             <p className="text-sm text-gray-600">وقت النهاية</p>
                                             <p className="font-semibold">
-                                                {selectedEvent.endTime.toLocaleString("ar-EG")}
+                                                {selectedEvent.endTime.toLocaleString("en-US")}
                                             </p>
                                         </div>
                                     </div>

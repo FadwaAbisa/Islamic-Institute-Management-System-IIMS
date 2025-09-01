@@ -37,7 +37,7 @@ const CountChartContainer = async () => {
         <div className="flex flex-col gap-2 items-center min-w-[90px] max-w-[90px]">
           <div className="w-6 h-6 bg-[#B8956A] rounded-full shadow-sm"></div>
           <h1 className="font-bold text-xl text-gray-800 text-center">
-            {Regular.toLocaleString('ar-EG')}
+            {Regular.toLocaleString('en-US')}
           </h1>
           <h2 className="text-xs text-gray-500 font-medium text-center leading-tight break-words">
             نظامي ({Regular + Distance > 0 ? Math.round((Regular / (Regular + Distance)) * 100) : 0}%)
@@ -48,7 +48,7 @@ const CountChartContainer = async () => {
         <div className="flex flex-col gap-2 items-center min-w-[90px] max-w-[90px]">
           <div className="w-6 h-6 bg-[#D2B48C] rounded-full shadow-sm"></div>
           <h1 className="font-bold text-xl text-gray-800 text-center">
-            {Distance.toLocaleString('ar-EG')}
+            {Distance.toLocaleString('en-US')}
           </h1>
           <h2 className="text-xs text-gray-500 font-medium text-center leading-tight break-words">
             انتساب ({Regular + Distance > 0 ? Math.round((Distance / (Regular + Distance)) * 100) : 0}%)
@@ -59,7 +59,7 @@ const CountChartContainer = async () => {
       {/* إجمالي العدد */}
       <div className="mt-4 pt-4 border-t border-gray-100 text-center">
         <p className="text-sm text-gray-600">
-          إجمالي عدد الطلاب: <span className="font-semibold text-[#B8956A]">{(Regular + Distance).toLocaleString('ar-EG')}</span>
+          إجمالي عدد الطلاب: <span className="font-semibold text-[#B8956A]">{(Regular + Distance).toLocaleString('en-US')}</span>
         </p>
       </div>
     </div>

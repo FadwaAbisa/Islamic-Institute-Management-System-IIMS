@@ -88,7 +88,7 @@ const UserCard = async ({ type }: UserCardProps) => {
       {/* العدد */}
       <div className="mb-3">
         <h1 className="text-3xl font-bold mb-1 tracking-tight">
-          {data.toLocaleString('ar-EG')}
+          {data.toLocaleString('en-US')}
         </h1>
         <div className={`w-12 h-1 ${type === 'teacher' || type === 'staff' ? 'bg-[#B8956A]/30' : 'bg-white/30'} rounded-full`}></div>
       </div>

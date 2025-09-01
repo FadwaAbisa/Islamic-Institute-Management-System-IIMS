@@ -1,18 +1,60 @@
 "use client";
 
-import { SignIn } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSignIn } from "@clerk/nextjs";
 
 const LoginPage = () => {
     const { isLoaded, isSignedIn, user } = useUser();
+    const { signIn, setActive } = useSignIn();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    
+    // حقول تسجيل الدخول
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // معالجة تسجيل الدخول
+    const handleSignIn = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setIsSubmitting(true);
+
+        try {
+            if (!signIn) {
+                setError("نظام تسجيل الدخول غير متاح حالياً");
+                return;
+            }
+
+            const result = await signIn.create({
+                identifier: username,
+                password: password,
+            });
+
+            if (result.status === "complete") {
+                await setActive({ session: result.createdSessionId });
+                // سيتم التوجيه تلقائياً من خلال useEffect
+            } else {
+                setError("حدث خطأ في تسجيل الدخول، يرجى المحاولة مرة أخرى");
+            }
+        } catch (err: any) {
+            console.error("Sign in error:", err);
+            if (err.errors?.[0]?.message) {
+                setError(err.errors[0].message);
+            } else {
+                setError("حدث خطأ في تسجيل الدخول، يرجى التحقق من البيانات والمحاولة مرة أخرى");
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         if (isLoaded && isSignedIn) {
@@ -201,7 +243,7 @@ const LoginPage = () => {
                     border: '1px solid rgba(210, 180, 140, 0.3)'
                 }}
             >
-                <span>🏠</span>
+           
                 <span className="hidden sm:inline">العودة للرئيسية</span>
             </Link>
 
@@ -263,130 +305,114 @@ const LoginPage = () => {
                         </div>
                     </div>
 
-                    {/* Clerk SignIn Component with Enhanced Styling */}
-                    <div className="w-full relative z-10">
-                        <SignIn
-                            fallbackRedirectUrl="/admin"
-                            appearance={{
-                                elements: {
-                                    // Primary Button (Login Button)
-                                    formButtonPrimary: `
-                    background: linear-gradient(135deg, #D2B48C, #B8956A) !important;
-                    color: white !important;
-                    font-weight: 700 !important;
-                    padding: 16px 24px !important;
-                    border-radius: 16px !important;
-                    transition: all 0.3s ease !important;
-                    box-shadow: 0 10px 25px -5px rgba(184, 149, 106, 0.4) !important;
-                    border: none !important;
-                    width: 100% !important;
-                    transform: scale(1) !important;
-                    position: relative !important;
-                    overflow: hidden !important;
-                  `,
+                    {/* Custom Login Form */}
+                    <form onSubmit={handleSignIn} className="w-full relative z-10 space-y-6">
+                        {/* Username Field */}
+                        <div className="space-y-2">
+                            <label htmlFor="username" className="block text-right font-semibold text-sm" style={{ color: '#B8956A' }}>
+                                اسم المستخدم
+                            </label>
+                            <input
+                                type="text"
+                                id="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                                className="w-full px-4 py-4 border-2 rounded-2xl text-right transition-all duration-300 focus:outline-none focus:ring-4"
+                                style={{
+                                    borderColor: 'rgba(240, 230, 214, 0.6)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                    backdropFilter: 'blur(10px)',
+                                    color: '#B8956A',
+                                    fontSize: '16px'
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#D2B48C';
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(210, 180, 140, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'rgba(240, 230, 214, 0.6)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                                placeholder="أدخل اسم المستخدم"
+                                dir="rtl"
+                            />
+                        </div>
 
-                                    // Input Fields
-                                    formFieldInput: `
-                    width: 100% !important;
-                    border: 2px solid rgba(240, 230, 214, 0.6) !important;
-                    border-radius: 16px !important;
-                    padding: 16px !important;
-                    text-align: right !important;
-                    background: rgba(255, 255, 255, 0.7) !important;
-                    backdrop-filter: blur(10px) !important;
-                    transition: all 0.3s ease !important;
-                    color: #B8956A !important;
-                    font-size: 16px !important;
-                  `,
+                        {/* Password Field */}
+                        <div className="space-y-2">
+                            <label htmlFor="password" className="block text-right font-semibold text-sm" style={{ color: '#B8956A' }}>
+                                كلمة المرور
+                            </label>
+                            <input
+                                type="password"
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="w-full px-4 py-4 border-2 rounded-2xl text-right transition-all duration-300 focus:outline-none focus:ring-4"
+                                style={{
+                                    borderColor: 'rgba(240, 230, 214, 0.6)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                    backdropFilter: 'blur(10px)',
+                                    color: '#B8956A',
+                                    fontSize: '16px'
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = '#D2B48C';
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(210, 180, 140, 0.2)';
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = 'rgba(240, 230, 214, 0.6)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                                placeholder="أدخل كلمة المرور"
+                                dir="rtl"
+                            />
+                        </div>
 
-                                    // Labels
-                                    formFieldLabel: `
-                    display: block !important;
-                    color: #B8956A !important;
-                    font-weight: 600 !important;
-                    margin-bottom: 8px !important;
-                    text-align: right !important;
-                    font-size: 14px !important;
-                  `,
+                        {/* Error Message */}
+                        {error && (
+                            <div className="text-right p-3 rounded-xl text-sm font-medium"
+                                style={{
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    color: '#ef4444',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)'
+                                }}>
+                                {error}
+                            </div>
+                        )}
 
-                                    // Card Container
-                                    card: `
-                    box-shadow: none !important;
-                    background: transparent !important;
-                    border: none !important;
-                  `,
-
-                                    // Hide default headers
-                                    headerTitle: "display: none !important;",
-                                    headerSubtitle: "display: none !important;",
-
-                                    // Social buttons
-                                    socialButtonsBlockButton: `
-                    background: rgba(240, 230, 214, 0.6) !important;
-                    color: #B8956A !important;
-                    font-weight: 600 !important;
-                    padding: 12px 24px !important;
-                    border-radius: 12px !important;
-                    transition: all 0.3s ease !important;
-                    border: 1px solid rgba(210, 180, 140, 0.3) !important;
-                    width: 100% !important;
-                    margin-bottom: 8px !important;
-                  `,
-
-                                    // Divider
-                                    dividerLine: `
-                    background: linear-gradient(to right, transparent, rgba(210, 180, 140, 0.5), transparent) !important;
-                    height: 1px !important;
-                  `,
-                                    dividerText: `
-                    color: #D2B48C !important;
-                    font-weight: 500 !important;
-                    background: rgba(255, 255, 255, 0.8) !important;
-                    padding: 0 16px !important;
-                  `,
-
-                                    // Footer links
-                                    footerActionLink: `
-                    color: #D2B48C !important;
-                    font-weight: 600 !important;
-                    transition: all 0.3s ease !important;
-                    text-decoration: none !important;
-                  `,
-                                    footerAction: "text-align: center !important;",
-
-                                    // Error messages
-                                    formFieldError: `
-                    color: #ef4444 !important;
-                    font-size: 12px !important;
-                    text-align: right !important;
-                    margin-top: 4px !important;
-                  `,
-
-                                    // Input focus states
-                                    "formFieldInput:focus": `
-                    border-color: #D2B48C !important;
-                    box-shadow: 0 0 0 3px rgba(210, 180, 140, 0.2) !important;
-                  `,
-
-                                    // Button hover states
-                                    "formButtonPrimary:hover": `
-                    background: linear-gradient(135deg, #B8956A, #D2B48C) !important;
-                    transform: translateY(-2px) !important;
-                    box-shadow: 0 15px 35px -5px rgba(184, 149, 106, 0.5) !important;
-                  `,
-
-                                    "socialButtonsBlockButton:hover": `
-                    background: rgba(240, 230, 214, 0.8) !important;
-                    transform: translateY(-1px) !important;
-                  `,
-
-                                    "footerActionLink:hover": `
-                    color: #B8956A !important;
-                  `
-                                }
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="w-full py-4 px-6 rounded-2xl font-bold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
+                            style={{
+                                background: 'linear-gradient(135deg, #D2B48C, #B8956A)',
+                                boxShadow: '0 10px 25px -5px rgba(184, 149, 106, 0.4)'
                             }}
-                        />
-                    </div>
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(135deg, #B8956A, #D2B48C)';
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 15px 35px -5px rgba(184, 149, 106, 0.5)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(135deg, #D2B48C, #B8956A)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                                e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(184, 149, 106, 0.4)';
+                            }}
+                        >
+                            {isSubmitting ? (
+                                <div className="flex items-center justify-center gap-2">
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    جاري تسجيل الدخول...
+                                </div>
+                            ) : (
+                                'تسجيل الدخول'
+                            )}
+                        </button>
+                    </form>
 
                     {/* Enhanced Footer */}
                     <div className="mt-6 pt-4 relative z-10"

@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('Academic stats API called');
+    
     // جلب إحصائيات النجاح لكل مرحلة دراسية وفترة
     const academicStats = await prisma.subjectGrade.findMany({
       include: {
@@ -13,7 +15,39 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      where: {
+        // التأكد من وجود بيانات صحيحة
+        periodTotal: {
+          not: null
+        },
+        Student: {
+          studyLevel: {
+            not: null
+          }
+        }
+      }
     });
+
+    console.log(`Found ${academicStats.length} grade records`);
+    
+    // إذا لم توجد بيانات، إرجاع رسالة واضحة
+    if (academicStats.length === 0) {
+      console.log('No grade records found in database');
+      return NextResponse.json({
+        chartData: [
+          { name: "السنة الأولى", "الفترة الأولى": 0, "الفترة الثانية": 0, "الفترة الثالثة": 0 },
+          { name: "السنة الثانية", "الفترة الأولى": 0, "الفترة الثانية": 0, "الفترة الثالثة": 0 },
+          { name: "السنة الثالثة", "الفترة الأولى": 0, "الفترة الثانية": 0, "الفترة الثالثة": 0 },
+        ],
+        totalStats: {
+          totalStudents: 0,
+          totalGrades: 0,
+          overallSuccessRate: 0,
+        },
+        message: "لا توجد بيانات درجات في قاعدة البيانات",
+        lastUpdated: new Date().toISOString(),
+      });
+    }
 
     // تجميع البيانات حسب المرحلة والفترة
     const statsMap = new Map();
@@ -46,9 +80,9 @@ export async function GET(request: NextRequest) {
 
     // تحويل البيانات إلى تنسيق مناسب للرسم البياني
     const chartData = [
-      { name: "السنة الأولى" },
-      { name: "السنة الثانية" },
-      { name: "السنة الثالثة" },
+      { name: "السنة الأولى", "الفترة الأولى": 0, "الفترة الثانية": 0, "الفترة الثالثة": 0 },
+      { name: "السنة الثانية", "الفترة الأولى": 0, "الفترة الثانية": 0, "الفترة الثالثة": 0 },
+      { name: "السنة الثالثة", "الفترة الأولى": 0, "الفترة الثانية": 0, "الفترة الثالثة": 0 },
     ];
 
     // حساب معدلات النجاح لكل مرحلة وفترة
@@ -80,6 +114,9 @@ export async function GET(request: NextRequest) {
     if (academicStats.length > 0) {
       totalStats.overallSuccessRate = Math.round((totalPassed / academicStats.length) * 100);
     }
+
+    // إضافة معلومات إضافية للتتبع
+    console.log(`Academic Stats - Total Students: ${totalStats.totalStudents}, Total Grades: ${totalStats.totalGrades}, Success Rate: ${totalStats.overallSuccessRate}%`);
 
     return NextResponse.json({
       chartData,

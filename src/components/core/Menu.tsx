@@ -20,7 +20,7 @@ const menuItems = [
         color: "bg-blue-50 text-blue-600"
       },
       {
-        icon: "/icons/teacher.png",
+        icon: "/FrontEnd_img/المعلمين.png",
         label: "المعلمين",
         href: "/list/teachers",
         visible: ["admin", "teacher"],
@@ -49,7 +49,7 @@ const menuItems = [
         ]
       },
       {
-        icon: "/icons/student.png",
+        icon: "/FrontEnd_img/الطلاب.png",
         label: "الطلاب",
         href: "/list/students",
         visible: ["admin", "teacher"],
@@ -142,7 +142,7 @@ const menuItems = [
 
       //........................................................
       {
-        icon: "/icons/staff.png",
+        icon: "/FrontEnd_img/الموظفين.png",
         label: "الموظفين الإداريين",
         href: "/list/staff",
         visible: ["admin", "teacher"],

@@ -3,66 +3,60 @@ import AttendanceChart from "./AttendanceChart";
 import prisma from "@/lib/prisma";
 
 const AttendanceChartContainer = async () => {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
-  const lastMonday = new Date(today);
-
-  lastMonday.setDate(today.getDate() - daysSinceMonday);
-
+  // جلب بيانات الحضور مع معلومات الطلاب
   const resData = await prisma.attendance.findMany({
     where: {
       date: {
-        gte: lastMonday,
+        gte: new Date(new Date().setDate(new Date().getDate() - 30)), // آخر 30 يوم
       },
     },
     select: {
-      date: true,
-      status: true,
+      present: true,
+      Student: {
+        select: {
+          studyLevel: true,
+        },
+      },
     },
   });
 
-  // console.log(data)
-
-  const daysOfWeek = ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
-
-  // استخدم نفس الأسماء العربية هنا
-  const attendanceMap: { [key: string]: { present: number; absent: number } } = {
-    "الإثنين": { present: 0, absent: 0 },
-    "الثلاثاء": { present: 0, absent: 0 },
-    "الأربعاء": { present: 0, absent: 0 },
-    "الخميس": { present: 0, absent: 0 },
-    "الجمعة": { present: 0, absent: 0 },
-  };
+  // إحصائيات حسب الفصول الدراسية
+  const classStats: { [key: string]: { present: number; absent: number } } = {};
 
   resData.forEach((item) => {
-    const itemDate = new Date(item.date);
-    const dayOfWeek = itemDate.getDay(); // 1 for Monday, 2 for Tuesday...
+    const studyLevel = item.Student.studyLevel || "غير محدد";
+    
+    if (!classStats[studyLevel]) {
+      classStats[studyLevel] = { present: 0, absent: 0 };
+    }
 
-    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-      // dayName سيكون "الإثنين"، "الثلاثاء"، إلخ.
-      const dayName = daysOfWeek[dayOfWeek - 1];
-
-      // الآن سيجد المفتاح الصحيح
-      if (item.status === 'present') {
-        attendanceMap[dayName].present += 1;
-      } else {
-        attendanceMap[dayName].absent += 1;
-      }
+    if (item.present) {
+      classStats[studyLevel].present += 1;
+    } else {
+      classStats[studyLevel].absent += 1;
     }
   });
-  const data = daysOfWeek.map((day) => ({
-    name: day,
-    present: attendanceMap[day]?.present ?? 0,
-    absent: attendanceMap[day]?.absent ?? 0,
+
+  // تحويل أسماء الفصول إلى العربية
+  const classNames: { [key: string]: string } = {
+    "FIRST_YEAR": "السنة الأولى",
+    "SECOND_YEAR": "السنة الثانية", 
+    "THIRD_YEAR": "السنة الثالثة",
+    "GRADUATION": "التخرج",
+    "غير محدد": "غير محدد"
+  };
+
+  const data = Object.entries(classStats).map(([studyLevel, stats]) => ({
+    name: classNames[studyLevel] || studyLevel,
+    present: stats.present,
+    absent: stats.absent,
   }));
 
 
   return (
     <div className="bg-white rounded-lg p-4 h-full">
       <div className="flex justify-between items-center">
-        <h1 className="text-lg font-semibold">الحضور والغياب</h1>
+        <h1 className="text-lg font-semibold">الحضور حسب الفصول</h1>
         <Image src="/moreDark.png" alt="" width={20} height={20} />
       </div>
       <AttendanceChart data={data} />

@@ -59,7 +59,7 @@ const menuItems = [
         color: "bg-blue-50 text-blue-600"
       },
       {
-        icon: "/icons/teacher.png",
+        icon: "/FrontEnd_img/المعلمين.png",
         label: "المعلمين",
         href: "/list/teachers",
         visible: ["admin"],
@@ -82,7 +82,7 @@ const menuItems = [
         ]
       },
       {
-        icon: "/icons/student.png",
+        icon: "/FrontEnd_img/الطلاب.png",
         label: "الطلاب",
         href: "/list/students",
         visible: ["admin", "staff", "teacher"],
@@ -164,7 +164,7 @@ const menuItems = [
         ]
       },
       {
-        icon: "/icons/staff.png",
+        icon: "/FrontEnd_img/الموظفين.png",
         label: "الموظفين الإداريين",
         href: "/list/staff",
         visible: ["admin", "staff"],
@@ -253,28 +253,12 @@ const menuItems = [
     icon: User,
     items: [
       {
-        icon: "/profile.png",
+        icon: "/setting.png",
         label: "الملف الشخصي",
         href: "/profile",
         visible: ["admin", "staff", "teacher", "student", "parent"],
         description: "إدارة البيانات الشخصية",
         color: "bg-slate-50 text-slate-600"
-      },
-      {
-        icon: "/setting.png",
-        label: "الإعدادات",
-        href: "/settings",
-        visible: ["admin"],
-        description: "إعدادات النظام والتفضيلات",
-        color: "bg-gray-50 text-gray-600"
-      },
-      {
-        icon: "/setting.png",
-        label: "تشخيص الأدوار",
-        href: "/debug-role",
-        visible: ["admin", "staff", "teacher", "student", "parent"],
-        description: "فحص وتشخيص صلاحيات المستخدم",
-        color: "bg-orange-50 text-orange-600"
       },
       {
         icon: "/logout.png",
@@ -364,14 +348,7 @@ const Menu = ({ initialUser }: { initialUser: any }) => {
       )}
 
       {/* Sidebar Menu */}
-      <div className={`
-        fixed lg:static inset-y-0 left-0 z-50
-        w-[35rem] lg:w-full h-full
-        bg-white border-r border-gray-200
-        transform transition-transform duration-300 ease-in-out
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        overflow-y-auto
-      `}>
+      <div className="w-full h-full bg-white border-r border-gray-200 overflow-y-auto">
         {/* Header - Responsive */}
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-3">

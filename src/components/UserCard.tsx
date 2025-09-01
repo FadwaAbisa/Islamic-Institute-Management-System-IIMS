@@ -66,7 +66,12 @@ const UserCard = async ({ type }: UserCardProps) => {
       <div className="flex justify-between items-center mb-4">
         <div className={`${iconColors[type]} rounded-full p-3 backdrop-blur-sm`}>
           <Image
-            src={type === 'parent' ? '/icons/staff.png' : `/icons/${type}.png`}
+            src={
+              type === 'parent' ? '/FrontEnd_img/الموظفين.png' :
+              type === 'teacher' ? '/FrontEnd_img/المعلمين.png' :
+              type === 'student' ? '/FrontEnd_img/الطلاب.png' :
+              '/icons/admin.png'
+            }
             alt={type}
             width={28}
             height={28}
@@ -88,7 +93,7 @@ const UserCard = async ({ type }: UserCardProps) => {
       {/* العدد */}
       <div className="mb-3">
         <h1 className="text-3xl font-bold mb-1 tracking-tight">
-          {data.toLocaleString('ar-EG')}
+          {data.toLocaleString('en-US')}
         </h1>
         <div className={`w-12 h-1 ${type === 'teacher' || type === 'parent' ? 'bg-[#B8956A]/30' : 'bg-white/30'} rounded-full`}></div>
       </div>

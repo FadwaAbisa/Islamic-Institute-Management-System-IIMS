@@ -22,6 +22,7 @@ interface AcademicChartProps {
   totalStats?: {
     totalStudents: number;
     overallSuccessRate: number;
+    totalGrades?: number;
   };
 }
 
@@ -30,9 +31,9 @@ const AcademicChart = ({ data, totalStats }: AcademicChartProps) => {
   const renderLegend = () => {
     return (
       <div style={{ paddingTop: 20, paddingBottom: 30, textAlign: "center", direction: "rtl" }}>
-        <span style={{ marginLeft: 20, color: "#8884d8", fontWeight: "bold" }}>● الفترة الأولى</span>
-        <span style={{ marginLeft: 20, color: "#82ca9d", fontWeight: "bold" }}>● الفترة الثانية</span>
-        <span style={{ marginLeft: 20, color: "#ffc658", fontWeight: "bold" }}>● الفترة الثالثة</span>
+        <span style={{ marginLeft: 20, color: "#D2B48C", fontWeight: "bold" }}>● الفترة الأولى</span>
+        <span style={{ marginLeft: 20, color: "#B8956A", fontWeight: "bold" }}>● الفترة الثانية</span>
+        <span style={{ marginLeft: 20, color: "#E2D5C7", fontWeight: "bold" }}>● الفترة الثالثة</span>
       </div>
     );
   };
@@ -42,7 +43,7 @@ const AcademicChart = ({ data, totalStats }: AcademicChartProps) => {
       {/* رأس المخطط */}
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-lg font-semibold text-gray-800">معدلات النجاح الأكاديمي</h1>
+          <h1 className="text-lg font-semibold text-gray-800">إحصائيات النجاح في المعهد</h1>
           <p className="text-sm text-gray-500">نسبة النجاح لكل مرحلة دراسية حسب الفترات</p>
         </div>
         <Image src="/moreDark.png" alt="المزيد" width={20} height={20} />
@@ -50,15 +51,21 @@ const AcademicChart = ({ data, totalStats }: AcademicChartProps) => {
 
       {/* الإحصائيات العلوية */}
       {totalStats && (
-        <div className="flex justify-center gap-8 mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="flex justify-center gap-8 mb-4 p-3 rounded-lg" style={{ backgroundColor: "#F7F3EE" }}>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{totalStats.totalStudents}</div>
+            <div className="text-2xl font-bold" style={{ color: "#B8956A" }}>{totalStats.totalStudents.toLocaleString('en-US')}</div>
             <div className="text-xs text-gray-600">إجمالي الطلاب</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{totalStats.overallSuccessRate}%</div>
+            <div className="text-2xl font-bold" style={{ color: "#D2B48C" }}>{totalStats.overallSuccessRate}%</div>
             <div className="text-xs text-gray-600">معدل النجاح العام</div>
           </div>
+          {totalStats.totalGrades && (
+            <div className="text-center">
+              <div className="text-2xl font-bold" style={{ color: "#E2D5C7" }}>{totalStats.totalGrades.toLocaleString('en-US')}</div>
+              <div className="text-xs text-gray-600">إجمالي الدرجات</div>
+            </div>
+          )}
         </div>
       )}
 
@@ -76,17 +83,17 @@ const AcademicChart = ({ data, totalStats }: AcademicChartProps) => {
           }}
           barGap={10}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#F0E6D6" />
           <XAxis
             dataKey="name"
             axisLine={false}
-            tick={{ fill: "#666", fontSize: 12 }}
+            tick={{ fill: "#B8956A", fontSize: 12 }}
             tickLine={false}
             tickMargin={10}
           />
           <YAxis 
             axisLine={false} 
-            tick={{ fill: "#666", fontSize: 12 }} 
+            tick={{ fill: "#B8956A", fontSize: 12 }} 
             tickLine={false}
             tickMargin={10}
             domain={[0, 100]}
@@ -95,8 +102,8 @@ const AcademicChart = ({ data, totalStats }: AcademicChartProps) => {
           <Tooltip
             contentStyle={{
               borderRadius: "8px",
-              border: "1px solid #e5e7eb",
-              backgroundColor: "#ffffff",
+              border: "1px solid #E2D5C7",
+              backgroundColor: "#FCFAF8",
               direction: "rtl",
               textAlign: "right",
               boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
@@ -109,19 +116,19 @@ const AcademicChart = ({ data, totalStats }: AcademicChartProps) => {
           {/* أعمدة الفترات */}
           <Bar
             dataKey="الفترة الأولى"
-            fill="#8884d8"
+            fill="#D2B48C"
             radius={[4, 4, 0, 0]}
             name="الفترة الأولى"
           />
           <Bar
             dataKey="الفترة الثانية"
-            fill="#82ca9d"
+            fill="#B8956A"
             radius={[4, 4, 0, 0]}
             name="الفترة الثانية"
           />
           <Bar
             dataKey="الفترة الثالثة"
-            fill="#ffc658"
+            fill="#E2D5C7"
             radius={[4, 4, 0, 0]}
             name="الفترة الثالثة"
           />

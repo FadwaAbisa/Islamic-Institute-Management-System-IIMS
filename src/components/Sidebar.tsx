@@ -21,7 +21,7 @@ const Sidebar = () => {
     },
     {
       title: "المعلمين",
-      icon: "/icons/teacher.png",
+      icon: "/FrontEnd_img/المعلمين.png",
       hasDropdown: true,
       subItems: [
         {
@@ -40,7 +40,7 @@ const Sidebar = () => {
     },
     {
       title: "الطلاب",
-      icon: "/icons/student.png",
+      icon: "/FrontEnd_img/الطلاب.png",
       hasDropdown: true,
       subItems: [
         {
@@ -67,7 +67,7 @@ const Sidebar = () => {
     },
     {
       title: "الموظفين الإداريين",
-      icon: "/icons/staff.png",
+      icon: "/FrontEnd_img/الموظفين.png",
       hasDropdown: true,
       subItems: [
         {

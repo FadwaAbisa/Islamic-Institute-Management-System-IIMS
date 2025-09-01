@@ -65,6 +65,11 @@
     @apply bg-background text-foreground;
     font-family: 'Tajawal', 'Inter', sans-serif;
     direction: rtl;
+    overflow-x: hidden;
+  }
+  
+  html {
+    overflow-x: hidden;
   }
 }
 

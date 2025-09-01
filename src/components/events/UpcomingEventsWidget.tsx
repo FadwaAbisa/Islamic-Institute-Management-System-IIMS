@@ -208,7 +208,7 @@ const UpcomingEventsWidget: React.FC = () => {
                 {events.length > 0 && (
                     <div className="mt-4 pt-3 border-t border-lama-sky-light">
                         <Button
-                            className="w-full border border-lama-yellow text-lama-yellow hover:bg-lama-yellow hover:text-white transition-colors"
+                            className="w-full border border-lama-yellow text-lama-yellow bg-lamaPurple hover:bg-lama-yellow hover:text-white transition-colors"
                             onClick={() => window.location.href = "/events/view"}
                         >
                             عرض جميع الأحداث

@@ -178,38 +178,38 @@ const HomePage = () => {
         {
             title: 'معلم',
             count: statistics.teachers?.toString() || '0',
-            icon: '/icons/teacher.png',
+            icon: '/FrontEnd_img/المعلمين.png',
             color: 'bg-gradient-to-r from-lama-sky to-lama-yellow'
         },
         {
             title: 'موظف',
             count: statistics.staff?.toString() || '0',
-            icon: '/icons/staff.png',
+            icon: '/FrontEnd_img/الموظفين.png',
             color: 'bg-gradient-to-r from-lama-yellow to-lama-sky'
         },
         {
             title: 'طالب',
             count: statistics.students?.toString() || '0',
-            icon: '/icons/student.png',
+            icon: '/FrontEnd_img/الطلاب.png',
             color: 'bg-gradient-to-r from-lama-sky-light to-lama-purple'
         }
     ] : [
         {
             title: 'معلم',
             count: '...',
-            icon: '/icons/teacher.png',
+            icon: '/FrontEnd_img/المعلمين.png',
             color: 'bg-gradient-to-r from-lama-sky to-lama-yellow'
         },
         {
             title: 'موظف',
             count: '...',
-            icon: '/icons/staff.png',
+            icon: '/FrontEnd_img/الموظفين.png',
             color: 'bg-gradient-to-r from-lama-yellow to-lama-sky'
         },
         {
             title: 'طالب',
             count: '...',
-            icon: '/icons/student.png',
+            icon: '/FrontEnd_img/الطلاب.png',
             color: 'bg-gradient-to-r from-lama-sky-light to-lama-purple'
         }
     ];

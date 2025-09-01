@@ -8,23 +8,19 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="h-screen flex">
-      {/* LEFT */}
-      <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] p-4">
-        {/* <Link
-            href="/"
-            className="flex items-center justify-center lg:justify-start gap-2"
-          >
-            <Image src="/logo.jpg" alt="logo" width={200} height={200} />
-            <span className="hidden lg:block font-bold"></span>
-          </Link> */}
+    <div className="h-screen flex overflow-x-hidden">
+      {/* LEFT - المينو */}
+      <div className="w-[280px] lg:w-[280px] xl:w-[280px] bg-white border-l border-gray-200 shadow-lg">
         <MenuWrapper />
       </div>
-      {/* RIGHT */}
-      <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] bg-[#F7F8FA] overflow-scroll flex flex-col">
+      {/* RIGHT - المحتوى الرئيسي */}
+      <div className="flex-1 bg-[#F7F8FA] overflow-auto flex flex-col">
         {/* رأس الداشبورد */}
         <DashboardHeader />
-        {children}
+        {/* المحتوى */}
+        <main className="flex-1 p-4">
+          {children}
+        </main>
       </div>
     </div>
   );

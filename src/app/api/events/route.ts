@@ -7,13 +7,27 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const startDate = searchParams.get("startDate");
         const endDate = searchParams.get("endDate");
+        const date = searchParams.get("date"); // تاريخ واحد (لليوم المحدد)
         const eventType = searchParams.get("eventType");
         const status = searchParams.get("status");
 
         let whereClause: any = {};
 
-        // فلترة حسب التاريخ
-        if (startDate && endDate) {
+        // فلترة حسب تاريخ واحد (لليوم المحدد)
+        if (date) {
+            const startOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
+            
+            const endOfDay = new Date(date);
+            endOfDay.setHours(23, 59, 59, 999);
+            
+            whereClause.startTime = {
+                gte: startOfDay,
+                lte: endOfDay,
+            };
+        }
+        // فلترة حسب نطاق التاريخ
+        else if (startDate && endDate) {
             whereClause.startTime = {
                 gte: new Date(startDate),
                 lte: new Date(endDate),
