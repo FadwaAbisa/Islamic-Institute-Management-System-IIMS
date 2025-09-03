@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
     try {
@@ -213,6 +211,6 @@ export async function GET(request: NextRequest) {
             details: error instanceof Error ? error.message : "خطأ غير معروف"
         }, { status: 500 });
     } finally {
-        await prisma.$disconnect();
+        // لا نحتاج لـ disconnect مع prisma singleton
     }
 }

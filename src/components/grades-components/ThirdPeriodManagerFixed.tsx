@@ -57,9 +57,10 @@ const ThirdPeriodManagerFixed: React.FC<ThirdPeriodManagerFixedProps> = ({
         try {
             const response = await fetch(`/api/students/filtered?studyLevel=${selectedLevel}&studyMode=${selectedMode}`)
             const data = await response.json()
-            setStudents(data)
+            setStudents(data.students || [])
         } catch (error) {
             console.error('خطأ في جلب بيانات الطلاب')
+            setStudents([])
         } finally {
             setLoading(false)
         }

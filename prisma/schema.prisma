@@ -340,3 +340,39 @@ enum UserType {
   STAFF
   ADMIN
 }
+
+// نموذج توزيعات الدرجات المرنة
+model FlexibleGradeDistribution {
+  id              String   @id @default(cuid())
+  name            String   // اسم التوزيع
+  educationLevel  String   // المرحلة التعليمية
+  studySystem     String   // نظام الدراسة
+  
+  // إعدادات الفترات
+  firstPeriodMonthsCount  Int     @default(0)
+  firstPeriodMonthlyGrade Float   @default(0)
+  firstPeriodPeriodExam   Float   @default(0)
+  
+  secondPeriodMonthsCount  Int     @default(0)
+  secondPeriodMonthlyGrade Float   @default(0)
+  secondPeriodPeriodExam   Float   @default(0)
+  
+  thirdPeriodMonthsCount  Int     @default(0)
+  thirdPeriodMonthlyGrade Float   @default(0)
+  thirdPeriodPeriodExam   Float   @default(0)
+  thirdPeriodTotalGrade   Float   @default(0)
+  
+  // إعدادات الحساب النهائي
+  firstAndSecondWeight Float @default(0)
+  thirdPeriodWeight    Float @default(0)
+  totalGrade           Float @default(100)
+  
+  // تواريخ الإنشاء والتحديث
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // فهرس فريد لكل مرحلة ونظام
+  @@unique([educationLevel, studySystem])
+  @@index([educationLevel])
+  @@index([studySystem])
+}
