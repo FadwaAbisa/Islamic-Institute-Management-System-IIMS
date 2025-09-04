@@ -22,21 +22,27 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "بيانات غير صحيحة" }, { status: 400 });
         }
 
-        // بدلاً من ربط الحضور بدرس محدد، سنسجل الحضور للفصل كاملاً في يوم معين
+        // بدلاً من ربط الحضور بدرس محدد، سنسجل الحضور للمرحلة الدراسية كاملة في يوم معين
         // يمكننا إنشاء "درس افتراضي" أو تعديل نموذج البيانات
 
-        // للبساطة الآن، سنجد أول درس في الفصل في اليوم المحدد
-        const classId = attendanceRecords[0]?.classId;
+        // للبساطة الآن، سنجد أول درس في المرحلة الدراسية في اليوم المحدد
+        const studyLevel = attendanceRecords[0]?.studyLevel;
         const day = attendanceRecords[0]?.day;
 
-        if (!classId || !day) {
-            return NextResponse.json({ error: "معرف الفصل واليوم مطلوبان" }, { status: 400 });
+        if (!studyLevel || !day) {
+            return NextResponse.json({ error: "المرحلة الدراسية واليوم مطلوبان" }, { status: 400 });
         }
 
-        // البحث عن درس في هذا الفصل في هذا اليوم
+        // البحث عن درس في هذه المرحلة الدراسية في هذا اليوم
         let lesson = await prisma.lesson.findFirst({
             where: {
-                classId: classId,
+                Class: {
+                    students: {
+                        some: {
+                            studyLevel: studyLevel
+                        }
+                    }
+                },
                 day: day as any
             }
         });
@@ -54,15 +60,29 @@ export async function POST(request: NextRequest) {
                 });
             }
 
+            // البحث عن فصل افتراضي أو إنشاء واحد
+            let defaultClass = await prisma.class.findFirst({
+                where: { name: `فصل ${studyLevel}` }
+            });
+
+            if (!defaultClass) {
+                defaultClass = await prisma.class.create({
+                    data: { 
+                        name: `فصل ${studyLevel}`,
+                        description: `فصل افتراضي للمرحلة الدراسية ${studyLevel}`
+                    }
+                });
+            }
+
             // إنشاء درس افتراضي للحضور
             lesson = await prisma.lesson.create({
                 data: {
-                    name: `حضور ${day}`,
+                    name: `حضور ${day} - ${studyLevel}`,
                     day: day as any,
                     startTime: new Date(`2024-01-01T08:00:00.000Z`),
                     endTime: new Date(`2024-01-01T09:00:00.000Z`),
                     subjectId: defaultSubject.id,
-                    classId: classId,
+                    classId: defaultClass.id,
                     teacherId: userId
                 }
             });
