@@ -111,7 +111,7 @@ const RoleDebugPage = () => {
             <div className="p-4 bg-yellow-50 rounded-lg">
               <label className="block text-sm font-medium text-yellow-600">الدور النهائي المستخدم</label>
               <p className="text-lg font-mono text-yellow-900">
-                "{String(user.publicMetadata?.role || localStorageRole || 'student')}"
+                &quot;{String(user.publicMetadata?.role || localStorageRole || 'student')}&quot;
               </p>
             </div>
           </div>

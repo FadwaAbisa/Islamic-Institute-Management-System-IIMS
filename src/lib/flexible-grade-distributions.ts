@@ -282,9 +282,6 @@ export function validateFlexibleGrade(
         return { isValid: false, error: `الدرجة لا يمكن أن تتجاوز ${maxGrade}` }
     }
     
-    if (field === 'monthly' && grade % 0.5 !== 0) {
-        return { isValid: false, error: "درجة الشهر يجب أن تكون من مضاعفات 0.5" }
-    }
     
     return { isValid: true }
 }
@@ -294,7 +291,10 @@ export function getPeriodInfo(
     distribution: FlexibleGradeDistribution | null,
     period: 'firstPeriod' | 'secondPeriod' | 'thirdPeriod'
 ) {
+    console.log("🔍 Debug - getPeriodInfo called with:", { distribution, period })
+    
     if (!distribution || !distribution.periods) {
+        console.log("🔍 Debug - No distribution or periods")
         return {
             monthsCount: 0,
             monthlyGrade: 0,
@@ -305,8 +305,10 @@ export function getPeriodInfo(
     }
     
     const periodConfig = distribution.periods[period]
+    console.log("🔍 Debug - Period config:", periodConfig)
     
     if (!periodConfig) {
+        console.log("🔍 Debug - No period config found")
         return {
             monthsCount: 0,
             monthlyGrade: 0,
@@ -316,13 +318,16 @@ export function getPeriodInfo(
         }
     }
     
-    return {
+    const result = {
         monthsCount: periodConfig.monthsCount,
         monthlyGrade: periodConfig.monthlyGrade,
         periodExam: periodConfig.periodExam,
         totalGrade: (periodConfig as any).totalGrade || 0,
         isAvailable: periodConfig.monthsCount > 0
     }
+    
+    console.log("🔍 Debug - Returning period info:", result)
+    return result
 }
 
 // حساب النسبة المئوية والتقدير
@@ -415,9 +420,12 @@ export function getUpdatedGradeDistribution(
     educationLevel: string,
     studySystem: string
 ): FlexibleGradeDistribution | null {
-    return defaultGradeDistributions.find(
+    console.log("🔍 Debug - getUpdatedGradeDistribution called with:", { educationLevel, studySystem })
+    const found = defaultGradeDistributions.find(
         dist => dist.educationLevel === educationLevel && dist.studySystem === studySystem
-    ) || null
+    )
+    console.log("🔍 Debug - Found distribution:", found)
+    return found || null
 }
 
 // تحويل البيانات من قاعدة البيانات إلى تنسيق FlexibleGradeDistribution

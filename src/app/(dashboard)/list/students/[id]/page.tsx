@@ -1,11 +1,12 @@
 import Announcements from "@/components/Announcements";
 import BigCalendarWrapper from "@/components/BigCalendarWrapper";
+import BigCalendarContainer from "@/components/calendar/BigCalendarContainer";
 import FormContainer from "@/components/FormContainer";
 import Performance from "@/components/Performance";
 import StudentAttendanceCard from "@/components/StudentAttendanceCard";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { Class, Student } from "@prisma/client";
+import { Student } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -19,15 +20,8 @@ const SingleStudentPage = async ({
   const { sessionClaims } = auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
 
-  const student:
-    | (Student & {
-        class: Class & { _count: { lessons: number } };
-      })
-    | null = await prisma.student.findUnique({
+  const student = await prisma.student.findUnique({
     where: { id },
-    include: {
-      class: { include: { _count: { select: { lessons: true } } } },
-    },
   });
 
   if (!student) {
@@ -44,7 +38,7 @@ const SingleStudentPage = async ({
           <div className="bg-lamaSky py-6 px-4 rounded-md flex-1 flex gap-4">
             <div className="w-1/3">
               <Image
-                src={student.img || "/noAvatar.png"}
+                src={student.studentPhoto || "/noAvatar.png"}
                 alt=""
                 width={144}
                 height={144}
@@ -111,7 +105,7 @@ const SingleStudentPage = async ({
               />
               <div className="">
                 <h1 className="text-xl font-semibold">
-                  {student.class.name.charAt(0)}th
+                  {student.academicYear || 'N/A'}
                 </h1>
                 <span className="text-sm text-gray-400">Grade</span>
               </div>
@@ -127,7 +121,7 @@ const SingleStudentPage = async ({
               />
               <div className="">
                 <h1 className="text-xl font-semibold">
-                  {student.class._count.lessons}
+                  {student.studyLevel || 'N/A'}
                 </h1>
                 <span className="text-sm text-gray-400">Lessons</span>
               </div>
@@ -142,7 +136,7 @@ const SingleStudentPage = async ({
                 className="w-6 h-6"
               />
               <div className="">
-                <h1 className="text-xl font-semibold">{student.class.name}</h1>
+                <h1 className="text-xl font-semibold">{student.specialization || 'N/A'}</h1>
                 <span className="text-sm text-gray-400">Class</span>
               </div>
             </div>
@@ -151,7 +145,7 @@ const SingleStudentPage = async ({
         {/* BOTTOM */}
         <div className="mt-4 bg-white rounded-md p-4 h-[800px]">
           <h1>Student&apos;s Schedule</h1>
-          <BigCalendarContainer type="classId" id={student.class.id} />
+          <BigCalendarContainer type="studentId" id={student.id} />
         </div>
       </div>
       {/* RIGHT */}
@@ -161,25 +155,25 @@ const SingleStudentPage = async ({
           <div className="mt-4 flex gap-4 flex-wrap text-xs text-gray-500">
             <Link
               className="p-3 rounded-md bg-lamaSkyLight"
-              href={`/list/lessons?classId=${student.class.id}`}
+              href={`/list/lessons?studentId=${student.id}`}
             >
               Student&apos;s Lessons
             </Link>
             <Link
               className="p-3 rounded-md bg-lamaPurpleLight"
-              href={`/list/teachers?classId=${student.class.id}`}
+              href={`/list/teachers?studentId=${student.id}`}
             >
               Student&apos;s Teachers
             </Link>
             <Link
               className="p-3 rounded-md bg-pink-50"
-              href={`/list/exams?classId=${student.class.id}`}
+              href={`/list/exams?studentId=${student.id}`}
             >
               Student&apos;s Exams
             </Link>
             <Link
               className="p-3 rounded-md bg-lamaSkyLight"
-              href={`/list/assignments?classId=${student.class.id}`}
+              href={`/list/assignments?studentId=${student.id}`}
             >
               Student&apos;s Assignments
             </Link>

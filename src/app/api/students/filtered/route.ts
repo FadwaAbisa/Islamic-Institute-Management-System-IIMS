@@ -177,7 +177,10 @@ export async function GET(request: NextRequest) {
                                 month3: grade.month3,
                                 periodExam: grade.finalExam,
                                 workTotal: grade.workTotal,
-                                periodTotal: grade.periodTotal
+                                periodTotal: grade.periodTotal,
+                                percentage: grade.percentage,
+                                grade: grade.grade,
+                                gradeColor: grade.gradeColor
                             };
                         }
                     });

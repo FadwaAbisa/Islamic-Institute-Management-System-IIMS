@@ -20,6 +20,8 @@
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "target": "es2015",
+    "downlevelIteration": true,
     "plugins": [
       {
         "name": "next"

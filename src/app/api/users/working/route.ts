@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 
 // GET - جلب قائمة المستخدمين المتاحين للمراسلة (تجريبي)
 export async function GET(request: NextRequest) {

@@ -76,7 +76,10 @@ export async function POST(request: NextRequest) {
                         month3: gradeData.month3,
                         finalExam: gradeData.finalExam,
                         workTotal: gradeData.workTotal,
-                        periodTotal: gradeData.periodTotal
+                        periodTotal: gradeData.periodTotal,
+                        percentage: gradeData.percentage,
+                        grade: gradeData.grade,
+                        gradeColor: gradeData.gradeColor
                     },
                     create: {
                         studentId: student.id,
@@ -88,7 +91,10 @@ export async function POST(request: NextRequest) {
                         month3: gradeData.month3,
                         finalExam: gradeData.finalExam,
                         workTotal: gradeData.workTotal,
-                        periodTotal: gradeData.periodTotal
+                        periodTotal: gradeData.periodTotal,
+                        percentage: gradeData.percentage,
+                        grade: gradeData.grade,
+                        gradeColor: gradeData.gradeColor
                     }
                 });
 

@@ -114,6 +114,9 @@ model SubjectGrade {
   workTotal    Float            @default(0)
   finalExam    Int?
   periodTotal  Float            @default(0)
+  percentage   Float?           // النسبة المئوية
+  grade        String?          // التقدير (ممتاز، جيد جداً، إلخ)
+  gradeColor   String?          // لون التقدير
   createdAt    DateTime         @default(now())
   updatedAt    DateTime
   studentId    String

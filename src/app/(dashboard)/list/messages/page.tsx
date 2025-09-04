@@ -62,23 +62,23 @@ const MessagesPage = () => {
   }, [user?.publicMetadata?.role]);
 
   // جلب المحادثات
-  useEffect(() => {
-    const fetchConversations = async () => {
-      if (!userId || !userType) return;
+  const fetchConversations = async () => {
+    if (!userId || !userType) return;
 
-      try {
-        const response = await fetch(`/api/messages?userType=${userType}`);
-        if (response.ok) {
-          const data = await response.json();
-          setConversations(data);
-        }
-      } catch (error) {
-        console.error("خطأ في جلب المحادثات:", error);
-      } finally {
-        setLoading(false);
+    try {
+      const response = await fetch(`/api/messages?userType=${userType}`);
+      if (response.ok) {
+        const data = await response.json();
+        setConversations(data);
       }
-    };
+    } catch (error) {
+      console.error("خطأ في جلب المحادثات:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchConversations();
   }, [userId, userType]);
 

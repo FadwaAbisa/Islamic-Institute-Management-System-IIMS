@@ -163,6 +163,9 @@ export async function GET(request: NextRequest) {
             workTotal: true,
             finalExam: true,
             periodTotal: true,
+            percentage: true,
+            grade: true,
+            gradeColor: true,
           },
         })
 
