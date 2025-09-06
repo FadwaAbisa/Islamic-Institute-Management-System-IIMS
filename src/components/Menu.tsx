@@ -157,6 +157,12 @@ const menuItems = [
         subItems: [
           {
             icon: FileText,
+            label: "النتائج النهائية",
+            href: "/list/students/results",
+            description: "عرض النتائج النهائية للطلاب"
+          },
+          {
+            icon: BarChart3,
             label: "تقارير النتائج",
             href: "/grades/results",
             description: "عرض تقارير النتائج المختلفة"

@@ -138,22 +138,48 @@ export async function GET(request: NextRequest) {
 
             if (subjectRecord) {
                 // جلب الدرجات للمادة المحددة
+                console.log("🔍 جلب الدرجات للمادة:", subject, "العام:", academicYear, "الفترة:", period);
+                console.log("🔍 معرفات الطلاب:", students.map(s => s.id));
+                
+                // تحويل period إلى enum للبحث
+                let periodEnum: "FIRST" | "SECOND" | "THIRD" | undefined = undefined;
+                if (period && period !== "all") {
+                    periodEnum = period === "الفترة الأولى" ? "FIRST" : 
+                               period === "الفترة الثانية" ? "SECOND" : 
+                               period === "الفترة الثالثة" ? "THIRD" : undefined;
+                    console.log("🔍 periodEnum:", periodEnum);
+                }
+                
+                const whereClause: any = {
+                    subjectId: subjectRecord.id,
+                    academicYear: academicYear,
+                    studentId: {
+                        in: students.map(s => s.id)
+                    }
+                };
+                
+                // إضافة period في البحث إذا كان محدد
+                if (periodEnum) {
+                    whereClause.period = periodEnum;
+                }
+                
+                console.log("🔍 whereClause:", whereClause);
+                
                 const grades = await prisma.subjectGrade.findMany({
-                    where: {
-                        subjectId: subjectRecord.id,
-                        academicYear: academicYear,
-                        studentId: {
-                            in: students.map(s => s.id)
-                        }
-                    },
+                    where: whereClause,
                     include: {
                         Student: true
                     }
                 });
+                
+                console.log("🔍 الدرجات المستلمة من قاعدة البيانات:", grades.length, "درجة");
+                console.log("🔍 تفاصيل الدرجات:", JSON.stringify(grades, null, 2));
 
                 // إضافة الدرجات للطلاب
                 formattedStudents.forEach(student => {
                     const studentGrades = grades.filter(g => g.studentId === student.id);
+                    console.log(`🔍 درجات الطالب ${student.studentName} (${student.id}):`, studentGrades.length, "درجة");
+                    
                     student.grades = {};
 
                     studentGrades.forEach(grade => {
@@ -171,19 +197,24 @@ export async function GET(request: NextRequest) {
                         }
 
                         if (periodName) {
-                            student.grades[periodName] = {
+                            const gradeData = {
                                 month1: grade.month1,
                                 month2: grade.month2,
                                 month3: grade.month3,
-                                periodExam: grade.finalExam,
+                                periodExam: grade.finalExam, // finalExam في قاعدة البيانات = periodExam في الواجهة
                                 workTotal: grade.workTotal,
                                 periodTotal: grade.periodTotal,
                                 percentage: grade.percentage,
                                 grade: grade.grade,
                                 gradeColor: grade.gradeColor
                             };
+                            
+                            student.grades[periodName] = gradeData;
+                            console.log(`🔍 إضافة درجات ${periodName} للطالب ${student.studentName}:`, gradeData);
                         }
                     });
+                    
+                    console.log(`🔍 درجات الطالب النهائية ${student.studentName}:`, student.grades);
                 });
             }
         }

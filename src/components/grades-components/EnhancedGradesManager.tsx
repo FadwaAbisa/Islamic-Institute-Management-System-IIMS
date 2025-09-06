@@ -121,10 +121,10 @@ export default function EnhancedGradesManager() {
     const [useFlexibleSystem, setUseFlexibleSystem] = useState(false)
     const [flexibleDistribution, setFlexibleDistribution] = useState<FlexibleGradeDistribution | null>(null)
     
-    // حالات المراجعة والاعتماد
-    const [pendingReview, setPendingReview] = useState<{[studentId: string]: boolean}>({})
-    const [reviewedGrades, setReviewedGrades] = useState<{[studentId: string]: boolean}>({})
-    const [approvedGrades, setApprovedGrades] = useState<{[studentId: string]: boolean}>({})
+    // حالات المراجعة والاعتماد - مرتبطة بالفترة
+    const [pendingReview, setPendingReview] = useState<{[studentId: string]: {[period: string]: boolean}}>({})
+    const [reviewedGrades, setReviewedGrades] = useState<{[studentId: string]: {[period: string]: boolean}}>({})
+    const [approvedGrades, setApprovedGrades] = useState<{[studentId: string]: {[period: string]: boolean}}>({})
     const [reviewMode, setReviewMode] = useState(false)
     const [approvalMode, setApprovalMode] = useState(false)
 
@@ -220,11 +220,106 @@ export default function EnhancedGradesManager() {
 
         if (canEnable) {
             console.log("✅ النموذج مفعل، بدء تحميل الطلاب...")
+            // حفظ الدرجات المحفوظة محلياً قبل إعادة التحميل
+            saveLocalGradesToDatabase()
             validateFiltersAndLoadStudents()
         } else {
             console.log("❌ النموذج غير مفعل")
         }
     }, [selectedYear, selectedLevel, selectedSystem, selectedSubject, selectedPeriod])
+
+    // دالة لحفظ الدرجات المحفوظة محلياً في قاعدة البيانات
+    const saveLocalGradesToDatabase = async () => {
+        if (students.length === 0 || !selectedSubject || !selectedYear) {
+            console.log("🔍 لا توجد درجات محفوظة محلياً للحفظ")
+            return
+        }
+
+        try {
+            console.log("🔍 حفظ الدرجات المحفوظة محلياً في قاعدة البيانات...")
+            
+            // جمع جميع الدرجات المحفوظة محلياً
+            const allGradesData: any[] = []
+            
+            students.forEach(student => {
+                Object.keys(student.grades).forEach(period => {
+                    const periodGrades = student.grades[period]
+                    if (periodGrades && (periodGrades.month1 || periodGrades.month2 || periodGrades.month3 || periodGrades.periodExam)) {
+                        // حساب القيم المفقودة
+                        const monthlyGrades: number[] = []
+                        for (let i = 1; i <= 3; i++) {
+                            const monthKey = `month${i}` as 'month1' | 'month2' | 'month3'
+                            const grade = periodGrades[monthKey]
+                            if (grade !== null && grade !== undefined) {
+                                monthlyGrades.push(grade)
+                            }
+                        }
+                        const monthlyAverage = monthlyGrades.length > 0 ? 
+                            (monthlyGrades.reduce((sum, grade) => sum + grade, 0) / monthlyGrades.length) : 0
+                        const periodTotal = monthlyAverage + (periodGrades.periodExam || 0)
+                        
+                        // حساب النسبة والتقدير
+                        const flexibleDist = getUpdatedGradeDistribution(selectedLevel as StudyLevel, selectedSystem as StudySystem)
+                        const percentage = flexibleDist?.finalCalculation?.totalGrade && flexibleDist.finalCalculation.totalGrade > 0 
+                            ? (periodTotal / flexibleDist.finalCalculation.totalGrade) * 100 
+                            : 0
+                        
+                        let grade = ""
+                        let gradeColor = ""
+                        if (percentage >= 90) {
+                            grade = "ممتاز"
+                            gradeColor = "text-green-600"
+                        } else if (percentage >= 80) {
+                            grade = "جيد جداً"
+                            gradeColor = "text-blue-600"
+                        } else if (percentage >= 70) {
+                            grade = "جيد"
+                            gradeColor = "text-yellow-600"
+                        } else if (percentage >= 60) {
+                            grade = "مقبول"
+                            gradeColor = "text-orange-600"
+                        } else {
+                            grade = "راسب"
+                            gradeColor = "text-red-600"
+                        }
+                        
+                        allGradesData.push({
+                            studentId: student.id,
+                            subjectName: selectedSubject.name,
+                            academicYear: selectedYear,
+                            period: period,
+                            month1: periodGrades.month1,
+                            month2: periodGrades.month2,
+                            month3: periodGrades.month3,
+                            periodExam: periodGrades.periodExam,
+                            workTotal: monthlyAverage,
+                            periodTotal: periodTotal,
+                            percentage: percentage,
+                            grade: grade,
+                            gradeColor: gradeColor
+                        })
+                    }
+                })
+            })
+
+            if (allGradesData.length > 0) {
+                console.log("🔍 حفظ", allGradesData.length, "درجة في قاعدة البيانات")
+                const response = await fetch('/api/grades', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ grades: allGradesData })
+                })
+                
+                if (response.ok) {
+                    console.log("✅ تم حفظ الدرجات المحفوظة محلياً بنجاح")
+                } else {
+                    console.log("❌ خطأ في حفظ الدرجات المحفوظة محلياً:", response.status)
+                }
+            }
+        } catch (error) {
+            console.error("❌ خطأ في حفظ الدرجات المحفوظة محلياً:", error)
+        }
+    }
 
     const loadInitialData = async () => {
         try {
@@ -258,7 +353,7 @@ export default function EnhancedGradesManager() {
     const loadSubjects = async (): Promise<Subject[]> => {
         // يمكن تحميلها من API أو استخدام البيانات الثابتة
         return [
-            { id: 1, name: "القـرآن وأحكامه" },
+            { id: 1, name: "القرآن وأحكامه" },
             { id: 2, name: "السيرة" },
             { id: 3, name: "التفسير" },
             { id: 4, name: "علوم الحديث" },
@@ -290,18 +385,12 @@ export default function EnhancedGradesManager() {
 
     const loadStudents = async () => {
         console.log("🚀 بدء تحميل الطلاب...", {
-            isFormEnabled,
             selectedYear,
             selectedLevel,
             selectedSystem,
             selectedSubject: selectedSubject?.name,
             selectedPeriod
         })
-
-        if (!isFormEnabled) {
-            console.log("❌ النموذج غير مفعل")
-            return
-        }
 
         try {
             setIsLoadingData(true)
@@ -314,6 +403,14 @@ export default function EnhancedGradesManager() {
                 subject: selectedSubject?.name || "",
                 period: selectedPeriod as string
             })
+            
+            console.log("🔍 Debug - API params:", {
+                academicYear: selectedYear,
+                educationLevel: selectedLevel,
+                studySystem: selectedSystem,
+                subject: selectedSubject?.name,
+                period: selectedPeriod
+            })
 
             console.log("🔍 إرسال استعلام للطلاب:", params.toString())
 
@@ -323,6 +420,15 @@ export default function EnhancedGradesManager() {
             if (res.ok) {
                 const data = await res.json()
                 console.log("✅ تم استلام البيانات:", data)
+                console.log("🔍 تفاصيل البيانات المستلمة:", JSON.stringify(data, null, 2))
+                
+                if (data.students && data.students.length > 0) {
+                    console.log("🔍 بيانات الطلاب الأولى:", data.students[0])
+                    console.log("🔍 درجات الطالب الأول:", data.students[0].grades)
+                    console.log("🔍 selectedPeriod في loadStudents:", selectedPeriod)
+                    console.log("🔍 درجات الفترة المحددة للطالب الأول:", data.students[0].grades[selectedPeriod as string])
+                }
+                
                 setStudents(data.students || [])
             } else {
                 const errorText = await res.text()
@@ -505,51 +611,132 @@ export default function EnhancedGradesManager() {
         return { finalTotal, percentage, grade, color }
     }
 
-    // دوال المراجعة والاعتماد
-    const markForReview = (studentId: string) => {
-        setPendingReview(prev => ({ ...prev, [studentId]: true }))
-        setReviewedGrades(prev => ({ ...prev, [studentId]: false }))
-        setApprovedGrades(prev => ({ ...prev, [studentId]: false }))
+    // دوال المراجعة والاعتماد - مرتبطة بالفترة
+    const markForReview = (studentId: string, period: string = selectedPeriod as string) => {
+        setPendingReview(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [period]: true
+            }
+        }))
+        setReviewedGrades(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [period]: false
+            }
+        }))
+        setApprovedGrades(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [period]: false
+            }
+        }))
     }
 
-    const markAsReviewed = (studentId: string) => {
-        setPendingReview(prev => ({ ...prev, [studentId]: false }))
-        setReviewedGrades(prev => ({ ...prev, [studentId]: true }))
-        setApprovedGrades(prev => ({ ...prev, [studentId]: false }))
+    const markAsReviewed = (studentId: string, period: string = selectedPeriod as string) => {
+        setPendingReview(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [period]: false
+            }
+        }))
+        setReviewedGrades(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [period]: true
+            }
+        }))
+        setApprovedGrades(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [period]: false
+            }
+        }))
     }
 
-    const markAsApproved = (studentId: string) => {
-        setPendingReview(prev => ({ ...prev, [studentId]: false }))
-        setReviewedGrades(prev => ({ ...prev, [studentId]: true }))
-        setApprovedGrades(prev => ({ ...prev, [studentId]: true }))
+    const markAsApproved = (studentId: string, period: string = selectedPeriod as string) => {
+        setPendingReview(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [period]: false
+            }
+        }))
+        setReviewedGrades(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [period]: true
+            }
+        }))
+        setApprovedGrades(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [period]: true
+            }
+        }))
     }
 
-    const canSaveGrades = (studentId: string): boolean => {
-        return approvedGrades[studentId] === true
+    const canSaveGrades = (studentId: string, period: string = selectedPeriod as string): boolean => {
+        return approvedGrades[studentId]?.[period] === true
     }
 
-    const getGradeStatus = (studentId: string): 'pending' | 'reviewed' | 'approved' | 'none' => {
-        if (approvedGrades[studentId]) return 'approved'
-        if (reviewedGrades[studentId]) return 'reviewed'
-        if (pendingReview[studentId]) return 'pending'
+    const getGradeStatus = (studentId: string, period: string = selectedPeriod as string): 'pending' | 'reviewed' | 'approved' | 'none' => {
+        if (approvedGrades[studentId]?.[period]) return 'approved'
+        if (reviewedGrades[studentId]?.[period]) return 'reviewed'
+        if (pendingReview[studentId]?.[period]) return 'pending'
         return 'none'
     }
 
-    // دالة لفك الاعتماد
-    const unapproveGrades = (studentId: string) => {
+    // دالة لفك الاعتماد - مرتبطة بالفترة
+    const unapproveGrades = (studentId: string, period: string = selectedPeriod as string) => {
         setApprovedGrades(prev => {
             const newApproved = { ...prev }
+            if (newApproved[studentId]) {
+                delete newApproved[studentId][period]
+                if (Object.keys(newApproved[studentId]).length === 0) {
             delete newApproved[studentId]
+                }
+            }
             return newApproved
         })
         
         // إعادة الدرجة إلى حالة المراجعة
         setReviewedGrades(prev => {
             const newReviewed = { ...prev }
-            newReviewed[studentId] = true
+            if (!newReviewed[studentId]) {
+                newReviewed[studentId] = {}
+            }
+            newReviewed[studentId][period] = true
             return newReviewed
         })
     }
+
+    // دالة لحساب مجموع الفترتين الأولى والثانية
+    const calculatePreviousPeriodsSum = (student: Student): number => {
+        const firstPeriodGrades = student.grades["الفترة الأولى"];
+        const secondPeriodGrades = student.grades["الفترة الثانية"];
+        
+        let firstPeriodTotal = 0;
+        let secondPeriodTotal = 0;
+        
+        if (firstPeriodGrades) {
+            firstPeriodTotal = firstPeriodGrades.periodTotal || 0;
+        }
+        
+        if (secondPeriodGrades) {
+            secondPeriodTotal = secondPeriodGrades.periodTotal || 0;
+        }
+        
+        return firstPeriodTotal + secondPeriodTotal;
+    };
 
     // دالة لتوليد حقول إدخال الدرجات ديناميكياً
     const renderDynamicGradeInputs = (student: Student, currentPeriodGrades: any) => {
@@ -561,6 +748,25 @@ export default function EnhancedGradesManager() {
         console.log("🔍 Debug - student.id:", student.id)
         console.log("🔍 Debug - student.studentName:", student.studentName)
         console.log("🔍 Debug - student.grades:", student.grades)
+        console.log("🔍 Debug - currentPeriodGrades.month1:", currentPeriodGrades.month1)
+        console.log("🔍 Debug - currentPeriodGrades.month2:", currentPeriodGrades.month2)
+        console.log("🔍 Debug - currentPeriodGrades.periodExam:", currentPeriodGrades.periodExam)
+        
+        // التحقق من أن currentPeriodGrades يحتوي على البيانات الصحيحة
+        if (!currentPeriodGrades || Object.keys(currentPeriodGrades).length === 0) {
+            console.log("🔍 Debug - currentPeriodGrades is empty, using fallback")
+            currentPeriodGrades = {
+                month1: null,
+                month2: null,
+                month3: null,
+                periodExam: null,
+                workTotal: 0,
+                periodTotal: 0,
+                percentage: 0,
+                grade: "",
+                gradeColor: ""
+            }
+        }
         
         // التحقق من وجود النظام المرن
         if (!flexibleDistribution || !flexibleDistribution.periods) {
@@ -616,13 +822,14 @@ export default function EnhancedGradesManager() {
                         <Input
                             type="number"
                             placeholder="0"
-                            value={currentPeriodGrades[monthKey] || ""}
+                            value={currentPeriodGrades[monthKey] !== null && currentPeriodGrades[monthKey] !== undefined ? currentPeriodGrades[monthKey] : ""}
                             onChange={(e) => {
                                 const value = parseFloat(e.target.value)
                                 if (!isNaN(value)) {
                                     const validation = validateGradeWithFlexibleSystem(value, 'monthly', student.id, selectedPeriod as string)
                                     if (!validation.isValid) {
                                         alert(validation.error)
+                                        e.target.value = ""
                                         return
                                     }
                                 }
@@ -712,22 +919,26 @@ export default function EnhancedGradesManager() {
         console.log("🔍 Debug - monthInputs length:", monthInputs.length)
         console.log("🔍 Debug - periodInfo.monthsCount for UI:", periodInfo.monthsCount)
         return (
-            <>
-                {/* ترتيب الخانات من اليمين إلى اليسار: الشهر الأول (1) في أقصى اليمين، ثم الثاني (2)، ثم الثالث (3)، ثم المتوسط (4)، ثم امتحان الفترة (5)، ثم المجموع (6) */}
-                {/* الشهر الأول (1) - في أقصى اليمين */}
+            <div className="flex gap-4 items-end" dir="rtl">
+                {/* ترتيب الخانات من اليمين إلى اليسار: الشهر الأول (1) في أقصى اليمين - الأول، ثم الثاني (2)، ثم الثالث (3)، ثم المتوسط (4)، ثم امتحان الفترة (5)، ثم المجموع (6) في أقصى اليسار */}
+                
+                {/* الشهر الأول (1) - في أقصى اليمين - الأول */}
                 {periodInfo.monthsCount >= 1 && (
                     <div className="flex-1 min-w-[120px]">
                         <Label className="text-sm font-semibold text-lama-yellow mb-2 block text-right">الشهر الأول</Label>
                         <Input
                             type="number"
                             placeholder="0"
-                            value={currentPeriodGrades.month1 || ""}
+                            value={currentPeriodGrades.month1 !== null && currentPeriodGrades.month1 !== undefined ? currentPeriodGrades.month1 : ""}
                             onChange={(e) => {
                                 const value = parseFloat(e.target.value)
                                 if (!isNaN(value)) {
                                     const validation = validateGradeWithFlexibleSystem(value, 'monthly', student.id, selectedPeriod as string)
                                     if (!validation.isValid) {
                                         alert(validation.error)
+                                        e.target.value = ""
+
+
                                         return
                                     }
                                 }
@@ -756,17 +967,30 @@ export default function EnhancedGradesManager() {
                         <Input
                             type="number"
                             placeholder="0"
-                            value={currentPeriodGrades.month2 || ""}
+                            value={currentPeriodGrades.month2 !== null && currentPeriodGrades.month2 !== undefined ? currentPeriodGrades.month2 : ""}
                             onChange={(e) => {
                                 const value = parseFloat(e.target.value)
                                 if (!isNaN(value)) {
                                     const validation = validateGradeWithFlexibleSystem(value, 'monthly', student.id, selectedPeriod as string)
                                     if (!validation.isValid) {
                                         alert(validation.error)
+                                        e.target.value = ""
                                         return
                                     }
                                 }
                                 handleGradeChange(student.id, 'month2', e.target.value)
+                                
+                                // الانتقال التلقائي بعد إدخال درجات الشهر الثاني
+                                if (e.target.value && !isNaN(parseFloat(e.target.value))) {
+                                    setTimeout(() => {
+                                        // البحث عن حقل امتحان الفترة والتركيز عليه
+                                        const periodExamInput = document.querySelector(`input[data-field="periodExam"][data-student-id="${student.id}"]`) as HTMLInputElement
+                                        if (periodExamInput) {
+                                            periodExamInput.focus()
+                                            periodExamInput.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                        }
+                                    }, 500)
+                                }
                             }}
                             className={`modern-input text-center text-lg font-bold border-2 focus:border-lama-sky ${
                                 getGradeStatus(student.id) === 'approved' 
@@ -791,13 +1015,14 @@ export default function EnhancedGradesManager() {
                         <Input
                             type="number"
                             placeholder="0"
-                            value={currentPeriodGrades.month3 || ""}
+                            value={currentPeriodGrades.month3 !== null && currentPeriodGrades.month3 !== undefined ? currentPeriodGrades.month3 : ""}
                             onChange={(e) => {
                                 const value = parseFloat(e.target.value)
                                 if (!isNaN(value)) {
                                     const validation = validateGradeWithFlexibleSystem(value, 'monthly', student.id, selectedPeriod as string)
                                     if (!validation.isValid) {
                                         alert(validation.error)
+                                        e.target.value = ""
                                         return
                                     }
                                 }
@@ -822,37 +1047,114 @@ export default function EnhancedGradesManager() {
                 {/* متوسط الأشهر (4) */}
                 <div className="flex-1 min-w-[120px]">
                     <Label className="text-sm font-semibold text-lama-yellow mb-2 block text-right">متوسط الأشهر</Label>
-                    <div className="modern-input text-center text-lg font-bold bg-gray-100 border-2 border-gray-300 p-3 rounded-xl text-gray-500">
-                        -
+                    <div className={`modern-input text-center text-lg font-bold border-2 p-3 rounded-xl ${
+                        getGradeStatus(student.id) === 'approved' 
+                            ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed' 
+                            : 'border-lama-yellow bg-white'
+                    }`}>
+                        {monthlyAverage > 0 ? Math.round(monthlyAverage) : '-'}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1 text-center">
-                        غير متاح بعد
+                    <div className="text-xs text-lama-sky mt-1 text-center">
+                        {getGradeStatus(student.id) === 'approved' ? 'غير قابل للتعديل' : 'محسوب تلقائياً'}
                     </div>
                 </div>
                 
                 {/* امتحان الفترة (5) */}
                 <div className="flex-1 min-w-[120px]">
                     <Label className="text-sm font-semibold text-lama-yellow mb-2 block text-right">امتحان الفترة</Label>
-                    <div className="modern-input text-center text-lg font-bold bg-gray-100 border-2 border-gray-300 p-3 rounded-xl text-gray-500">
-                        -
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1 text-center">
-                        غير متاح بعد
+                    <Input
+                        type="number"
+                        placeholder="0"
+                        value={currentPeriodGrades.periodExam !== null && currentPeriodGrades.periodExam !== undefined ? currentPeriodGrades.periodExam : ""}
+                        
+                        onChange={(e) => {
+                            const value = parseFloat(e.target.value)
+                            if (!isNaN(value)) {
+                                const validation = validateGradeWithFlexibleSystem(value, 'exam', student.id, selectedPeriod as string)
+                                if (!validation.isValid) {
+                                    alert(validation.error)
+                                    e.target.value = ""
+                                    return
+                                }
+                            }
+                            handleGradeChange(student.id, 'periodExam', e.target.value)
+                        }}
+                        className={`modern-input text-center text-lg font-bold border-2 focus:border-lama-sky ${
+                            getGradeStatus(student.id) === 'approved' 
+                                ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed' 
+                                : 'border-lama-yellow bg-white'
+                        }`}
+                        min="0"
+                        max={periodExamMax}
+                        step="0.01"
+                        disabled={getGradeStatus(student.id) === 'approved'}
+                        data-field="periodExam"
+                        data-student-id={student.id}
+                    />
+                    <div className="text-xs text-lama-sky mt-1 text-center">
+                        {getGradeStatus(student.id) === 'approved' ? 'غير قابل للتعديل' : 'درجة امتحان الفترة'}
                     </div>
                 </div>
                 
-                {/* المجموع (6) - في أقصى اليسار */}
+                {/* المجموع (6) - في أقصى اليسار - الأخير */}
                 <div className="flex-1 min-w-[120px]">
                     <Label className="text-sm font-semibold text-lama-yellow mb-2 block text-right">المجموع</Label>
-                    <div className="modern-input text-center text-lg font-bold bg-gray-100 border-2 border-gray-300 p-3 rounded-xl text-gray-500">
-                        -
+                    <div className={`modern-input text-center text-lg font-bold border-2 p-3 rounded-xl ${
+                        getGradeStatus(student.id) === 'approved' 
+                            ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed' 
+                            : 'border-lama-yellow bg-white'
+                    }`}>
+                        {periodTotal > 0 ? Math.round(periodTotal) : '-'}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1 text-center">
-                        غير متاح بعد
+                    <div className="text-xs text-lama-sky mt-1 text-center">
+                        {getGradeStatus(student.id) === 'approved' ? 'غير قابل للتعديل' : 'محسوب تلقائياً'}
                     </div>
                 </div>
 
-            </>
+            </div>
+        )
+    }
+
+    // دالة خاصة للفترة الثالثة - خانة واحدة فقط
+    const renderThirdPeriodInputs = (student: Student, currentPeriodGrades: any) => {
+        console.log("🔍 Debug - renderThirdPeriodInputs called for student:", student.studentName)
+        
+        return (
+            <div className="flex gap-4 flex-wrap mr-16" dir="ltr">
+                {/* امتحان الفترة الثالثة - الخانة الوحيدة القابلة للإدخال */}
+                <div className="flex-1 min-w-[200px]">
+                    <Label className="text-sm font-semibold text-lama-yellow mb-2 block text-right">امتحان الفترة الثالثة</Label>
+                    <Input
+                        type="number"
+                        placeholder="0"
+                        value={currentPeriodGrades.periodExam !== null && currentPeriodGrades.periodExam !== undefined ? currentPeriodGrades.periodExam : ""}
+                        onChange={(e) => {
+                            const value = parseFloat(e.target.value)
+                            if (!isNaN(value)) {
+                                const validation = validateGradeWithFlexibleSystem(value, 'exam', student.id, selectedPeriod as string)
+                                if (!validation.isValid) {
+                                    alert(validation.error)
+                                    e.target.value = ""
+                                    return
+                                }
+                            }
+                            handleGradeChange(student.id, 'periodExam', e.target.value)
+                        }}
+                        className={`modern-input text-center text-lg font-bold border-2 focus:border-lama-sky ${
+                            getGradeStatus(student.id) === 'approved' 
+                                ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed' 
+                                : 'border-lama-yellow bg-white'
+                        }`}
+                        min="0"
+                        max={20} // الحد الأقصى للفترة الثالثة
+                        step="0.01"
+                        disabled={getGradeStatus(student.id) === 'approved'}
+                    />
+                    <div className="text-xs text-lama-sky mt-1 text-center">
+                        {getGradeStatus(student.id) === 'approved' ? 'غير قابل للتعديل' : 'درجة امتحان الفترة الثالثة (حد أقصى 20)'}
+                    </div>
+                </div>
+            </div>
         )
     }
 
@@ -949,7 +1251,7 @@ export default function EnhancedGradesManager() {
         console.log("🔍 Debug - Value:", numValue)
         
         // وضع الدرجة في حالة مراجعة
-        markForReview(studentId)
+        markForReview(studentId, selectedPeriod as string)
         
         setStudents(prev => prev.map(student => {
             if (student.id === studentId) {
@@ -1009,10 +1311,10 @@ export default function EnhancedGradesManager() {
                     // حساب مجموع الفترة
                     let periodTotal: number
                     if (currentPeriod === "الفترة الثالثة") {
-                        // الفترة الثالثة بدون أشهر - فقط امتحان مباشر
-                        periodTotal = periodGrades.periodExam || 0
-                        console.log("🔍 Debug - Third period total (exam only):", periodTotal)
-                        console.log("🔍 Debug - periodGrades.periodExam:", periodGrades.periodExam)
+                        // الفترة الثالثة: فقط امتحان الفترة الثالثة (لا نحسب المجموع هنا)
+                        periodTotal = periodGrades.periodExam || 0;
+                        console.log("🔍 Debug - Third period total (exam only):", periodTotal);
+                        console.log("🔍 Debug - periodGrades.periodExam:", periodGrades.periodExam);
                     } else {
                         // الفترتين الأولى والثانية
                         periodTotal = monthlyAverage + (periodGrades.periodExam || 0)
@@ -1136,7 +1438,105 @@ export default function EnhancedGradesManager() {
         console.log("🔍 Debug - students length:", students.length)
         console.log("🔍 Debug - students first item:", students[0])
         
-        // لا يوجد حفظ تلقائي - الحفظ فقط بعد الاعتماد
+        // حفظ تلقائي للدرجة بعد إدخالها
+        setTimeout(async () => {
+            try {
+                const currentPeriod = selectedPeriod as string || "الفترة الأولى"
+                
+                // البحث عن الطالب في البيانات المحدثة
+                const updatedStudents = students.map(student => {
+                    if (student.id === studentId) {
+                        return {
+                            ...student,
+                            grades: {
+                                ...student.grades,
+                                [currentPeriod]: {
+                                    ...student.grades[currentPeriod],
+                                    [field]: numValue
+                                }
+                            }
+                        }
+                    }
+                    return student
+                })
+                
+                const student = updatedStudents.find(s => s.id === studentId)
+                if (student) {
+                    const periodGrades = student.grades[currentPeriod] || {}
+                    
+                    // حساب القيم المفقودة
+                    const monthlyGrades: number[] = []
+                    for (let i = 1; i <= 3; i++) {
+                        const monthKey = `month${i}` as 'month1' | 'month2' | 'month3'
+                        const grade = periodGrades[monthKey]
+                        if (grade !== null && grade !== undefined) {
+                            monthlyGrades.push(grade)
+                        }
+                    }
+                    const monthlyAverage = monthlyGrades.length > 0 ? 
+                        (monthlyGrades.reduce((sum, grade) => sum + grade, 0) / monthlyGrades.length) : 0
+                    const periodTotal = monthlyAverage + (periodGrades.periodExam || 0)
+                    
+                    // حساب النسبة والتقدير
+                    const flexibleDist = getUpdatedGradeDistribution(selectedLevel as StudyLevel, selectedSystem as StudySystem)
+                    const percentage = flexibleDist?.finalCalculation?.totalGrade && flexibleDist.finalCalculation.totalGrade > 0 
+                        ? (periodTotal / flexibleDist.finalCalculation.totalGrade) * 100 
+                        : 0
+                    
+                    let grade = ""
+                    let gradeColor = ""
+                    if (percentage >= 90) {
+                        grade = "ممتاز"
+                        gradeColor = "text-green-600"
+                    } else if (percentage >= 80) {
+                        grade = "جيد جداً"
+                        gradeColor = "text-blue-600"
+                    } else if (percentage >= 70) {
+                        grade = "جيد"
+                        gradeColor = "text-yellow-600"
+                    } else if (percentage >= 60) {
+                        grade = "مقبول"
+                        gradeColor = "text-orange-600"
+                    } else {
+                        grade = "راسب"
+                        gradeColor = "text-red-600"
+                    }
+                    
+                    const gradeData = {
+                        studentId: student.id,
+                        subjectName: selectedSubject?.name,
+                        academicYear: selectedYear,
+                        period: selectedPeriod,
+                        month1: periodGrades.month1,
+                        month2: periodGrades.month2,
+                        month3: periodGrades.month3,
+                        periodExam: periodGrades.periodExam,
+                        workTotal: monthlyAverage,
+                        periodTotal: periodTotal,
+                        percentage: percentage,
+                        grade: grade,
+                        gradeColor: gradeColor
+                    }
+                    
+                    console.log("🔍 Debug - Auto-saving grade:", gradeData)
+                    
+                    // حفظ البيانات في قاعدة البيانات
+                    const response = await fetch('/api/grades', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ grades: [gradeData] })
+                    })
+                    
+                    if (response.ok) {
+                        console.log("🔍 Debug - Grade auto-saved successfully")
+                    } else {
+                        console.log("🔍 Debug - Error auto-saving grade:", response.status)
+                    }
+                }
+            } catch (error) {
+                console.error("🔍 Debug - Error in auto-save:", error)
+            }
+        }, 1000)
     }
 
     const handleSaveGrades = async () => {
@@ -1145,10 +1545,10 @@ export default function EnhancedGradesManager() {
         console.log("🔍 Debug - students length before save:", students.length)
         console.log("🔍 Debug - students first item before save:", students[0])
         
-        // التحقق من أن جميع الدرجات معتمدة
-        const unapprovedStudents = students.filter(student => !canSaveGrades(student.id))
+        // التحقق من أن جميع الدرجات معتمدة للفترة المحددة
+        const unapprovedStudents = students.filter(student => !canSaveGrades(student.id, selectedPeriod as string))
         if (unapprovedStudents.length > 0) {
-            alert(`يجب اعتماد درجات ${unapprovedStudents.length} طالب قبل الحفظ النهائي`)
+            alert(`يجب اعتماد درجات ${unapprovedStudents.length} طالب للفترة ${selectedPeriod} قبل الحفظ النهائي`)
             return
         }
         
@@ -1215,6 +1615,7 @@ export default function EnhancedGradesManager() {
             if (response.ok) {
                 console.log("🔍 Debug - Grades saved successfully")
                 setSaveStatus('saved')
+                // لا نحتاج لإعادة تحميل البيانات - البيانات محفوظة في الحالة المحلية
                 setTimeout(() => setSaveStatus('idle'), 3000)
             } else {
                 console.log("🔍 Debug - Error saving grades:", response.status, response.statusText)
@@ -1759,7 +2160,7 @@ export default function EnhancedGradesManager() {
                                         <div className="flex gap-3">
                                             <Button
                                                 onClick={handleSaveGrades}
-                                                disabled={saveStatus === 'saving' || students.some(student => !canSaveGrades(student.id))}
+                                                disabled={saveStatus === 'saving' || students.some(student => !canSaveGrades(student.id, selectedPeriod as string))}
                                                 className="bg-white text-lama-yellow hover:bg-lama-purple-light disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {saveStatus === 'saving' ? (
@@ -1777,10 +2178,10 @@ export default function EnhancedGradesManager() {
                                                         <XCircle className="w-5 h-5" />
                                                         خطأ في الحفظ
                                                     </div>
-                                                ) : students.some(student => !canSaveGrades(student.id)) ? (
+                                                ) : students.some(student => !canSaveGrades(student.id, selectedPeriod as string)) ? (
                                                     <div className="flex items-center gap-2">
                                                         <AlertTriangle className="w-5 h-5" />
-                                                        يجب اعتماد جميع الدرجات
+                                                        يجب اعتماد جميع الدرجات للفترة {selectedPeriod}
                                                     </div>
                                                 ) : (
                                                     <div className="flex items-center gap-2">
@@ -1796,7 +2197,61 @@ export default function EnhancedGradesManager() {
                                     <div className="space-y-6">
                                         {students.map((student) => {
                                             const restrictions = getStudentRestrictionsForSelected(student)
-                                            const currentPeriodGrades = student.grades[selectedPeriod as string] || {}
+                                            // محاولة الحصول على درجات الفترة المحددة مع fallback
+                                            let currentPeriodGrades = student.grades[selectedPeriod as string] || {}
+                                            
+                                            console.log("🔍 Debug - Initial currentPeriodGrades:", currentPeriodGrades)
+                                            console.log("🔍 Debug - selectedPeriod:", selectedPeriod)
+                                            console.log("🔍 Debug - student.grades keys:", Object.keys(student.grades))
+                                            
+                                            // إذا لم توجد درجات للفترة المحددة، جرب البحث بأسماء أخرى
+                                            if (!currentPeriodGrades || Object.keys(currentPeriodGrades).length === 0) {
+                                                console.log("🔍 Debug - No grades found for period:", selectedPeriod)
+                                                console.log("🔍 Debug - Available periods in grades:", Object.keys(student.grades))
+                                                
+                                                // جرب البحث بأسماء مختلفة للفترة
+                                                const periodVariations = [
+                                                    selectedPeriod,
+                                                    "الفترة الأولى",
+                                                    "الفترة الثانية", 
+                                                    "الفترة الثالثة"
+                                                ]
+                                                
+                                                for (const variation of periodVariations) {
+                                                    if (student.grades[variation]) {
+                                                        currentPeriodGrades = student.grades[variation]
+                                                        console.log("🔍 Debug - Found grades for variation:", variation)
+                                                        break
+                                                    }
+                                                }
+                                            }
+                                            
+                                            // إذا لم توجد درجات بعد البحث، استخدم كائن فارغ
+                                            if (!currentPeriodGrades || Object.keys(currentPeriodGrades).length === 0) {
+                                                currentPeriodGrades = {
+                                                    month1: null,
+                                                    month2: null,
+                                                    month3: null,
+                                                    periodExam: null,
+                                                    workTotal: 0,
+                                                    periodTotal: 0,
+                                                    percentage: 0,
+                                                    grade: "",
+                                                    gradeColor: ""
+                                                }
+                                                console.log("🔍 Debug - Using empty grades object")
+                                            }
+                                            
+                                            console.log("🔍 Debug - Final currentPeriodGrades:", currentPeriodGrades)
+                                            
+                                            // Debug logging للتأكد من جلب البيانات
+                                            console.log("🔍 Debug - Student grades for display:", {
+                                                studentId: student.id,
+                                                studentName: student.studentName,
+                                                selectedPeriod: selectedPeriod,
+                                                allGrades: student.grades,
+                                                currentPeriodGrades: currentPeriodGrades
+                                            })
 
                                             return (
                                                 <div key={student.id} className="p-6 border-2 border-lama-sky-light rounded-2xl hover:shadow-xl transition-all bg-white/50 backdrop-blur-sm" dir="rtl">
@@ -1822,14 +2277,14 @@ export default function EnhancedGradesManager() {
                                                             </Badge>
                                                             {/* حالة المراجعة والاعتماد */}
                                                             {(() => {
-                                                                const status = getGradeStatus(student.id)
+                                                                const status = getGradeStatus(student.id, selectedPeriod as string)
                                                                 switch (status) {
                                                                     case 'pending':
-                                                                        return <Badge variant="destructive" className="text-center">في انتظار المراجعة</Badge>
+                                                                        return <Badge variant="destructive" className="text-center">في انتظار المراجعة - {selectedPeriod}</Badge>
                                                                     case 'reviewed':
-                                                                        return <Badge variant="secondary" className="text-center">تم المراجعة</Badge>
+                                                                        return <Badge variant="secondary" className="text-center">تم المراجعة - {selectedPeriod}</Badge>
                                                                     case 'approved':
-                                                                        return <Badge variant="default" className="text-center bg-green-600">معتمد</Badge>
+                                                                        return <Badge variant="default" className="text-center bg-green-600">معتمد - {selectedPeriod}</Badge>
                                                                     default:
                                                                         return null
                                                                 }
@@ -1884,7 +2339,7 @@ export default function EnhancedGradesManager() {
                                                                     <Input
                                                                         type="number"
                                                                         placeholder="0"
-                                                                        value={currentPeriodGrades.periodExam || ""}
+                                                                        value={currentPeriodGrades.periodExam !== null && currentPeriodGrades.periodExam !== undefined ? currentPeriodGrades.periodExam : ""}
                                                                         onChange={(e) => handleGradeChange(student.id, 'periodExam', e.target.value)}
                                                                         className="modern-input text-center text-lg font-bold border-2 border-lama-yellow focus:border-lama-sky"
                                                                         min="0"
@@ -1929,9 +2384,20 @@ export default function EnhancedGradesManager() {
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                    ) : selectedPeriod === "الفترة الثالثة" ? (
+                                                        // الواجهة الخاصة بالفترة الثالثة
+                                                        <div className="space-y-4">
+                                                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                                                <div className="text-sm text-blue-800 text-center">
+                                                                    <strong>ملاحظة:</strong> الفترة الثالثة تحتوي على امتحان مباشر فقط. 
+                                                                    سيتم حساب المجموع النهائي تلقائياً (مجموع الفترتين الأولى والثانية + امتحان الفترة الثالثة)
+                                                                </div>
+                                                            </div>
+                                                            {renderThirdPeriodInputs(student, currentPeriodGrades)}
+                                                        </div>
                                                     ) : (
                                                         // الواجهة الديناميكية للفترتين الأولى والثانية
-                                                        <div className="flex gap-4 flex-wrap" dir="ltr">
+                                                        <div className="flex gap-4 flex-wrap mr-16" dir="ltr">
                                                             {renderDynamicGradeInputs(student, currentPeriodGrades)}
                                                         </div>
                                                     )}
@@ -1957,36 +2423,36 @@ export default function EnhancedGradesManager() {
                                                                     })()}
                                                                 </div>
                                                                 <div className="flex gap-2">
-                                                                    {getGradeStatus(student.id) === 'pending' && (
+                                                                    {getGradeStatus(student.id, selectedPeriod as string) === 'pending' && (
                                                                         <Button
-                                                                            onClick={() => markAsReviewed(student.id)}
+                                                                            onClick={() => markAsReviewed(student.id, selectedPeriod as string)}
                                                                             className="bg-blue-600 hover:bg-blue-700 text-white"
                                                                             size="sm"
                                                                         >
-                                                                            مراجعة
+                                                                            مراجعة - {selectedPeriod}
                                                                         </Button>
                                                                     )}
-                                                                    {getGradeStatus(student.id) === 'reviewed' && (
+                                                                    {getGradeStatus(student.id, selectedPeriod as string) === 'reviewed' && (
                                                                         <Button
-                                                                            onClick={() => markAsApproved(student.id)}
+                                                                            onClick={() => markAsApproved(student.id, selectedPeriod as string)}
                                                                             className="bg-green-600 hover:bg-green-700 text-white"
                                                                             size="sm"
                                                                         >
-                                                                            اعتماد
+                                                                            اعتماد - {selectedPeriod}
                                                                         </Button>
                                                                     )}
-                                                                    {getGradeStatus(student.id) === 'approved' && (
+                                                                    {getGradeStatus(student.id, selectedPeriod as string) === 'approved' && (
                                                                         <div className="flex items-center gap-2">
                                                                             <div className="flex items-center gap-2 text-green-600">
                                                                                 <CheckCircle2 className="w-4 h-4" />
-                                                                                <span className="text-sm font-semibold">معتمد</span>
+                                                                                <span className="text-sm font-semibold">معتمد - {selectedPeriod}</span>
                                                                             </div>
                                                                             <Button
-                                                                                onClick={() => unapproveGrades(student.id)}
+                                                                                onClick={() => unapproveGrades(student.id, selectedPeriod as string)}
                                                                                 className="bg-orange-600 hover:bg-orange-700 text-white"
                                                                                 size="sm"
                                                                             >
-                                                                                فك الاعتماد
+                                                                                فك الاعتماد - {selectedPeriod}
                                                                             </Button>
                                                                         </div>
                                                                     )}
@@ -2041,46 +2507,6 @@ export default function EnhancedGradesManager() {
                             }}
                         />
                         
-                        {flexibleDistribution && (
-                            <Card className="modern-card">
-                                <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-t-3xl">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <CardTitle className="flex items-center gap-3 text-2xl">
-                                                <Calculator className="w-6 h-6" />
-                                                إدخال الدرجات - النظام المرن
-                                            </CardTitle>
-                                            <CardDescription className="text-purple-100">
-                                                نظام مرن لإدخال الدرجات مع حساب تلقائي
-                                            </CardDescription>
-                                        </div>
-                                        <Button
-                                            onClick={refreshFlexibleDistribution}
-                                            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                                            size="sm"
-                                        >
-                                            <RefreshCw className="w-4 h-4 mr-2" />
-                                            تحديث النظام
-                                        </Button>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-8">
-                                    <Alert className="border-purple-300 bg-purple-50 rounded-2xl mb-6">
-                                        <Settings className="h-6 w-6 text-purple-600" />
-                                        <AlertDescription className="text-purple-800">
-                                            <p className="font-semibold mb-2">النظام المرن قيد التطوير</p>
-                                            <p>سيتم إضافة واجهة إدخال الدرجات المرنة قريباً مع الحساب التلقائي للمتوسط والمجموع.</p>
-                                        </AlertDescription>
-                                    </Alert>
-
-                                    <div className="text-center py-8">
-                                        <div className="text-6xl mb-4">⚙️</div>
-                                        <h3 className="text-2xl font-bold text-gray-800 mb-2">قيد التطوير</h3>
-                                        <p className="text-gray-600">النظام المرن لإدخال الدرجات سيكون متاحاً قريباً</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
                     </TabsContent>
 
                     {/* محتوى استيراد Excel */}
@@ -2324,34 +2750,7 @@ export default function EnhancedGradesManager() {
                                      </div>
                                  </CardContent>
                              </Card>
-                         ) : (
-                             <Card className="modern-card">
-                                 <CardHeader className="bg-gradient-to-l from-lama-sky to-lama-yellow text-white rounded-t-3xl">
-                                     <CardTitle className="flex items-center gap-3 text-2xl">
-                                         <Calculator className="w-6 h-6" />
-                                         إدخال درجات {selectedPeriod}
-                                     </CardTitle>
-                                     <CardDescription className="text-lama-purple-light">
-                                         {students.length} طالب متاح لإدخال الدرجات
-                                     </CardDescription>
-                                 </CardHeader>
-                                 <CardContent className="p-6">
-                                     <Alert className="border-lama-sky bg-gradient-to-r from-lama-sky-light to-lama-yellow-light rounded-2xl mb-6">
-                                         <Calculator className="h-6 w-6 text-lama-sky" />
-                                         <AlertDescription className="text-lama-sky">
-                                             <p className="font-semibold mb-2">جاري تطوير نظام إدخال الدرجات للفترتين الأولى والثانية</p>
-                                             <p>حالياً متاح فقط نظام الفترة الثالثة المتطور. باقي الفترات قيد التطوير.</p>
-                                         </AlertDescription>
-                                     </Alert>
-
-                                     <div className="text-center py-8">
-                                         <div className="text-6xl mb-4">⚙️</div>
-                                         <h3 className="text-2xl font-bold text-gray-800 mb-2">قيد التطوير</h3>
-                                         <p className="text-gray-600">نظام إدخال درجات {selectedPeriod} سيكون متاحاً قريباً</p>
-                                     </div>
-                                 </CardContent>
-                             </Card>
-                         )}
+                         ) : null}
                      </>
                  )}
 
